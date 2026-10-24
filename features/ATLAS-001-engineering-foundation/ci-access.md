@@ -57,7 +57,7 @@ The App private key is a stored secret, but the credential used by jobs is minte
   - Mode A: all jobs run without secrets.
   - Mode B: cross-repo jobs are skipped for forks with an explicit notice. Enable "Require approval for first-time contributors" in repo Actions settings (owner action).
 
-## 6. Proposed rulesets (E-08) — owner applies; not applied by Claude
+## 6. Rulesets (E-08) — applied 2026-10-24 to atlas-specs and atlas-backend (owner-authorized; evidence §9.4)
 
 **Enforceability (checked read-only 2026-10-24):** account `Kibana21` is on **GitHub Free** (personal); all three repositories are **public**; none has a ruleset or classic branch protection. Rulesets are available for public repositories on GitHub Free, so the settings below are enforceable as written. No bypass actors are configured, so they also bind the owner's account and Claude's merges through it.
 
@@ -93,7 +93,7 @@ The App private key is a stored secret, but the credential used by jobs is minte
 | Repository | `required_status_checks` (context names; GitHub Actions app `integration_id` 15368) | Grows with |
 |---|---|---|
 | `atlas-specs` | `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` | — |
-| `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2) | `integration` (CP3/CP5), `images` (CP5) |
+| `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2), `integration` (from CP3) | `images` (CP5) |
 | `atlas-frontend` | apply when its CI exists (CP6): `static`, `unit`, `generated`, `build`, `security`, `image`, `e2e` | — |
 
 **Why these values:**
