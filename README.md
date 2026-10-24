@@ -17,7 +17,7 @@ This repository is the source of truth for Atlas requirements, UX, technical arc
 
 ## Work items
 
-- `features/ATLAS-001-engineering-foundation/` — spec, plan, tasks, acceptance (draft, awaiting approval)
+- `features/ATLAS-001-engineering-foundation/` — engineering foundation: spec, plan, tasks, acceptance, evidence, follow-ups. **Accepted** (owner, 24 Oct 2026; release `contract-v0.1.0` / `v0.1.0`)
 
 ## Intended companion repositories
 

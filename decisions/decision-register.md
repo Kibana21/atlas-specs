@@ -1,6 +1,6 @@
 # Atlas — Decision Register
 
-**Version:** 0.4 · **Date:** 24 October 2026 (v0.1 Phase 0 baseline; v0.2 D-01…D-06; v0.3 D-07; v0.4 ATLAS-001 implementation approval, DEC-085 public, DEC-084 in principle) · **Companion:** `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md`  
+**Version:** 0.5 · **Date:** 24 October 2026 (v0.1 Phase 0 baseline; v0.2 D-01…D-06; v0.3 D-07; v0.4 ATLAS-001 implementation approval, DEC-085 public, DEC-084 in principle; v0.5 ATLAS-001 Accepted) · **Companion:** `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md`  
 **Scope:** All architecture, product and delivery decisions referenced by the Phase 0 blueprint, the requirement traceability matrix (`phase0/requirement-traceability-matrix.md`) and the backlog (`phase0/prioritized-backlog.md`).
 
 ## How to read this register
@@ -175,3 +175,4 @@ Ordered by needed-by, then by number of requirements blocked (counts from the RT
 | 2026-10-24 | v0.3: D-07 approved. DEC-020 (with modification), DEC-024, DEC-028, DEC-038, DEC-039 (with modification) and DEC-040 (with modification) moved from Proposed to A2 Confirmed. DEC-044 annotated (4-role proposal). DEC-084 updated (CI scram, cross-database finding, optional hardening). DEC-085 reframed as a security decision with recommendation *private*. DEC-091/092 narrowed to their provisional parts. Totals: 24 Confirmed, 16 Proposed, 38 Open, 10 Provisional. |
 | 2026-10-24 | v0.4: DEC-085 decided **PUBLIC** (moved to A2 Confirmed); DEC-084 approved in principle, not applied; DEC-044 four-role design approved (execution not authorized). ATLAS-001 v0.2.1 Approved for Implementation (CP1 only). Totals: 25 Confirmed, 16 Proposed, 37 Open, 10 Provisional. |
 | 2026-10-24 | v0.4.1: DEC-065 annotated with the E-04 `api` text-on-tint 4.50:1 limitation (accepted provisionally). |
+| 2026-10-24 | v0.5 (owner instruction at the ATLAS-001 acceptance): **ATLAS-001 Engineering Foundation v0.1.0 Accepted** at Gate G7 (`features/ATLAS-001-engineering-foundation/evidence.md` §13.11), subject to its recorded deviations and `follow-ups.md`. No decision changes status: DEC-084 stays approved in principle and not applied; DEC-055, DEC-065 and DEC-092 unchanged; DEC-090…099 stay Provisional. Totals unchanged: 25 Confirmed, 16 Proposed, 37 Open, 10 Provisional. |

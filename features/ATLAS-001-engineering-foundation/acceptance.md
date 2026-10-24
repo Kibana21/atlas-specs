@@ -1,6 +1,6 @@
 # ATLAS-001 — Engineering Foundation: Acceptance Criteria
 
-**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Spec:** `spec.md` v0.2.1 · **Tasks:** `tasks.md` v0.2.1
+**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1–CP7 completed; **ATLAS-001 Accepted** (owner, 24 Oct 2026, Gate G7; `evidence.md` §13.11) · **Spec:** `spec.md` v0.2.1 · **Tasks:** `tasks.md` v0.2.1
 
 ## Rules
 
@@ -290,4 +290,4 @@
 
 ## Sign-off
 
-ATLAS-001 is **Accepted** only when every AC above has evidence recorded in `evidence.md` and the owner signs it (G7). Tags: `atlas-specs` `contract-v0.1.0`, `atlas-backend` `v0.1.0`, `atlas-frontend` `v0.1.0`.
+ATLAS-001 is **Accepted** only when every AC above has evidence recorded in `evidence.md` and the owner signs it (G7). **Accepted by the owner on 24 Oct 2026** (`evidence.md` §13.11), subject to the recorded deviations and `follow-ups.md`. Tags: `atlas-specs` `contract-v0.1.0`, `atlas-backend` `v0.1.0`, `atlas-frontend` `v0.1.0`.

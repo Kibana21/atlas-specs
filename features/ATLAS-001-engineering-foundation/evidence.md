@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gates G1–G6 PASSED**; **Gate G7: engineering verdict PASS (§13.11), owner signature pending** (2026-10-24). CP1–CP7 complete (S-01…S-13, B-01…B-28, F-01…F-14); release tags `contract-v0.1.0`, backend `v0.1.0`, frontend `v0.1.0` created and protected (§13.9). ATLAS-001 **not yet Accepted**: it becomes Accepted when the owner signs §13.11.
+**Status:** **ATLAS-001 ACCEPTED** by the owner on 2026-10-24 (Gate G7, §13.11), subject to the recorded deviations and `follow-ups.md`. Gates G1–G7 passed. CP1–CP7 complete (S-01…S-13, B-01…B-28, F-01…F-14); release tags `contract-v0.1.0`, backend `v0.1.0`, frontend `v0.1.0` created and protected (§13.9).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -22,6 +22,7 @@
 | G4 / CP5 | G4 accepted and CP5 authorized by the owner (2026-10-24) |
 | G5 / CP6 | G5 accepted and CP6 authorized by the owner (2026-10-24); **P-04 approved** (Node 24 LTS, project-local) |
 | G6 / CP7 | G6 accepted and CP7 authorized by the owner (2026-10-24): E2E, E2E CI, real-browser accessibility, release preparation and `v0.1.0` tags |
+| G7 / acceptance | **G7 approved and ATLAS-001 v0.1.0 accepted by the owner (2026-10-24)**, subject to the documented risks and deviations (§13.11) |
 
 ## 2. Branch, commits and CI
 
@@ -673,18 +674,24 @@ Created on 2026-10-24 after the evidence PR [atlas-specs#11](https://github.com/
 | G7 criterion (tasks.md) | Result |
 |---|---|
 | All ACs evidenced | ✔ §13.7 |
-| The owner signs `evidence.md` | **Pending** |
-| Register updated by owner instruction | Pending owner instruction |
+| The owner signs `evidence.md` | ✔ **Owner approval recorded below** |
+| Register updated by owner instruction | ✔ `decision-register.md` v0.5 (status only; no decision changed status) |
 
-**Engineering verdict: Gate G7 — PASS (all criteria evidenced; release prerequisites met).** ATLAS-001 becomes **Accepted** only when the owner signs below.
+**Engineering verdict: Gate G7 — PASS** (all criteria evidenced; release prerequisites met).
 
-Owner sign-off: ______________________ (name, date) — *not signed*
+**Owner acceptance (recorded 2026-10-24).** The owner reviewed the reported Checkpoint 7 results and the Gate G7 evidence and wrote: *"I approve Gate G7 and formally accept ATLAS-001 Engineering Foundation v0.1.0, subject to the documented outstanding risks and deviations."*
+
+- **Form of approval:** given by the owner in writing in the Claude Code working conversation on **24 October 2026**, and recorded here by Claude at the owner's instruction. It is **not** a handwritten or cryptographic signature; none was given, and none is implied.
+- **Scope accepted:** ATLAS-001 Engineering Foundation **v0.1.0** at the SHA triple in §13.8 (specs `bfe4a09…` `contract-v0.1.0`, backend `585f3f5…` `v0.1.0`, frontend `b9f235e…` `v0.1.0`).
+- **Subject to:** the deviations and risks E-01…E-64 as recorded, and the follow-ups in [`follow-ups.md`](follow-ups.md): **A001-DEF-01** (E-48, backend defect with a required regression test and proposed remediation) and **A001-OBS-01** (E-62, tracked observation).
+- **Unchanged and still open:** DEC-084 (`pg_hba` hardening, not applied) and E-07 (optional credential rotation). No infrastructure or credential change was made.
+- **Status: ATLAS-001 — ACCEPTED** (Gate G7 passed).
 
 ### 13.12 CP7 deviations, findings and risks
 
 | ID | Item | Status |
 |---|---|---|
-| E-48 | **Backend finding (not fixed in CP7):** after a Redis outage, an API process that sent no Redis command during the outage keeps a stale pooled connection; its **first** readiness check after Redis returns reports `redis` failed (`redis_command_failed`, `ConnectionError`), the next one is Ready. PostgreSQL does not show this (`pool_pre_ping`). Seen when the diagnostics-disabled API shared the outage proxies; the harness now gives it its own proxies, so the suite does not depend on it | Recommend a backend task (e.g. redis-py `health_check_interval` or one reconnect retry for the probe); no backend change in CP7 (owner restriction) |
+| E-48 | **Backend finding (not fixed in CP7):** after a Redis outage, an API process that sent no Redis command during the outage keeps a stale pooled connection; its **first** readiness check after Redis returns reports `redis` failed (`redis_command_failed`, `ConnectionError`), the next one is Ready. PostgreSQL does not show this (`pool_pre_ping`). Seen when the diagnostics-disabled API shared the outage proxies; the harness now gives it its own proxies, so the suite does not depend on it | **Follow-up backend defect A001-DEF-01** (`follow-ups.md`: reproduction, required regression test, proposed remediation); no backend change in CP7 (owner restriction) |
 | E-49 | With `'strict-dynamic'` (the Next.js nonce model), scripts created by already-trusted script are trusted by design; an inline script inserted via `createContextualFragment` ran, while an injected inline **event handler** was blocked. Defence against HTML injection also relies on never rendering raw HTML (`react/no-danger`, hygiene test) | Documented trade-off of the approved CSP |
 | E-50 | 200 % zoom is tested by viewport equivalence (640×360 CSS px at device scale 2): Chromium's browser zoom has no automation API | Owner asked for "200 % zoom or an equivalent explicitly documented test" |
 | E-51 | Forced colours use Chromium's `forced-colors` emulation; Windows High Contrast on real hardware was not tested (macOS has no forced-colours mode) | Platform limitation |
@@ -698,6 +705,6 @@ Owner sign-off: ______________________ (name, date) — *not signed*
 | E-59 | When `e2e` fails before Playwright runs (lock drill), the upload step also reports "No files were found" | Cosmetic; the job fails either way |
 | E-60 | F-13 asks a second engineer to reproduce from the README; with one maintainer, Claude followed it on a fresh clone (as E-28) | Owner may repeat it |
 | E-61 | API processes exit 143 under `uv` after uvicorn's "Application shutdown complete"; the stack asserts that line instead of exit 0 | Signal semantics |
-| E-62 | **Intermittent result:** one fresh-clone run reported an axe violation in the first `/status` scan; details were truncated in the terminal and it did not reproduce in 24 further runs (local and CI). Most likely cause: a running opacity transition sampled mid-way. Each scan now waits until `document.getAnimations()` is empty; no rule disabled | Monitor; the HTML report attaches the full axe JSON per scan |
+| E-62 | **Intermittent result:** one fresh-clone run reported an axe violation in the first `/status` scan; details were truncated in the terminal and it did not reproduce in 24 further runs (local and CI). Most likely cause: a running opacity transition sampled mid-way. Each scan now waits until `document.getAnimations()` is empty; no rule disabled | **Tracked observation A001-OBS-01** (`follow-ups.md`); the HTML report attaches the full axe JSON per scan |
 | E-64 | **Process note:** the push and PR-merge command for #11 was rejected in the terminal while it was already running; it had completed (push, PR, required checks 6/6, merge). This was only noticed afterwards, when re-running it found no new commits; until then Claude had wrongly told the owner nothing was pushed. #11 passed every gate (head and `main` 6/6, `main` tree = reviewed branch), so nothing was reverted. Reported to the owner in the CP7 completion report | Disclosed |
 | E-63 | Harness fix during development: signalling the worker's whole process group left taskiq's parent waiting until the timeout; SIGTERM now goes to the top process (as `docker stop`), with a group SIGKILL only as a fallback | Fixed; graceful stop asserted |

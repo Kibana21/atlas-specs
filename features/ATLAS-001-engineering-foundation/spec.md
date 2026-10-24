@@ -4,7 +4,7 @@
 |---|---|
 | Work item | ATLAS-001 Engineering Foundation |
 | Version | **0.2.3** (controlled amendments of 0.2.1; see §13) — final candidate of v0.2: owner decisions D-01…D-07 applied, PostgreSQL roles simplified, authentication and repository-visibility analysis added (24 Oct 2026) |
-| Status | **Approved for Implementation** (owner, 24 Oct 2026; baseline v0.2.1). Checkpoint 1 authorized; later checkpoints need their own authorization. The ATLAS-001 feature is **not Accepted** until Gate G7 |
+| Status | **Accepted** (owner, 24 Oct 2026, Gate G7; `evidence.md` §13.11), subject to the recorded deviations and `follow-ups.md`. Implemented from baseline v0.2.1 with amendments v0.2.2/v0.2.3 |
 | Basis | Phase 0 Blueprint (approved as plan); `decisions/decision-register.md` v0.3; Technical Design v1.1 §6, §8, §16.2, §17 (deviations recorded in `decisions/baseline-deviations.md`) |
 | Companions | `plan.md`, `tasks.md`, `acceptance.md`, `readiness.md` (approval request), `changes-v0.2.md`, `ci-access.md`, `proposals/postgres-local-setup.sql` and `proposals/pg_hba-atlas.conf` (review only, **not applied**) |
 | Backlog coverage | BL-013 (conventions, partial), BL-021 (bootstrap), BL-103 (API shell), BL-107 (generated client), BL-122 (test harness, Chromium only), BL-126 (diagnostics), BL-024 (tokens, as proposed values). BL-201 (durable jobs/outbox) is **deferred** (DEC-046) |
@@ -438,12 +438,13 @@ Implementation of CP1 starts only when **all** of these hold:
 
 Later checkpoints have their own preconditions (P-03 SQL before CP3, P-04 Node 24 before CP6, P-07 ruleset before G7).
 
-ATLAS-001 is **not Accepted** by this document. It becomes Accepted only through the signed sign-off in `acceptance.md` / `evidence.md` (G7).
+ATLAS-001 is **not Accepted** by this document. It becomes Accepted only through the signed sign-off in `acceptance.md` / `evidence.md` (G7). *Update 24 Oct 2026: the owner accepted ATLAS-001 at G7 (`evidence.md` §13.11).*
 
 ## 13. Revision record
 
 | Version | Date | Change |
 |---|---|---|
+| 0.2.3 | 2026-10-24 | **Status only: Accepted** by the owner at Gate G7 (`evidence.md` §13.11), subject to the recorded deviations and `follow-ups.md`. No content change |
 | 0.1 | 2026-10-24 | Initial draft |
 | 0.2 | 2026-10-24 | Revised per review-01 and owner decisions D-01…D-06; see `changes-v0.2.md` |
 | 0.2.3 | 2026-10-24 | **Controlled amendment (owner-approved CP2 authorization):**<br>• **A4** doctor performs no active authentication probe; auth method read-only from `pg_hba_file_rules` or deferred (FR-35);<br>• **A5** backend `static`/`unit`/`contract`/`security` CI moved from CP5 into CP2 (new tasks B-27, B-28; FR-36 explicit pending-operation list);<br>• **A6** CI triggers `pull_request` + `push` to `main` in all repos, so required checks are never satisfied by skipped jobs (E-08) |
