@@ -1,0 +1,25 @@
+# Generated artifacts
+graphify-out/
+_site/
+build/
+dist/
+*.pdf.tmp
+
+# Node tooling (e.g. OpenAPI linters/bundlers)
+node_modules/
+
+# Editor temp / office lock files
+~$*
+*.swp
+*.tmp
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
