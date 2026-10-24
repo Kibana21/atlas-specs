@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED**, **Gate G5 PASSED**, **Gate G6 PASSED** (2026-10-24). CP1 (S-01…S-12), backend CP2–CP5 (B-01…B-25, B-27, B-28) and frontend CP6 (F-01…F-09, F-11 brought forward) complete; CP7 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gates G1–G6 PASSED**; **Gate G7: engineering verdict PASS (§13.11), owner signature pending** (2026-10-24). CP1–CP7 complete (S-01…S-13, B-01…B-28, F-01…F-14; release tags per §13.9). ATLAS-001 **not yet Accepted**: it becomes Accepted when the owner signs §13.11.
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -16,11 +16,12 @@
 | P-09 contract release `0.1.0` | **Approved conditionally** (owner, 2026-10-24); all conditions verified (§6) → tag created |
 | Amendments A1/A2/A3 (E-01/E-03/E-04) | Approved (A1, A2) / accepted provisionally (A3); spec v0.2.2 |
 | DEC-084 `pg_hba` hardening | Approved in principle; **not applied** (CP3 authorization excluded `pg_hba.conf` changes) |
-| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); backend required checks extended with `images` after its first green `main` run (§11.4); **`atlas-frontend` applied 2026-10-24** after its first green `main` run (§12.4) |
+| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); backend required checks extended with `images` after its first green `main` run (§11.4); **`atlas-frontend` applied 2026-10-24** after its first green `main` run (§12.4), `e2e` added after its first green `main` run (§13.6) |
 | G2 / CP3 | G2 accepted and CP3 authorized by the owner (2026-10-24) |
 | G3 / CP4 | G3 accepted and CP4 authorized by the owner (2026-10-24), including completion of `getHealthReady` and emptying the pending list |
 | G4 / CP5 | G4 accepted and CP5 authorized by the owner (2026-10-24) |
 | G5 / CP6 | G5 accepted and CP6 authorized by the owner (2026-10-24); **P-04 approved** (Node 24 LTS, project-local) |
+| G6 / CP7 | G6 accepted and CP7 authorized by the owner (2026-10-24): E2E, E2E CI, real-browser accessibility, release preparation and `v0.1.0` tags |
 
 ## 2. Branch, commits and CI
 
@@ -518,3 +519,176 @@ The `protect-main` ruleset on `atlas-backend` now requires `static, unit, contra
 | E-45 | Not verified in a browser: reflow at 320 px (the window could not be resized in the automation session; CSP `frame-ancestors 'none'` correctly blocks iframe checks), plus 200 % zoom and forced-colours rendering. Layouts use responsive utilities | Covered by CP7 Playwright (FR-59) |
 | E-46 | Contrast is checked on the tokens (atlas-specs `check_tokens.py`), not in jsdom: axe's `color-contrast` rule is off in component tests. The real-browser axe run comes in CP7 | Planned |
 | E-47 | `pnpm` 11 needed `allowBuilds: {unrs-resolver: false}` (its prebuilt binary arrives as an optional package), so no dependency install script runs | Noted |
+
+## 13. Checkpoint 7 — E2E verification and release (atlas-frontend; release tasks in each repository)
+
+**Authorization:** owner, 2026-10-24.
+
+- G6 accepted; CP7 authorized: Playwright E2E, full frontend-to-backend verification, E2E CI, real-browser accessibility, remaining ACs, release preparation and `v0.1.0` tags.
+- Excluded: ATLAS-002, architecture visualization, new product features, shared-service changes, released-contract changes, DEC-084, task retries/outbox.
+
+### 13.1 Tasks
+
+| Task | Status and evidence |
+|---|---|
+| F-10 | `pnpm e2e`: Playwright 1.64.0, **Chromium only** (one `projects` entry; WebKit is one more entry). Runs against `next build && next start` and the **real backend** from an atlas-backend checkout: two API processes (diagnostics enabled / disabled) and the Taskiq worker, **test environment only** (`atlas_test`, Redis DB 11, prefix `atlas:test:e2e:`). **24 tests** (§13.3). No request interception or mocks (hygiene test + CI grep) |
+| F-12 | CI job `e2e`: backend checked out at `e2e/backend.ref` = **`585f3f52e477b051cc33b15fdb549c8af6e6f44a`** (G5); job-local digest-pinned `postgres:15.19` (scram) and `redis:7.4.9`; approved bootstrap SQL (drift-checked against the proposal at the pinned specs SHA) with random masked passwords; `atlas_test` migrated; Chromium installed at the version pinned by `@playwright/test`; bounded readiness waits (90 s per process, 20 s through the proxies); graceful stop recorded; 0 keys left check; report + stack logs uploaded only after a check that they contain no credential |
+| F-13 | Frontend README "End-to-end tests": suites, fault-proxy model, ports, prerequisites, commands, safety rules, CI behaviour. Followed step by step from a fresh clone (§13.2); second-engineer caveat as E-28 |
+| B-26 / F-14 | Release tags `v0.1.0`: backend at `585f3f5…` (= `e2e/backend.ref`), frontend at **`b9f235e9c0209497a0ebca3f09c3d25bfd70fa63`** (the merge that passed F-12 on PR and `main`). Both commits pin `specs.lock` = `bfe4a09…`, which carries `contract-v0.1.0`. Created only after this evidence is merged; results in §13.9 |
+| S-13 | This section: AC traceability (§13.7), the SHA triple, open-decision snapshot (§13.10). **Owner signature pending (§13.11)** |
+
+**E2E architecture.** Outages are simulated by the suite's own TCP pass-through proxies (`e2e/support/fault-proxy.ts`) between the primary API/worker and PostgreSQL/Redis, and between the browser and the API. "Down" closes the proxy's listener and drops its connections; "up" reopens it. **No PostgreSQL, Redis or other service is stopped or reconfigured.** The diagnostics-disabled API has its own never-interrupted proxies (E-48). Connection URLs are read into memory and passed only to the child processes; they are never printed or written.
+
+### 13.2 Results
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-frontend#4](https://github.com/Kibana21/atlas-frontend/pull/4): 5 commits (F-10 ×3, F-12, F-13), 29 files (+1934/−25), file list equal to the local diff, mergeable `clean` |
+| Merge commit | **`b9f235e9c0209497a0ebca3f09c3d25bfd70fa63`** |
+| CI on PR head `2dc5e2a` | [run 40090878585](https://github.com/Kibana21/atlas-frontend/actions/runs/40090878585): `static`, `unit`, `generated`, `build`, `security`, `image`, `e2e` — **7/7 success** |
+| CI on `main` | [run 40091016904](https://github.com/Kibana21/atlas-frontend/actions/runs/40091016904): **7/7 success**; whole run 1 min 36 s (NFR-02 ≤ 15 min) |
+| `e2e` job log (`main`, job 120863515733) | `OK: bootstrap.sql = approved proposal + documented CI-ONLY block`; `0001_baseline (head)`; specs lock `bfe4a09…` (`contract-v0.1.0`); Chrome for Testing 156.0.8078.4 (playwright chromium v1248); **`Running 24 tests using 1 worker` → `24 passed (19.5 s)`**; stack stop: api ×2 `Application shutdown complete` (exit 143, signal semantics), worker exit 0 with `worker_stopped`, 1.0 s; `OK: no page.route( in e2e/`; `db 11: 0 keys match 'atlas:test:*'`; HTML report artifact `e2e-report` (id 12558743808) |
+| `unit` | **65 passed**; coverage statements 98.17 %, branches 94.32 %, functions 96 %, lines 98.06 % |
+| `security` | `pnpm audit --prod`: none. Full audit incl. dev: **none** (after E-54). Hygiene tests 7 (new: no interception in `e2e/`). Trivy secret scan clean |
+| Local (fresh clone of the branch) | Node 24.22.1 bootstrapped (checksum verified), frozen install, `pnpm check` (65, 98.17 %), full audit clean, `pnpm specs` + `check:generated` OK, `pnpm e2e:build` + `pnpm e2e` **24/24** (5 full runs; one earlier run had one intermittent failure, E-62) |
+| Local stability | 24/24 in 3 consecutive runs on the working tree; accessibility file 8/8 and 12/12 consecutive runs; full suite ≈ 13 s |
+| Stack cleanup | After every run: no Atlas process left, ports 3000/8110–8119/15432–15433/16379–16380 free, `pids.json` + `shutdown.json` recorded |
+
+### 13.3 E2E coverage (real Chromium, real backend, no interception)
+
+| Area (owner CP7 §2/§3) | Tests and assertions |
+|---|---|
+| Home and status pages | `/`: one `h1`, banner + main, no navigation, **exactly one** interactive element in `main` plus the skip link; the link opens `/status` → Ready |
+| Healthy dependencies | Ready; API/Database/Redis Operational; provenance: environment `test`, contract `0.1.0`, migration `0001_baseline`, specs commit = `specs.lock`, backend commit = `ATLAS_BUILD_SHA` (CI: `e2e/backend.ref`), frontend commit = build SHA |
+| Database unavailable → recovery | Degraded, "the database did not respond"; Database "Not responding"; Redis "Not checked" (the 503 names only the failed check, so it stays unknown, never assumed healthy); 503 envelope `DEPENDENCY_UNAVAILABLE`, `failed_check: database`; after the proxy returns, **Check again → Ready** |
+| Redis unavailable → recovery | Same, `failed_check: redis` |
+| Backend unreachable → recovery | Initial load and after a healthy check: "API unreachable"; all checks "Not checked"; **no "Operational" anywhere**; every provenance value "Unavailable"; then Check again → Ready |
+| Diagnostics disabled (AC-09, AC-15 d) | "Ready, diagnostics disabled"; health shown; no provenance terms; 404 `NOT_FOUND`; switching back → provenance |
+| Correlation IDs (AC-10) | Every browser request carries `web_<32 hex>`; the API echoes it; on failure the ID shown equals the request's and the **backend log contains `database_probe_failed` / `redis_command_failed` with that `correlation_id`**; for unreachable, a client-side ID that never reached the backend (0 log events); invalid inbound IDs (`<script>`, 200 chars) replaced |
+| Error handling / recovery actions | All failure states above with "Check again" recovery; keyboard activation keeps focus (§13.4) |
+| Console errors | Every test fails on any console error/warning, uncaught page error or CSP violation it did not cause on purpose (allowed only: Chromium's own "Failed to load resource" report for a deliberately failed API request, in the tests that cause it) |
+| Security headers and CSP | Document CSP: `script-src 'self' 'nonce-…' 'strict-dynamic'`, no `unsafe-eval`/inline, `frame-ancestors`/`object-src`/`base-uri 'none'`, `connect-src` = self + API; nosniff, no-referrer, `X-Frame-Options: DENY`, no `X-Powered-By`; every served `<script>` carries this response's nonce; fresh nonce per response; **Chromium blocks an injected inline event handler** (E-49). API: nosniff, no-referrer, `no-store`; CORS allows only the web origin |
+| API contract conformance | Every API response the browser receives is validated against the pinned contract: operation and status declared, `application/json`, `X-Correlation-ID` pattern and echo, body against the OpenAPI component **and** the matching JSON Schema file, `error.correlation_id` = header. Observed: live 200, ready 200/503, build 200/404. Self-test: the checker rejects a wrong type, a missing field, a non-JSON body, an invalid header, an undeclared status and an unknown path |
+| Lock parity (AC-02) | Backend `/diagnostics/build` `specs_sha` and `contract_version` equal the frontend `specs.lock` |
+| Worker and processes | Worker started (`worker_started`), survived the Redis outage (`broker_listen_retry` logged, no exit), stopped gracefully; all three processes running at the end of the status suite |
+
+### 13.4 Real-browser accessibility (owner CP7 §3)
+
+| Check | Result |
+|---|---|
+| axe-core 4.14 in Chromium (tags wcag2a/aa, 21a/aa, 22a/aa + best-practice; **no rule disabled**) | `/` and `/status` in ready, degraded, unreachable and diagnostics-disabled states: **0 violations** (31–39 rules passing per scan). Each scan waits until no transition is running (E-62) |
+| Colour contrast from rendered styles | axe evaluated contrast on 3–29 nodes per scan. Text over the dot-grid gradient (axe "needs review") is **measured from rendered pixels**: text made transparent, area screenshotted, text colour compared with every background pixel (worst case). Results: wordmark 14.83:1, header tagline 5.17:1, `h1` 10.97:1 (large, ≥ 3), subtitle 5.11:1, section heading 10.97:1. All ≥ requirement. Found and fixed: "Back to home" over a canvas dot **3.73:1** (E-53) |
+| 320 px reflow (WCAG 1.4.10) | `/` and `/status` (with 40-hex SHAs) at 320×640 CSS px: no horizontal overflow; controls inside the viewport |
+| 200 % zoom (WCAG 1.4.4) | Equivalent, documented test: 1280×720 at 200 % = 640×360 CSS px at device scale 2 (E-50): no horizontal overflow, `h1` in view, `devicePixelRatio` 2 |
+| Keyboard only, visible focus | Tab → skip link (visible, 2 px solid outline in the token focus colour, 2 px offset); Enter → focus on `main`; Tab → "View system status"; Enter → `/status`; focus order skip link → Check again → Back to home (nothing else focusable); Space/Enter re-run the checks and **focus stays on the button** (E-53); Enter on "Back to home" → `/` |
+| Skip link | Works as above (first tab stop, moves focus to `main#main`) |
+| Status announcements | `role="status"`, `aria-live="polite"`; text changes from "Status: Ready. …" to "Status: Degraded. …"; Chromium's accessibility tree exposes `status` with that name |
+| Forced colours | Chromium emulation `forced-colors: active` (E-51): media query matches; focus outline 2 px solid in `Highlight`; status text present; icons `forced-color-adjust: auto`; card borders 1 px solid |
+| Reduced motion | `prefers-reduced-motion: reduce`: max computed transition/animation duration over every element and pseudo-element ≤ 0.01 ms on `/` and `/status` |
+
+### 13.5 Drills (real PRs, closed unmerged, branches deleted)
+
+| Drill | PR / run | Result |
+|---|---|---|
+| Frontend: ESLint error (unused import, `--max-warnings 0`), type error, fake credential (AC-01, AC-12) | [atlas-frontend#5](https://github.com/Kibana21/atlas-frontend/pull/5), [run 40091260183](https://github.com/Kibana21/atlas-frontend/actions/runs/40091260183) | `static` **failure** (`src/lib/drill.ts(4,14): error TS2322`; `static` stops at the first failing step, so the ESLint failure was shown locally on the same commit: `'readFileSync' is defined but never used`, max warnings 0). `security` and `unit` **failure** (`drill-fake-credential.txt: password in url`). `build`, `image`, `e2e` also failed (the type error breaks `next build`). PR `blocked` |
+| Frontend coverage below 80 % (AC-13) | [atlas-frontend#8](https://github.com/Kibana21/atlas-frontend/pull/8), [run 40091477406](https://github.com/Kibana21/atlas-frontend/actions/runs/40091477406) | Only `unit` **failure**: `ERROR: Coverage for lines (55.27%) does not meet global threshold (80%)` (also functions, statements, branches) with all 65 tests passing. PR `blocked` |
+| Frontend lock pointed at another commit (AC-02) | [atlas-frontend#6](https://github.com/Kibana21/atlas-frontend/pull/6), [run 40091261739](https://github.com/Kibana21/atlas-frontend/actions/runs/40091261739) | `generated` and `e2e` **failure**: `SPECS_LOCK_INVALID: specs.lock: 25b88d33d746 does not carry the release tag contract-v0.1.0`. Local drill in a disposable clone (same lock, extracted contract kept): the parity test fails `Expected "25b88d3…" Received "bfe4a09…"`. PR `blocked` |
+| Frontend E2E assertion (owner CP7 §4: E2E fails the job) | [atlas-frontend#7](https://github.com/Kibana21/atlas-frontend/pull/7), [run 40091264415](https://github.com/Kibana21/atlas-frontend/actions/runs/40091264415) | `/status` forced to 480 px wide (no unit test can see it): only `e2e` **failure**, `/status: 320 CSS px … Expected: <= 0 Received: 176`; 23 others passed; report uploaded. PR `blocked` |
+| Specs: response field removed without a version bump (AC-03 g) | [atlas-specs#10](https://github.com/Kibana21/atlas-specs/pull/10), [run 40091748970](https://github.com/Kibana21/atlas-specs/actions/runs/40091748970) | `breaking` **failure**: `comparing against contract-v0.1.0` → `BREAKING_CHANGE: breaking changes without an allowed version bump (0.1.0 -> 0.1.0)`. `tools` also failed (conformance self-tests depend on the field). PR `blocked`. The released contract and tag are unchanged (§13.8) |
+
+Earlier drills: backend lint/type/coverage/fake-secret [#6](https://github.com/Kibana21/atlas-backend/pull/6) and undeclared route [#7](https://github.com/Kibana21/atlas-backend/pull/7) (§11.4); frontend generated-file hand edit [#3](https://github.com/Kibana21/atlas-frontend/pull/3) (§12.3).
+
+### 13.6 Rulesets
+
+`atlas-frontend` `protect-main` (25776799) now requires **`static, unit, generated, build, security, image, e2e`** (strict), applied after `e2e` passed on `main`; read back: enforcement active, no bypass actors, merge commits only, 0 approvals, deletion and non-fast-forward blocked. The drill PRs #5–#8 were all `blocked`. `atlas-specs` and `atlas-backend` rulesets unchanged (§9.4, §11.4).
+
+### 13.7 Acceptance-criteria traceability (S-13)
+
+| AC | Evidence | Verdict |
+|---|---|---|
+| AC-01 Each repository passes its own checks independently | Specs `make check` from a fresh clone without Node (§3, §6); backend `make check` fresh clone (§11.2); frontend `pnpm check` fresh clone (§12.2, §13.2). CI green on each `main` head (§13.8). Lint/type drills: backend #6, frontend #5 | ✔ |
+| AC-02 One immutable specs revision, parity enforced | `check_specs_lock.py` valid + 5 invalid cases (§3, §6); backend `make specs --release` (§11); frontend `pnpm specs` (§12); E2E parity test (§13.3); parity drill #6 + local (§13.5); release-tag lock check (§13.9); owner release approval P-09 (§1, §6) | ✔ |
+| AC-03 Conformance detects missing, unexpected, changed operations | (a)–(f) tool self-tests (§3, §6a) and backend drills b, c, e, f in `make contract` (§11.1), real drill PR (c) backend #7 (§11.4); (g) specs drill #10 (§13.5) and local (§3); (h) frontend #3 (§12.3). E2E response conformance (§13.3) | ✔ |
+| AC-04 Local development reproducible and safe | README walkthroughs (§11.2, §13.2; E-28). §8 smoke journey on 2026-10-24 (§13.8): `make doctor` PASS (+ documented `trust` WARN), `make migrate` at head, `make api` (8100) + `make worker`, `make worker-smoke` OK, `pnpm dev` `/status` in Chromium: Ready, all checks Operational, backend `585f3f5…`, specs `bfe4a09…`, `0001_baseline`. `make doctor SNAPSHOT` before vs after: **diff empty** | ✔ |
+| AC-05 Health, readiness, images | Integration tests (§9, §10), E2E 200/503 per dependency through real outages (§13.3), images non-root and healthy (§11.3, §12.2) | ✔ |
+| AC-06 Migration mechanism | §9 (round trip, `alembic check`, single head, owner `atlas_migrator`); `alembic history`: only `0001_baseline` (§13.8) | ✔ |
+| AC-07 Credential separation, least privilege, auth strength | §9 privilege tests, CI `ci_auth` (8 rejections), doctor `trust` WARN read-only (DEC-084 open) | ✔ (local `trust` documented, E-35) |
+| AC-08 Uniform error envelope | B-05/B-20 (§11.1); F-05 (§12.1); E2E validates real 503/404 envelopes, `correlation_id` = header (§13.3) | ✔ |
+| AC-09 Build provenance, environment-restricted | B-07/B-12 + guard test (§8, §9); E2E: SHAs, `0001_baseline`, frontend SHA, diagnostics disabled 404 → "Diagnostics disabled" (§13.3) | ✔ |
+| AC-10 Correlation IDs end to end | Backend unit/worker tests and worker log (§8, §10); E2E: browser ID → response header → API log line; invalid IDs replaced (§13.3) | ✔ |
+| AC-11 Taskiq/Redis seam with key hygiene | §10; E2E and CI: 0 Atlas test keys left; DB 1 = 3 keys unchanged (§13.8) | ✔ |
+| AC-12 Security baseline | Redaction/CORS/headers (§8, §11); CSP in Chromium (§13.3); audits clean (§11.2, §13.2); fake-secret drills backend #6, frontend #5; non-root images; workflow rules (hygiene tests) | ✔ |
+| AC-13 Quality gates and coverage | Backend drill #6 (70.27 % < 85 %); frontend drill #8 (55.27 % < 80 %); release SHAs: backend 94.48 % (§11.2), frontend 98.17 % (§13.2) | ✔ |
+| AC-14 Bright design foundation and accessibility | Token checker 111 pairs (§3); generated CSS = pinned tokens (§12); E2E: `color-scheme: light` (base styles), 2 px focus ring, one interactive element + skip link, icon + text, reduced motion ≤ 0.01 ms, axe 0 violations, keyboard operation (§13.3, §13.4); no product UI/nav/component library | ✔ |
+| AC-15 Status page tells the truth in every state | Component tests for all six states (§12.1); E2E (a) healthy, (b) degraded per dependency, (c) unreachable, (d) diagnostics disabled, (f) recovery on Check again; (e) error state by component test as specified | ✔ |
+| AC-16 Chromium E2E against a persisted backend | CI `e2e` green on PR and `main` with isolated services, bootstrap, migration, API + worker (§13.2); report artifact; `grep -r "page.route(" e2e/` empty (CI step + hygiene test) | ✔ |
+| AC-17 Scope guard, exclusions, sign-off | §13.8 checklist ✔; owner signature (§13.11) | ✔ engineering · **signature pending** |
+
+### 13.8 Release prerequisites (owner CP7 §5) and scope guard
+
+| Check | Result (2026-10-24) |
+|---|---|
+| 1. All ACs satisfied | §13.7: all evidenced; the owner's signature is the remaining AC-17 step (G7 definition) |
+| 2. G1–G7 evidence complete and consistent | §1–§13; SHA triple below; each gate verdict recorded |
+| 3. Clean `main` branches | specs `25b88d3…` (before this PR), backend `585f3f5…`, frontend `b9f235e…`: local = `origin/main`, no uncommitted or untracked files |
+| 4. Required CI green on `main` | specs 6/6, backend 6/6, frontend 7/7 on those heads (check-runs API) |
+| 5. `contract-v0.1.0` immutable | tag object `c70743d9dfa49cea6e68c84e05aa887aa6da0ec8` → commit `bfe4a09…` locally and on GitHub; `git diff bfe4a09 main -- contracts/openapi contracts/schemas` empty; tag ruleset `immutable-release-tags` active |
+| 6. Generated frontend types match the pinned contract | CI `generated` on `b9f235e` success; fresh clone `check:generated` OK |
+| 7. No secrets or sensitive data committed | Trivy 0.67.2 secret scan of every tracked file: specs 78, backend 111, frontend 86 files, **0 findings**; no home paths, usernames or e-mail addresses in tracked files; staged diffs reviewed before every push |
+| 8. Shared infrastructure unaffected | PostgreSQL: 19 databases (17 non-template), 13 roles, Atlas roles 4; doctor snapshot before/after the smoke journey identical. Redis: DB 1 = 3 keys (unchanged), DB 10 = 0, DB 11 = 0, no restart or configuration change. No FLUSH, no pattern deletion. The other project on port 8000 was never touched |
+| Scope: tables | `alembic history`: `<base> -> 0001_baseline (head)` only; no `op.create_*` in migrations |
+| Scope: auth, UI | No auth code (no JWT/OAuth/login); frontend routes only `src/app/page.tsx` and `src/app/status/page.tsx` |
+| Scope: browsers, baselines | Chromium project only; no `toHaveScreenshot`/snapshot baselines; no WebKit |
+| Scope: exclusions grep | `opentelemetry\|applicationinsights\|langchain\|openai` in tracked files: only lockfiles — backend `uv.lock` `opentelemetry-api` (transitive via taskiq, never imported, E-33) and frontend `pnpm-lock.yaml` `@opentelemetry/api` as an **optional peer declaration of `next`, not installed**. No source match |
+| Scope: baselines | `git log ba67ce2..main -- brd ux technical`: 0 commits |
+
+**SHA triple (release):** specs `bfe4a09e5d7d260afe15576b4fb9fd7530949370` (`contract-v0.1.0`) · backend `585f3f52e477b051cc33b15fdb549c8af6e6f44a` (`v0.1.0`) · frontend `b9f235e9c0209497a0ebca3f09c3d25bfd70fa63` (`v0.1.0`).
+
+### 13.9 Release tags
+
+Created after this evidence is merged (owner CP7 §5); results are appended here by a follow-up evidence PR: tag objects, `git rev-parse v0.1.0^{commit}` per repository, and the release-lock check (`git -C atlas-specs tag --points-at <lock sha>` lists `contract-v0.1.0`).
+
+### 13.10 Open-decision snapshot (unchanged by CP7)
+
+| Decision | State |
+|---|---|
+| DEC-084 `pg_hba` hardening | Approved in principle, **not applied**; local `trust` documented (E-35) |
+| DEC-065 palette | Proposed; tokens proposed (E-04 tight pair accepted provisionally) |
+| DEC-055 second browser engine, screenshot baselines | Deferred (Chromium only) |
+| DEC-092 openapi-fetch runtime | Provisional |
+| DEC-046 task retries, outbox | Deferred (BL-201); none implemented |
+| E-07 credential rotation | Optional owner action (§8.3) |
+| Register updates | Only by owner instruction after sign-off (tasks G7) |
+
+### 13.11 Gate G7 evaluation and sign-off
+
+| G7 criterion (tasks.md) | Result |
+|---|---|
+| All ACs evidenced | ✔ §13.7 |
+| The owner signs `evidence.md` | **Pending** |
+| Register updated by owner instruction | Pending owner instruction |
+
+**Engineering verdict: Gate G7 — PASS (all criteria evidenced; release prerequisites met).** ATLAS-001 becomes **Accepted** only when the owner signs below.
+
+Owner sign-off: ______________________ (name, date) — *not signed*
+
+### 13.12 CP7 deviations, findings and risks
+
+| ID | Item | Status |
+|---|---|---|
+| E-48 | **Backend finding (not fixed in CP7):** after a Redis outage, an API process that sent no Redis command during the outage keeps a stale pooled connection; its **first** readiness check after Redis returns reports `redis` failed (`redis_command_failed`, `ConnectionError`), the next one is Ready. PostgreSQL does not show this (`pool_pre_ping`). Seen when the diagnostics-disabled API shared the outage proxies; the harness now gives it its own proxies, so the suite does not depend on it | Recommend a backend task (e.g. redis-py `health_check_interval` or one reconnect retry for the probe); no backend change in CP7 (owner restriction) |
+| E-49 | With `'strict-dynamic'` (the Next.js nonce model), scripts created by already-trusted script are trusted by design; an inline script inserted via `createContextualFragment` ran, while an injected inline **event handler** was blocked. Defence against HTML injection also relies on never rendering raw HTML (`react/no-danger`, hygiene test) | Documented trade-off of the approved CSP |
+| E-50 | 200 % zoom is tested by viewport equivalence (640×360 CSS px at device scale 2): Chromium's browser zoom has no automation API | Owner asked for "200 % zoom or an equivalent explicitly documented test" |
+| E-51 | Forced colours use Chromium's `forced-colors` emulation; Windows High Contrast on real hardware was not tested (macOS has no forced-colours mode) | Platform limitation |
+| E-52 | Text over the decorative dot-grid gradient is "needs review" for axe; it is measured from rendered pixels against the worst background pixel instead (stricter than an average) | Method documented in the spec file |
+| E-53 | **Defects found by the real browser and fixed:** (1) "Check again" was `disabled` while checking, which dropped keyboard focus to the page; now `aria-disabled`, presses ignored until done (component test fails on the old code); (2) "Back to home" over a canvas dot measured 3.73:1; solid canvas backing added; (3) every page requested a missing `/favicon.ico` (404 console error); an empty icon link stops it | Fixed in PR #4 |
+| E-54 | **Security exception:** `fast-uri` 3.1.9 (5 days old) fixes GHSA-w74x-v6f9-j3xg, -wjr9-j795-jxcr, -xhq7-xmqj-769h, -333x-w4r6-6crp in 3.1.8 (via `ajv`, dev-only E2E tooling); pinned through `minimumReleaseAgeExclude` + override | Same rule as E-36 |
+| E-55 | `next start` prints a warning with `output: "standalone"`; FR-59 specifies `next start`, which serves correctly (as in the CP6 `build` job). The image uses the standalone server | Noted |
+| E-56 | `next dev` wrote an untracked `AGENTS.md` containing text addressed to AI agents (including a suggestion to commit it). Treated as tool output; removed, not committed (cf. E-38) | Noted |
+| E-57 | Chromium itself logs "Failed to load resource" for a deliberate 503/404/refused API request. The console check allows exactly those messages for the API origin, only in tests that cause the failure | Scoped allowance |
+| E-58 | Local E2E runs use the shared server's approved test objects only: `atlas_test` (runtime-role `SELECT`), Redis DB 11 (`PING`; worker `BRPOP` on its own `atlas:test:e2e:` queue key). 0 keys left; other DBs unchanged | Within approved Atlas objects |
+| E-59 | When `e2e` fails before Playwright runs (lock drill), the upload step also reports "No files were found" | Cosmetic; the job fails either way |
+| E-60 | F-13 asks a second engineer to reproduce from the README; with one maintainer, Claude followed it on a fresh clone (as E-28) | Owner may repeat it |
+| E-61 | API processes exit 143 under `uv` after uvicorn's "Application shutdown complete"; the stack asserts that line instead of exit 0 | Signal semantics |
+| E-62 | **Intermittent result:** one fresh-clone run reported an axe violation in the first `/status` scan; details were truncated in the terminal and it did not reproduce in 24 further runs (local and CI). Most likely cause: a running opacity transition sampled mid-way. Each scan now waits until `document.getAnimations()` is empty; no rule disabled | Monitor; the HTML report attaches the full axe JSON per scan |
+| E-63 | Harness fix during development: signalling the worker's whole process group left taskiq's parent waiting until the timeout; SIGTERM now goes to the top process (as `docker stop`), with a group SIGKILL only as a fallback | Fixed; graceful stop asserted |
