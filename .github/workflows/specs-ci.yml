@@ -1,12 +1,15 @@
 # atlas-specs CI (ATLAS-001 S-11). Every job wraps the same `make` target used locally.
 # Hardening (ci-access.md §5, Mode A): no secrets; workflow permissions empty, jobs read-only;
 # third-party actions pinned by full commit SHA; validation images pinned by digest
-# (tools/images.lock); the privileged PR-target trigger is never used.
+# (tools/images.lock); the privileged PR-target trigger is never used. Required checks are
+# never satisfied by skipped jobs: every job runs on pull_request and on main/tag pushes.
 name: specs-ci
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
+    tags: ['contract-v*']
 
 permissions: {}
 
@@ -20,8 +23,6 @@ env:
 
 jobs:
   docs-lint:
-    # Same-repo branches are covered by `push`; `pull_request` runs only for forks (no duplicate runs).
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -33,7 +34,6 @@ jobs:
       - run: make docs-lint
 
   contract:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -51,7 +51,6 @@ jobs:
       - run: make schemas
 
   tools:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -68,7 +67,6 @@ jobs:
       - run: make tools
 
   tokens:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -85,7 +83,6 @@ jobs:
       - run: make tokens
 
   registry:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -102,7 +99,6 @@ jobs:
       - run: make registry
 
   breaking:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
