@@ -1,6 +1,6 @@
 # Atlas — Decision Register
 
-**Version:** 0.1 (Phase 0 baseline) · **Date:** 24 October 2026 · **Companion:** `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md`  
+**Version:** 0.4 · **Date:** 24 October 2026 (v0.1 Phase 0 baseline; v0.2 D-01…D-06; v0.3 D-07; v0.4 ATLAS-001 implementation approval, DEC-085 public, DEC-084 in principle) · **Companion:** `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md`  
 **Scope:** All architecture, product and delivery decisions referenced by the Phase 0 blueprint, the requirement traceability matrix (`phase0/requirement-traceability-matrix.md`) and the backlog (`phase0/prioritized-backlog.md`).
 
 ## How to read this register
@@ -10,6 +10,7 @@
 | **Confirmed** | Stated as mandatory or non-negotiable, consistently, in every baseline that addresses it, with no conflicting statement. Or already realized (e.g. repositories exist). | Build on it. Record it as an ADR for traceability. |
 | **Proposed** | Exactly one recommended option exists in the baselines (usually tech design §0/§22), but the source marks it as a proposal or validation gate. | Spike and prototype against it. Do not treat as approved until the named owner signs off. |
 | **Open** | No proposal, conflicting proposals across documents, or the decision needs external/sponsor input. | Do not implement anything that depends on it. Close it in Phase 0 or explicitly defer the dependent requirement. |
+| **Provisional** | An implementation detail chosen by engineering inside an approved (or pending) decision. Reversible and recorded for review; the owner may override it without re-planning (section F). | Use it. Revisit if the owner overrides or evidence contradicts it. |
 
 > **Caveat on "Confirmed":** the three baselines label themselves *proposed / requires validation*, and the BRD's decision owners are "to be nominated" (BRD Document control). "Confirmed" here means **confirmed by the finalized baseline documents**. It does not mean signed off by a named sponsor; that sign-off is itself DEC-081. Decision records (ADRs) go in `adr/` as `ADR-NNNN-*.md` once accepted. This register keeps `DEC-` IDs to avoid colliding with the BRD requirement family `ADR-01…05` and tech §22's `ADR-001…014` (see DEC-082).
 
@@ -36,18 +37,39 @@
 
 ---
 
+## A2. Owner-approved decisions (24 October 2026)
+
+These were approved by the project owner directly. Owner approval is the strongest status in this register; it is still recorded here as **Confirmed** with the approval reference.
+
+| ID | Decision | Approval | Constraints recorded with the approval | Record as |
+|---|---|---|---|---|
+| DEC-043 | PostgreSQL **15** for local development and CI | D-01 approved | Production PostgreSQL version is a separate decision (DEC-086) | ADR (with DEC-021) |
+| DEC-044 | Dedicated Atlas databases and least-privilege roles on the local server | D-02 approved with modifications; four-role design approved 24 Oct 2026 | Runtime, migration and test credentials are separate (four roles, runtime read-only by default, per-table write grants). **SQL approved as design, not authorized for execution.** `atlas_db` must be verified empty before reuse (done read-only on 2026-10-24). **No server, role, database or permission change until the owner reviews the exact SQL** (`features/ATLAS-001-engineering-foundation/proposals/postgres-local-setup.sql`, not applied) | ADR (local data isolation) |
+| DEC-045 | Redis isolation | D-03 approved with modifications | Logical DB 10 local, 11 tests, Atlas key prefixes. **No `FLUSHALL` or `FLUSHDB`.** Tests delete only keys they created. Other Redis users are undisturbed. CI uses isolated Redis services | ADR (local data isolation) |
+| DEC-046 | Defer transactional outbox and durable job persistence to BL-201 | D-04 approved | ATLAS-001 needs only a minimal Taskiq/Redis integration test and the migration mechanism. BL-201 is a hard prerequisite of the first business background job | Note on DEC-028 |
+| DEC-047 | CI on GitHub Actions; cross-repository access via built-in token (public repos) or GitHub App installation tokens | D-05 approved with modifications | Avoid long-lived personal access tokens. Permissions and setup documented (`features/ATLAS-001-engineering-foundation/ci-access.md`). **No credential created or changed yet** | ADR-0006 |
+| DEC-048 | Node.js **24 LTS**, pinned consistently in local tooling and CI | D-06 approved | Installation on the owner's machine is a separate owner action | ADR (toolchain) |
+| DEC-020 | Backend language and framework: Python **3.12** baseline, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic | D-07 approved with modification | Dependencies pinned to supported, mutually compatible versions (lower bound = verified version; upper bound below next major, or next minor for 0.x packages; exact lock in `uv.lock`). Future Python upgrades only through a new controlled decision | ADR (backend stack) |
+| DEC-024 | Frontend: Next.js App Router, TypeScript strict, Tailwind, TanStack Query | D-07 approved | shadcn/ui and Zustand remain provisional until a feature needs them (Phase 1) | ADR (frontend stack) |
+| DEC-028 | Initial background task dispatch: Taskiq + Redis | D-07 approved | Transactional outbox and durable job tables deferred to BL-201 (DEC-046) | ADR-0005-equivalent (jobs) |
+| DEC-038 | Tooling: uv, Ruff, pytest, pnpm, ESLint, Vitest, Playwright, **mypy**, **openapi-typescript** | D-07 approved | Supersedes the "mypy or pyright" and "client generator TBD" alternatives | ADR (toolchain) |
+| DEC-039 | Contract-first development is **mandatory** | D-07 approved with modification | Development and CI pin **immutable `atlas-specs` commits** (full SHA). Version tags `contract-vX.Y.Z` are created only for **approved contract releases**, not for each API change. Release builds pin a tagged release commit | ADR-0006 |
+| DEC-040 | `atlas-specs` folder layout as proposed (`contracts/{openapi,schemas,examples}`, `contracts/*.md`, `design/`, `tools/`, `features/`, `phase0/`, `decisions/`, `acceptance/`) | D-07 approved with modification | The difference from Technical Design §17.3 is recorded (`decisions/baseline-deviations.md`, TD-DEV-001) and reconciled through a controlled Technical Design revision; the baseline is not edited ad hoc | ADR (specs governance) |
+| DEC-085 | Repository visibility: `atlas-specs`, `atlas-backend`, `atlas-frontend` remain **PUBLIC** | Owner decision 24 Oct 2026 (security decision) | CI Mode A: public read-only cross-repo checkout at immutable SHAs, minimal token permissions, no GitHub App, no PATs, no secrets for cross-repo reads. Mandatory public-repository safety rules (ATLAS-001 spec §6.8): no secrets, no confidential architecture, network or customer information, staged-diff review before every push. Engineering never changes visibility | ADR-0006 (CI access) |
+
+**D-07 (DEC-020, DEC-024, DEC-028, DEC-038, DEC-039, DEC-040): approved on 24 Oct 2026** with the modifications recorded above. Their v0.2 *Proposed* rows were moved here; the original wording is preserved in `features/ATLAS-001-engineering-foundation/changes-v0.2.md` §3.
+
+---
+
 ## B. Proposed decisions (single recommendation exists; owner sign-off pending)
 
 | ID | Decision | Current proposal (source) | Alternatives noted | Owner (proposed) | Needed by | Blocks |
 |---|---|---|---|---|---|---|
-| DEC-020 | Backend language and framework | Python 3.12+ (pinned patch), FastAPI, Pydantic v2, SQLAlchemy 2, Alembic (tech §0; specs README; backend `.gitignore`) | n/a | Backend lead + Security | P0 | All backend work |
-| DEC-021 | Canonical store | PostgreSQL 16+ on Azure, typed entity/edge tables + JSONB (tech ADR-001) | Graph DB as primary (rejected for now, tech §4.3) | Architecture + DBA | P0 | BL-101 |
+| DEC-021 | Canonical store | PostgreSQL on Azure, typed entity/edge tables + JSONB (tech ADR-001). *v0.2: tech's "16+" is no longer assumed. Local/CI major is fixed by DEC-043 (15); the production major is DEC-086 (Open).* | Graph DB as primary (rejected for now, tech §4.3) | Architecture + DBA | P0 | BL-101 |
 | DEC-022 | Traversal engine and graph-DB threshold | Recursive CTE with bounded hops. Graph DB only as a rebuildable read projection if benchmarks fail (tech ADR-011, §4.3) | Neo4j or other graph engine | Architecture | P0 (benchmark BL-019), revisit P4 | BL-108, BL-211 |
 | DEC-023 | Diagram engine and layout | XYFlow/React Flow + ELK.js in a worker. Sigma.js/WebGL optional for read-only density (tech ADR-002; UX-OD-01) | Other diagram engines (UX-OD-01 asks for benchmark) | Frontend lead | P0 (spike BL-018) | BL-109, BL-113, BL-117 |
-| DEC-024 | Frontend framework and libraries | Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, TanStack Query, Zustand (tech §5.1) | Enterprise-approved component kit instead of shadcn/ui | Frontend lead | P0 | BL-105 |
 | DEC-025 | Canonical identity and reconciliation approach | Provider keys + `source_identity` + steward workflow. Matching order: provider ID → approved alias → org key → fuzzy candidates for review only (tech ADR-003, §3.2, §7.3) | n/a | Data/Platform lead | P0 (identity), P2 (reconciliation) | BL-101, BL-203 |
 | DEC-026 | Authentication and authorization model | Entra ID OIDC, backend token validation, RBAC + ABAC on domain/app/environment/classification/source/action (tech ADR-004, §9.1) | n/a | Security | P0 | BL-104 |
-| DEC-028 | Background jobs | Taskiq + Redis dispatch, PostgreSQL durable job records + outbox (tech ADR-005, §8) | Celery, Arq, Dramatiq | Backend lead | P1 (needed P2 at scale) | BL-201 |
 | DEC-029 | Search | PostgreSQL FTS + trigram + aliases. Dedicated engine only if pilot benchmarks justify it (tech ADR-006, §14) | Azure AI Search, OpenSearch | Backend lead | P1 | BL-111 |
 | DEC-030 | Hosting platform | Azure Container Apps for pilot, AKS if mandated (tech ADR-007, §16) | AKS | Cloud Platform | P1 (before first deployed env) | BL-021, deploy/ |
 | DEC-031 | Snapshot, revision and branch strategy | MVCC/revision manifests, branch = typed patches on a pinned baseline, three-way merge (tech ADR-008, §10) | Full snapshot copies (rejected for cost) | Data architect | P0 | BL-006, BL-116, BL-303 |
@@ -57,9 +79,6 @@
 | DEC-035 | Restricted counts and anti-enumeration | Server-side ABAC. 404 for hidden resources under policy. Access-aware aggregates (tech ADR-013, §4.1, §6.3) | n/a | Security | P1 | BL-104, BL-108 |
 | DEC-036 | Rule DSL and exception semantics | Allowlisted declarative predicates. No user Python. Exceptions have scope/approver/reason/expiry and never erase findings (tech ADR-014, §11) | Restricted rule DSL later | Governance | P3 | BL-305 |
 | DEC-037 | Canonical ID format | UUIDv7 preferred (tech §3.2 allows "UUIDv7 or UUIDv4"); opaque in API paths | UUIDv4 | Backend lead | P0 | BL-101, BL-015 |
-| DEC-038 | Tooling | Backend: `uv`, Ruff, mypy *or* pyright (strict), pytest, Hypothesis. Frontend: pnpm, ESLint, Vitest, Playwright. Typed client generator TBD (tech §17.1, §17.5) | Poetry; pyright vs mypy; npm/yarn; client generators | Backend/Frontend leads | P0 (before repo bootstrap) | BL-021 |
-| DEC-039 | Contract-first workflow | OpenAPI + JSON Schema in `atlas-specs`, consumers pin a commit SHA in `specs.lock`, frontend client generated from the pinned contract, CI compares emitted OpenAPI (tech §17.4) | n/a | Architecture + release coordinator | P0 | BL-013, BL-021 |
-| DEC-040 | `atlas-specs` folder layout | Align to tech §17.3 or update §17.3 to match the repo. **Recommendation:** keep the current `contracts/openapi`, `contracts/schemas`, `acceptance/scenarios`, `acceptance/test-data`, `decisions/` and add `contracts/examples/`, `contracts/compatibility.md`, `design/tokens.md`, `phase0/`; amend tech §17.3 at its next revision | Rename folders to §17.3 names | Architecture | P0 | BL-012 |
 | DEC-041 | Desktop/tablet support | Desktop editing first at 1440×900 reference and 1280×720 minimum; tablet read-only exploration (UX §2.3, UX-OD-05) | n/a | Product + UX | P1 | BL-105, BL-122 |
 | DEC-042 | Frontend development mocking strategy | Frontend develops against mocks generated from the pinned OpenAPI (e.g. MSW/Prism). Acceptance E2E always runs against a persisted backend (DEC-012). *(Blueprint proposal, not in baselines.)* | Wait for backend endpoints | Frontend + Backend leads | P1 | BL-107 |
 
@@ -106,7 +125,12 @@ Ordered by needed-by, then by number of requirements blocked (counts from the RT
 | DEC-080 | Cost allocation policy | BRD E19, COST-*: no tech module, no billing connector, finance sign-off needed. | Defer to P5. Needs a tech design addendum before scheduling. | Finance + Platform | P5 | COST-*, BL-502 |
 | DEC-082 | **Identifier namespace conventions** | Several namespaces collide. BRD requirement family `ADR-01…05` vs tech decision IDs `ADR-001…014` vs `ADR-REPO-001` vs folder convention `ADR-0001`. Tech backlog epics `E01–E09` vs BRD experience sections `E01–E20`. BRD has no E15. BRD §5.23 is numbered twice. | Decisions = `DEC-NNN` (this register) → accepted ones become `adr/ADR-NNNN-*.md`. Tech epics are referred to as `TE01–TE09`. BRD requirement IDs stay unchanged (stable). The registry CSV is the ID authority, with a CI uniqueness check. | Architecture | **P0** | BL-011 |
 
+| DEC-083 | Database locale and collation | Local server and `atlas_db` use locale `C`; the CI `postgres:15` image defaults to `en_US.utf8`. Search, sorting and case-insensitive matching (BL-111) depend on it. | ATLAS-001 keeps `C` everywhere (CI databases created explicitly with `C`). Decide `C` vs ICU before BL-101/BL-111 | Data architect | P1 (before BL-101) | Search behaviour |
+| DEC-084 | Local PostgreSQL authentication (`pg_hba.conf` = `trust`) | Passwords are not verified on the owner's shared server. Also, PostgreSQL's default `PUBLIC` `CONNECT` lets Atlas roles connect to other projects' databases (verified in a sandbox). Changing `pg_hba.conf` alters a shared service. | Documented limitation; `make doctor` warns; CI enforces `scram-sha-256` (FR-39). Optional, validated Atlas-only hardening: `features/ATLAS-001-engineering-foundation/proposals/pg_hba-atlas.conf` (passwords enforced and Atlas roles rejected on non-Atlas databases; other users unaffected) | Owner | Not blocking | AC-07 local strength |
+| DEC-086 | Production PostgreSQL major version | D-01 separated it from local/CI. Azure Database for PostgreSQL version availability must be confirmed with Cloud Platform. | Decide with DEC-030 before the first deployed environment. Must be ≥ 15 so local/CI never test a newer major than production | Cloud Platform + DBA | Before first deployed env | Deployment |
+
 ---
+
 
 ## D. Mapping of source decision lists
 
@@ -126,8 +150,28 @@ Ordered by needed-by, then by number of requirements blocked (counts from the RT
 3. If a decision changes requirement text, version-bump the affected baseline. Never edit requirement IDs.
 4. Regenerate the RTM readiness columns (`phase0/requirements-registry.csv`) after status changes.
 
+## F. Provisional implementation assumptions (ATLAS-001; Claude-resolved, reversible)
+
+| ID | Assumption | Within decision | Rationale | Override cost |
+|---|---|---|---|---|
+| DEC-090 | Python 3.12 (`requires-python = "==3.12.*"`, committed `.python-version`) | DEC-020 | Minimum named by Tech §0; 3.12.12 already available via uv (no install) | Low |
+| DEC-091 | mypy configured `--strict` with the Pydantic plugin (*mypy itself confirmed by DEC-038; the configuration is provisional*) | DEC-038 | Mature Pydantic v2 / SQLAlchemy 2 typing support | Low |
+| DEC-092 | openapi-fetch as the typed runtime (*openapi-typescript confirmed by DEC-038; openapi-fetch provisional*) | DEC-038 | Tiny typed runtime over generated types; no hand-written DTOs | Low |
+| DEC-093 | psycopg 3 for async app and sync Alembic | DEC-020 | One driver for both paths | Low |
+| DEC-094 | structlog JSON logging | DEC-003 | Structured, redaction-friendly, no telemetry SDK | Low |
+| DEC-095 | Conformance = lint → operation inventory (missing/unexpected/operationId) → normalization → `oasdiff diff --fail-on-diff`; breaking check in specs CI; tool in `atlas-specs/tools`, oasdiff via pinned image | DEC-039 | review-01 probe: plain diff is noisy, two-way `breaking` misses unexpected operations | Medium |
+| DEC-096 | markdownlint-cli2 (baselines excluded), Redocly CLI, check-jsonschema | DEC-038/040 | Standard, pinned, scriptable | Low |
+| DEC-097 | Browser calls API directly with CORS allowlist, isolated in one transport module | DEC-024/027 | Replaceable by a BFF once DEC-027 closes | Low |
+| DEC-098 | Taskiq `ListQueueBroker` with prefixed queue name for the seam | DEC-028/045 | Minimal keys; durability belongs to BL-201 | Low |
+| DEC-099 | Design tokens authored in `design/tokens.json` and generated into frontend CSS | DEC-040/011 | Single source of truth, reproducibility-checked like the API client | Low |
+
+---
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-10-24 | v0.1 created from BRD v2.2, UX v1.1 and Technical v1.1 readiness assessment. 12 Confirmed, 22 Proposed, 34 Open. |
+| 2026-10-24 | v0.2: owner decisions D-01…D-06 recorded as DEC-043…048 (Confirmed, owner-approved); DEC-021 and DEC-028 narrowed; DEC-083…086 added (Open); status **Provisional** defined with DEC-090…099. D-07 (DEC-020/024/028/038/039/040) remains Proposed pending owner review. Totals: 18 Confirmed, 22 Proposed, 38 Open, 10 Provisional. |
+| 2026-10-24 | v0.3: D-07 approved. DEC-020 (with modification), DEC-024, DEC-028, DEC-038, DEC-039 (with modification) and DEC-040 (with modification) moved from Proposed to A2 Confirmed. DEC-044 annotated (4-role proposal). DEC-084 updated (CI scram, cross-database finding, optional hardening). DEC-085 reframed as a security decision with recommendation *private*. DEC-091/092 narrowed to their provisional parts. Totals: 24 Confirmed, 16 Proposed, 38 Open, 10 Provisional. |
+| 2026-10-24 | v0.4: DEC-085 decided **PUBLIC** (moved to A2 Confirmed); DEC-084 approved in principle, not applied; DEC-044 four-role design approved (execution not authorized). ATLAS-001 v0.2.1 Approved for Implementation (CP1 only). Totals: 25 Confirmed, 16 Proposed, 37 Open, 10 Provisional. |
