@@ -1,0 +1,7 @@
+{
+  "backend_sha": "0123456789abcdef0123456789abcdef01234567",
+  "specs_sha": "0123456789abcdef0123456789abcdef01234567",
+  "contract_version": "v0.1",
+  "db_migration_revision": null,
+  "environment": "test"
+}

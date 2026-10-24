@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:error:v1",
+  "title": "ErrorEnvelope",
+  "description": "Error envelope returned by every non-2xx Atlas API response (contracts/conventions.md \u00a76).",
+  "type": "object",
+  "properties": {
+    "error": {
+      "$ref": "#/$defs/ErrorBody"
+    }
+  },
+  "required": [
+    "error"
+  ],
+  "$defs": {
+    "ErrorBody": {
+      "title": "ErrorBody",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "message": {
+          "type": "string"
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "recoverable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "correlation_id",
+        "details",
+        "recoverable"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "DEPENDENCY_UNAVAILABLE",
+    "message": "A required dependency is unavailable.",
+    "correlation_id": "req_0192f1b2c3d4",
+    "details": {
+      "failed_check": "redis"
+    },
+    "recoverable": true
+  }
+}

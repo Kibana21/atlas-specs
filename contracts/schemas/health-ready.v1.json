@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:health-ready:v1",
+  "title": "HealthReady",
+  "description": "Body of GET /api/v1/health/ready on success (200). Failure returns the error envelope (503).",
+  "type": "object",
+  "properties": {
+    "status": {
+      "const": "ok",
+      "type": "string"
+    },
+    "checks": {
+      "$ref": "#/$defs/ReadinessChecks"
+    }
+  },
+  "required": [
+    "status",
+    "checks"
+  ],
+  "$defs": {
+    "ReadinessChecks": {
+      "title": "ReadinessChecks",
+      "type": "object",
+      "properties": {
+        "database": {
+          "const": "ok",
+          "type": "string"
+        },
+        "redis": {
+          "const": "ok",
+          "type": "string"
+        }
+      },
+      "required": [
+        "database",
+        "redis"
+      ]
+    }
+  }
+}

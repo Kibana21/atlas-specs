@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:health-live:v1",
+  "title": "HealthLive",
+  "description": "Body of GET /api/v1/health/live (200).",
+  "type": "object",
+  "properties": {
+    "status": {
+      "const": "ok",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ]
+}

@@ -105,7 +105,7 @@ Classification rule (register "How to read"): **Confirmed** = mandatory and cons
 
 ### 3.3 Acceptance-criteria quality
 
-- BRD §5.1–5.17 (111 IDs) all share one acceptance sentence ("Given authorized representative fixtures… the user can verify: <requirement text>…"). It is not testable.
+- BRD §5.1–5.17 (111 IDs) all share one acceptance sentence ("Given authorized representative fixtures… the user can verify: `<requirement text>`…"). It is not testable.
 - 32 of these gain a testable criterion through a UX counterpart (RTM *Notes* column, e.g. CAN-06 → UX-CAN-010). **79 still need specific Given/When/Then**, 17 of them in Phase 1: INV-01/02/03/05/06/07, CAN-11, DEV-05, DEP-01, CON-08, GOV-01/03/04, KNOW-03/04, SELF-02/04.
 - Recommendation: write Phase 1 criteria in BL-017. Write later-phase criteria at that phase's readiness gate (BRD App D).
 

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Not found.",
+    "correlation_id": "req_test123456",
+    "details": {},
+    "recoverable": false
+  }
+}

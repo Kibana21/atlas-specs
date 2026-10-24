@@ -1,0 +1,6 @@
+{
+  "backend_sha": "0123456789abcdef0123456789abcdef01234567",
+  "specs_sha": "0123456789abcdef0123456789abcdef01234567",
+  "contract_version": "0.1.0",
+  "environment": "test"
+}

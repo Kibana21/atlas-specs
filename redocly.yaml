@@ -1,0 +1,18 @@
+# Redocly CLI configuration for atlas-specs (ATLAS-001 FR-07; pinned image in tools/images.lock).
+# Introduced with the contract in S-04; finalized in S-10. Run: `make contract`.
+apis:
+  atlas:
+    root: contracts/openapi/atlas-api.yaml
+extends:
+  - recommended
+rules:
+  # Explicit operation IDs are mandatory (contracts/style-guide.md §2).
+  operation-operationId: error
+  operation-operationId-unique: error
+  # Every operation must declare its error responses; 0.1.0 health/live has no 4xx by design.
+  operation-4xx-response: off
+  # No authentication exists in contract 0.1.0 (BL-104 adds it); diagnostics are environment-restricted.
+  security-defined: off
+  no-unused-components: error
+  no-server-example.com: off
+  info-license-strict: off

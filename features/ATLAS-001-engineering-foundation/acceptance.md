@@ -1,261 +1,293 @@
 # ATLAS-001 — Engineering Foundation: Acceptance Criteria
 
-**Status:** Draft — awaiting approval · **Date:** 24 October 2026 · **Spec:** `spec.md` · **Tasks:** `tasks.md`
+**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Spec:** `spec.md` v0.2.1 · **Tasks:** `tasks.md` v0.2.1
 
-## How acceptance works
+## Rules
 
-- Each criterion has Given/When/Then, the exact **verification** (command or CI job), the **evidence** to attach at sign-off, and the tasks that deliver it.
-- Acceptance runs on **clean clones** of all three repositories at the tagged release candidate SHAs. CI evidence must come from those SHAs.
-- A criterion passes only with evidence. "Works on my machine" is not evidence (DEC-012).
-- Requirement links: `FR`/`NFR` = `spec.md` §5/§8. "Tech §17.8 #n" = the repository acceptance bullets in the technical design.
+- Each criterion states Given/When/Then, **Verify** (command, CI job or drill), **Evidence** to record in `evidence.md`, the **Gate** where it must first pass, and the delivering tasks.
+- Final acceptance runs on clean clones at the SHA triple recorded in `evidence.md` (S-13). Drills are throwaway branches that are closed, never merged.
+- Evidence is mandatory. A criterion with no recorded evidence is failed (DEC-012).
+- **No acceptance step may modify shared services** beyond the owner-approved Atlas objects (spec NFR-06).
+
+| AC | Title | First gate |
+|---|---|---|
+| AC-01 | Each repository passes its own checks independently | G1 / G5 / G7 |
+| AC-02 | One immutable specs revision, with parity enforced | G1 / G5 / G7 |
+| AC-03 | Contract conformance detects missing, unexpected and changed operations | G1 / G5 / G6 |
+| AC-04 | Local development on existing services is reproducible and safe | G2 / G4 / G7 |
+| AC-05 | Health, readiness and buildable images | G3 / G4 / G5 / G6 |
+| AC-06 | Migration mechanism | G3 |
+| AC-07 | Credential separation, least privilege and authentication strength | G2 / G3 / G5 |
+| AC-08 | Uniform error envelope | G2 / G5 / G6 |
+| AC-09 | Build provenance, environment-restricted | G3 / G6 |
+| AC-10 | Correlation IDs end to end | G2 / G4 / G6 |
+| AC-11 | Taskiq/Redis seam with key hygiene | G4 |
+| AC-12 | Security baseline | G2 / G5 / G6 |
+| AC-13 | Quality gates and coverage | G2 / G5 / G7 |
+| AC-14 | Bright design foundation and accessibility | G1 / G6 / G7 |
+| AC-15 | Status page tells the truth in every state | G6 |
+| AC-16 | Chromium E2E against a persisted backend | G7 |
+| AC-17 | Scope guard, exclusions and sign-off | G7 |
 
 ---
 
-## A. Repository independence and contract governance
+### AC-01 — Each repository passes its own checks independently
 
-### A001-AC-01 — Each repository passes its own checks independently
-*Tech §17.8 #1 · FR-06, FR-10, FR-11, FR-40, FR-41, NFR-01, NFR-03*
+*Tech §17.8 #1 · FR-07, FR-20, FR-50 · NFR-01, NFR-03*
 
-- **Given** a clean clone of exactly one repository and only its README,
-- **When** the developer runs its documented check command (`make check` in specs/backend, `pnpm check` in frontend) and its CI workflow runs on a PR,
-- **Then** all steps pass without copying files from another repository. The only cross-repo input is the read-only fetch of `atlas-specs` at the pinned SHA.
+- **Given** a clean clone of one repository and its README only,
+- **When** its check command runs (`make check` for specs/backend, `pnpm check` for frontend) and its CI workflow runs on a PR,
+- **Then** everything passes without copying files from another repository. The only cross-repo inputs are read-only checkouts at pinned SHAs. `atlas-specs` checks need only Docker (digest-pinned lint images) and uv, not Node.
 
-**Verify:** `make check` / `pnpm check` exit 0. CI runs `specs-ci`, `backend-ci`, `frontend-ci` green. A test PR with one lint error and one type error fails `static`.
-**Evidence:** three CI run links plus terminal logs. **Tasks:** S2-03…S2-07, B1-01…B1-04, B6-01, F1-01…F1-04, F5-01, F5-02.
+**Verify:** local commands exit 0, and the three workflows are green. Drill: a PR with one lint error and one type error fails `static` (backend and frontend).
+**Evidence:** run links plus terminal logs. **Tasks:** S-09, S-10, S-11, B-01, B-23, B-24, F-01, F-11.
 
-### A001-AC-02 — Backend and frontend identify the same immutable specs revision
-*Tech §17.8 #2 · FR-05, FR-48 · ADR-0006*
+### AC-02 — One immutable specs revision, with parity enforced
+
+*Tech §17.8 #2 · FR-05, FR-36, FR-51, FR-59 · DEC-039 (pending D-07)*
 
 - **Given** `specs.lock` in backend and frontend,
-- **When** lock validation runs and the frontend E2E queries the running backend's build info,
-- **Then** both locks contain the same 40-hex SHA equal to tag `contract-v0.1.0`, `contract_version` matches the contract `info.version`, and the parity assertion passes. A branch name, short SHA, unknown SHA or mismatched version fails validation with a specific message.
+- **When** lock validation runs, and the frontend E2E compares its lock with the backend's `/diagnostics/build.specs_sha`,
+- **Then** both locks hold the same immutable 40-hex SHA (for ATLAS-001, the `contract-v0.1.0` release commit), `contract_version` equals `info.version`, and parity passes. Branch names, tag names, short SHAs, unknown SHAs and version mismatches are rejected with distinct messages.
+- **And** the release tags `v0.1.0` (backend, frontend) are created only on commits whose lock points at a commit carrying a `contract-v*` release tag, which the owner approved (P-09).
 
-**Verify:** `tools/check_specs_lock.py` on both locks. Frontend `e2e` parity test. Negative drill X1-03 fails as expected.
-**Evidence:** validator output for valid and four invalid samples; link to the failed parity drill run. **Tasks:** M0-04, M0-05, S1-02, S2-02, S2-09, B5-01, B6-03, F2-01, F4-06, X1-03.
+**Verify:** `check_specs_lock.py` tests (S-06); `make specs` (B-18); `pnpm specs` (F-03); E2E parity test (F-10). Drill: point the frontend lock at another SHA, and E2E parity fails.
+**Evidence:** validator output for the valid case and five invalid cases; drill run link; release-tag check output; owner's release approval. **Tasks:** S-02, S-06, S-12, B-18, F-03, F-10, B-26, F-14.
 
-### A001-AC-03 — Incompatible API changes are blocked before merge
-*Tech §17.8 #3 (client generation part), #5 · FR-06, FR-27, FR-42*
+### AC-03 — Contract conformance detects missing, unexpected and changed operations
 
-- **Given** the pinned 0.1.0 contract,
-- **When**
-  - (a) a specs PR removes a response field without a major version bump,
-  - (b) a backend PR renames a response field in a Pydantic model,
-  - (c) a frontend PR hand-edits `src/generated/api`,
-- **Then**
-  - (a) `breaking-change` fails in specs CI,
-  - (b) `contract` fails in backend CI with the oasdiff difference,
-  - (c) `client-repro` fails in frontend CI.
-  - Reverting each change turns the job green.
+*Tech §17.8 #3 (client part), #5 · FR-06, FR-36, FR-51 · DEC-095*
 
-**Verify:** three deliberate test PRs (closed afterwards).
-**Evidence:** three failed and three passing run links. **Tasks:** S2-08, B5-03, B5-04, B6-03, F2-02, F2-03, F5-03.
-*Note:* the "does not bypass FastAPI authorization" half of Tech §17.8 #3 is deferred to BL-104 (authentication is out of scope, spec §3).
+- **Given** contract 0.1.0 and the conformance tool at the pinned SHA,
+- **When** these cases are exercised:
 
-### A001-AC-04 — Local development is reproducible from the READMEs
-*FR-12, FR-29, spec §7, NFR-01, NFR-02*
+| Case | Where | Expected |
+|---|---|---|
+| (a) Pydantic titles/descriptions only differ | tool self-test | **pass** |
+| (b) Contract operation not implemented | self-test + backend drill (remove the route for `getHealthLive`) | fail `MISSING_OPERATION getHealthLive` |
+| (c) Route implemented but not in contract | self-test + backend drill (add `GET /api/v1/diagnostics/extra`) | fail `UNEXPECTED_OPERATION GET /api/v1/diagnostics/extra` |
+| (d) operationId differs | self-test | fail `OPERATION_ID_MISMATCH` |
+| (e) Extra optional response property in code | self-test + backend drill | fail (normalized structural diff) |
+| (f) Required property removed / status code changed | self-test | fail |
+| (g) Contract PR removes a response field without a major bump | specs drill | `breaking` job fails |
+| (h) Hand-edit of `src/generated/api` | frontend drill | `generated` job fails |
 
-- **Given** a macOS or Linux machine with the documented prerequisites (Docker-compatible runtime or native PostgreSQL 16/Redis 7, uv, Node via `.nvmrc`, pnpm),
-- **When** an engineer who did not write the setup follows only the READMEs through the spec §7 smoke journey,
-- **Then** PostgreSQL and Redis are healthy, migrations apply, the API answers on :8000, the worker processes a ping job to `succeeded`, and `/status` on :3000 shows all checks green with SHAs. `make check` finishes in ≤ 60 s and `pnpm check` in ≤ 90 s on the reference laptop.
+- **Then** every case gives the expected outcome, and reverting each drill turns its job green.
 
-**Verify:** X2-01 dry run by a second engineer on a clean clone.
-**Evidence:** timed log of commands and outputs, plus a screenshot of `/status`. **Tasks:** B1-06, B1-07, B2-10, B4-11, F1-06, X1-04, X1-05, X2-01.
+**Verify:** `tools/tests/test_conformance.py` (S-07); `make contract` (B-19); CI jobs `contract` (B-24), `breaking` (S-11), `generated` (F-11).
+**Evidence:** test report plus 5 drill run links. **Tasks:** S-02, S-04, S-07, S-11, B-19, B-24, F-03, F-11.
+*Note:* the "does not bypass authorization" half of Tech §17.8 #3 is deferred to BL-104.
 
----
+### AC-04 — Local development on existing services is reproducible and safe
 
-## B. Backend runtime
+*FR-21, FR-35, spec §8 · NFR-01, NFR-06 · DEC-043/044/045/048*
 
-### A001-AC-05 — Health endpoints and buildable images
-*Tech §17.8 #4 · FR-17, FR-22, FR-28*
+- **Given** the owner's existing PostgreSQL 15 and Redis, P-03 applied, Node 24 and uv,
+- **When** a second engineer follows only the READMEs through the spec §8 smoke journey,
+- **Then** `make doctor` is green, migrations apply to `atlas_db`, the API and worker run, `make worker-smoke` is OK, and `/status` is green with SHAs.
+- **Before and after** the journey, these are unchanged:
+  - the list of non-Atlas databases and roles on the server;
+  - the key count of every Redis DB other than 10/11;
+  - the Redis container state.
 
-- **Given** the API running against compose services,
-- **When** `GET /api/v1/health/live` and `GET /api/v1/health/ready` are called with both dependencies up, then with Redis stopped, then with PostgreSQL unreachable,
-- **Then** `live` is always 200. `ready` is 200 with both checks `ok` when healthy, and 503 with an error envelope `DEPENDENCY_UNAVAILABLE` naming the failed check (no host or credentials) otherwise. The `api` and `worker` images build from the same commit and run as non-root.
+**Verify:** B-25/F-13 dry runs. Snapshot via `make doctor SNAPSHOT=…` (read-only, B-08) before and after, with diff empty outside Atlas objects.
+**Evidence:** timed log and the snapshot diff. **Tasks:** B-08, B-17, B-25, F-02, F-13.
 
-**Verify:** integration tests B3-07, B4-02. `docker build --target api|worker`. `docker run … id -u`.
-**Evidence:** test report; `curl -i` transcripts for the three cases; image build log. **Tasks:** B2-06, B3-07, B4-02, B6-06, B6-07, F5-05.
+### AC-05 — Health, readiness and buildable images
 
-### A001-AC-06 — Migrations are reviewed, reversible and drift-free
-*FR-19, FR-20, FR-21*
+*Tech §17.8 #4 · FR-26, FR-31, FR-37, FR-58*
 
-- **Given** an empty PostgreSQL 16 database,
-- **When** CI runs `upgrade head → downgrade base → upgrade head` and `alembic check`,
-- **Then** every step succeeds, there is exactly one head, autogenerate reports no differences, and the schema has only `job`, `job_attempt`, `outbox_event` (plus `alembic_version`) with the spec §6.6 constraints.
+- **Given** the API running,
+- **When** `/health/live` and `/health/ready` are called with dependencies healthy, with the database URL pointed at a closed port, and with the Redis URL pointed at a closed port,
+- **Then** `live` is always 200. `ready` is 200 with `{database:ok, redis:ok}`, or 503 `DEPENDENCY_UNAVAILABLE` naming the failed check, with no host or credential in the body. Shared services are never stopped to test this.
+- The `api`, `worker` and web images build from single commits and run as non-root.
 
-**Verify:** `pytest tests/integration/test_migrations.py`; `\dt` and `\d job` output.
-**Evidence:** CI integration job log; schema dump. **Tasks:** B3-02…B3-05, B3-08, B3-09, B6-02.
+**Verify:** B-09, B-13 integration tests; B-21, F-09 builds; CI `images`/`image` jobs.
+**Evidence:** test reports, `curl -i` transcripts, `id -u` outputs. **Tasks:** B-06, B-09, B-13, B-21, F-09.
 
-### A001-AC-07 — Uniform error envelope and conventions
-*FR-01, FR-03, FR-13, FR-15 · Tech §6.3*
+### AC-06 — Migration mechanism
+
+*FR-28, FR-29 · DEC-046*
+
+- **Given** `atlas_test` and `atlas_test_migrator`,
+- **When** `upgrade head → downgrade base → upgrade head` and `alembic check` run,
+- **Then** all succeed with a single head. `alembic_version` lives in schema `atlas`, owned by the migration role. The schema contains **no** tables other than `alembic_version`.
+
+**Verify:** `tests/integration/test_migrations.py` (B-11); `make migrate` on `atlas_db` (B-10).
+**Evidence:** CI integration log; `\dt atlas.*` output. **Tasks:** B-10, B-11.
+
+### AC-07 — Credential separation, least privilege and authentication strength
+
+*FR-21, FR-28, FR-30, FR-35, FR-39 · DEC-044, DEC-084*
+
+- **Given** the approved four roles (`atlas_migrator`, `atlas_app`, `atlas_test_migrator`, `atlas_test_app`),
+- **When** the privilege tests, settings guards, `make doctor` and the CI `ci_auth` test run,
+- **Then**:
+  - the API and worker use only the runtime credential, and Alembic only the migration credential;
+  - test runs use only `atlas_test_*` credentials, and settings refuse mixed configurations;
+  - the runtime role has `SELECT` by default and no `CREATE` or `TEMP`; it cannot write to a table without an explicit per-table grant;
+  - neither environment's roles can connect to the other environment's database;
+  - no Atlas role is superuser, or can create roles or databases, replicate or bypass RLS;
+  - **in CI**, a wrong or missing password is rejected for every Atlas role;
+  - **locally**, `make doctor` reports the `trust` limitation explicitly. It is documented, not hidden.
+
+**Verify:** `tests/integration/test_privileges.py` (B-12); `tests/unit/test_settings.py` (B-03); `ci_auth` test in CI (B-23); doctor output (B-08).
+**Evidence:** test reports; read-only role listing; CI `ci_auth` log; doctor warning output. **Tasks:** B-03, B-08, B-12, B-22, B-23.
+
+### AC-08 — Uniform error envelope
+
+*FR-01, FR-03, FR-24, FR-52 · Tech §6.3*
 
 - **Given** the API,
-- **When** a request triggers validation failure (422), an unknown route (404), a missing `Idempotency-Key` (422), a dependency failure (503) and an unhandled exception (500, test-only route),
-- **Then** every body validates against `contracts/schemas/error.v1.json`, carries the documented `code`, and has a `correlation_id` equal to the response header. The 500 body contains no traceback, SQL, file path, host name or settings value. The frontend maps each case and a network failure to a typed `AtlasApiError`.
+- **When** requests produce 404 (unknown route), 404 (diagnostics disabled), 503 (dependency) and 500 (test-only failing route),
+- **Then** each body validates against `error.v1.json`, carries the documented code, and has `correlation_id` equal to the response header. The 500 body has no traceback, SQL, path, host or settings value. The frontend maps envelope, non-JSON and network failures to typed errors.
 
-**Verify:** backend `pytest -m "unit or contract"` (B2-04, B5-05); frontend unit tests (F2-05).
-**Evidence:** test reports. **Tasks:** S1-01, S1-03, S1-06, B2-04, B2-05, B5-02, B5-05, F2-05.
+**Verify:** B-05 unit tests; B-20 contract tests; F-05 unit tests.
+**Evidence:** test reports. **Tasks:** S-01, S-03, B-05, B-20, F-05.
 
-### A001-AC-08 — Build provenance is complete and environment-restricted
-*FR-18, FR-44 · Tech §17.4(7)*
+### AC-09 — Build provenance, environment-restricted
 
-- **Given** a build from known commits with `ATLAS_DIAGNOSTICS_ENABLED=true` and `ATLAS_ENV=test`,
-- **When** `GET /api/v1/diagnostics/build` is called and `/status` is opened,
-- **Then** the response validates against `build-info.v1.json` and reports the real `backend_sha`, the lock `specs_sha`, `contract_version` `0.1.0` and `db_migration_revision` `0001…`. `/status` additionally shows the `frontend_sha` of the build. With diagnostics disabled the endpoint returns 404. Starting the API with diagnostics enabled and `ATLAS_ENV=uat|prod` fails at startup.
+*FR-27, FR-56 · Tech §17.4(7)*
 
-**Verify:** B2-08 and B3-06 tests; B6-08 security test; E2E F4-03.
-**Evidence:** JSON response vs `git rev-parse` of each repo; startup failure log. **Tasks:** S1-04, B2-01, B2-07, B2-08, B3-06, F3-03, F3-05.
+- **Given** diagnostics enabled under `ATLAS_ENV=test`,
+- **When** `/diagnostics/build` is called and `/status` is opened,
+- **Then**:
+  - the response validates against `build-info.v1.json` and reports the real backend SHA, the lock `specs_sha`, `0.1.0` and `0001_baseline`;
+  - `/status` also shows `frontend_sha`;
+  - with diagnostics disabled, the endpoint returns 404 and `/status` shows "Diagnostics disabled";
+  - startup with diagnostics enabled under `uat`/`prod` fails.
 
-### A001-AC-09 — Correlation IDs flow end to end
-*FR-14, FR-43*
+**Verify:** B-07, B-12 tests; B-03 guard test; F-07 tests.
+**Evidence:** JSON vs `git rev-parse`; startup failure log. **Tasks:** B-07, B-12, F-07.
+
+### AC-10 — Correlation IDs end to end
+
+*FR-23, FR-32, FR-52*
 
 - **Given** the frontend sends `X-Correlation-ID: req_test123456`,
-- **When** it calls `POST /diagnostics/jobs/ping` and the worker processes the job,
-- **Then** the response header, the `job.correlation_id` column and the API and worker log lines all contain `req_test123456`. An invalid inbound value (e.g. `<script>` or 200 characters) is replaced, never echoed.
+- **When** it calls the API, and a ping task is enqueued with that ID,
+- **Then** the response header, API log line and worker log line all carry `req_test123456`. Invalid inbound values (`<script>`, 200 characters) are replaced, never echoed.
 
-**Verify:** B2-03 unit tests; B4-09 integration test; F2-04 unit test.
-**Evidence:** test reports plus one captured log pair. **Tasks:** B2-03, B4-09, F2-04.
+**Verify:** B-04, B-14 tests; worker log captured in B-15; F-05 tests.
+**Evidence:** test reports plus one captured log pair. **Tasks:** B-04, B-14, F-05.
 
-### A001-AC-10 — Security baseline holds
-*FR-15, FR-16, FR-30, FR-47 · NFR-05*
+### AC-11 — Taskiq/Redis seam with key hygiene
 
-- **Given** the backend and frontend builds,
+*FR-31…FR-34 · DEC-045, DEC-046*
+
+- **Given** Redis DB 11 and run prefix `atlas:test:<run_id>:`,
+- **When** the worker round-trip test runs (real worker process, enqueue, marker observed),
+- **Then**:
+  - the test passes;
+  - it deletes **only** keys it created;
+  - afterwards no `atlas:test:<run_id>:*` key exists, and the set of other keys in DB 11 is unchanged;
+  - no Atlas code uses `FLUSHALL`, `FLUSHDB`, pattern deletion, `CONFIG SET`, `SWAPDB` or `SELECT`;
+  - the client factory refuses any other DB index;
+  - the local smoke uses DB 10, leaves no keys, and leaves DB 1's key count unchanged.
+
+**Verify:** B-15, B-16, B-17; CI integration job uses an isolated `redis:7.4` service.
+**Evidence:** test report; `scripts/redis_keys.py` before/after outputs. **Tasks:** B-13, B-14, B-15, B-16, B-17.
+
+### AC-12 — Security baseline
+
+*FR-24, FR-25, FR-38, FR-57 · NFR-05*
+
+- **Given** backend and frontend builds,
 - **When** security tests and CI security jobs run,
-- **Then** all of the following hold:
-  - log records with secret-like keys or DSNs show `[REDACTED]`;
-  - CORS returns no allow-origin header for unlisted origins;
-  - API responses include `nosniff`, `no-referrer`, `no-store`;
-  - `next start` responses include a CSP without `unsafe-eval`, `frame-ancestors 'none'`, nosniff and referrer policy;
-  - dependency audits report no high/critical findings;
-  - secret scanning fails a branch containing a fake credential;
-  - containers run as non-root.
+- **Then**:
+  - secrets and DSNs in logs are redacted;
+  - unlisted CORS origins get no allow header;
+  - API responses carry `nosniff`, `no-referrer`, `no-store`;
+  - `next start` serves a CSP without `unsafe-eval`, `frame-ancestors 'none'`, nosniff and referrer policy;
+  - audits show no high/critical findings, and secret scanning fails a branch containing a fake credential;
+  - containers are non-root;
+  - workflows have read-only permissions, SHA-pinned actions and no `pull_request_target`.
 
-**Verify:** `pytest -m security`; B2-02/B2-09 tests; `curl -sI` against `next start`; CI `security` jobs; fake-secret drill.
-**Evidence:** reports, header transcripts, drill run link. **Tasks:** B2-02, B2-09, B6-04, B6-08, F3-06, F5-04.
+**Verify:** B-04, B-05, B-06, F-08 tests; CI `security` jobs; fake-secret drill; workflow review.
+**Evidence:** reports, header transcripts, drill link. **Tasks:** B-04, B-05, B-06, B-24, F-08, F-11.
 
-### A001-AC-11 — Jobs are idempotent, durable and retried correctly
-*FR-23, FR-24, FR-25*
+### AC-13 — Quality gates and coverage
 
-- **Given** API, relay and worker running,
-- **When**
-  - (a) `POST /diagnostics/jobs/ping` is sent twice with the same `Idempotency-Key`,
-  - (b) a ping job is configured to fail twice,
-  - (c) a ping job always fails,
-  - (d) a succeeded job's message is redelivered,
-- **Then**
-  - (a) the first call returns 202 and the second returns 200 with the same job ID, and one job row exists;
-  - (b) the job ends `succeeded` with 3 `job_attempt` rows and increasing delays within the backoff cap;
-  - (c) it ends `failed` at `max_attempts` with a sanitized `last_error`;
-  - (d) it stays `succeeded` with no extra side effects.
-  - All responses validate against `job.v1.json`.
-
-**Verify:** B4-03, B4-06, B4-07, B4-08 integration tests; Hypothesis backoff test.
-**Evidence:** test report; one `GET /jobs/{id}` transcript per scenario. **Tasks:** S1-05, B4-01, B4-03, B4-06, B4-07, B4-08.
-
-### A001-AC-12 — Outbox atomicity and Redis-loss resilience
-*FR-23, FR-26 · Tech §8*
-
-- **Given** the job service and relay,
-- **When**
-  - (a) an exception occurs after inserting a job inside its transaction,
-  - (b) two relays run concurrently over the same pending events,
-  - (c) Redis is flushed after the job is committed but before dispatch,
-- **Then**
-  - (a) neither the job nor the outbox row persists;
-  - (b) each event is dispatched exactly once by the relays;
-  - (c) the relay re-dispatches, the job reaches `succeeded`, and no `job` or `job_attempt` row is lost.
-
-**Verify:** B4-04, B4-05, B4-10 integration tests in CI with real PostgreSQL/Redis.
-**Evidence:** CI integration job log. **Tasks:** B4-04, B4-05, B4-10, B6-02.
-
-### A001-AC-13 — Quality gates and coverage are enforced
 *NFR-03, NFR-04*
 
-- **Given** CI on both application repositories,
-- **When** a PR lowers backend coverage below 85% or frontend `src/lib` + status coverage below 80%, or introduces a mypy/tsc/ESLint/Ruff error,
-- **Then** the corresponding job fails. On the release candidate the thresholds are met.
+- **Given** backend and frontend CI,
+- **When** a drill PR lowers coverage (backend < 85%, frontend `src/lib` + status < 80%) or adds a Ruff/mypy/tsc/ESLint error,
+- **Then** the relevant job fails. On the release SHAs the thresholds are met.
 
-**Verify:** CI runs plus coverage reports.
-**Evidence:** coverage summaries; one failing drill. **Tasks:** B1-05, B6-05, F4-01.
+**Verify:** coverage reports; one failing drill per repo.
+**Evidence:** coverage summaries, drill links. **Tasks:** B-02, B-23, F-01, F-11.
 
----
+### AC-14 — Bright design foundation and accessibility
 
-## C. Frontend experience and browser verification
+*FR-08, FR-54, FR-55 · spec §7 · UX §1.2, §2.1–2.2, §12 · DEC-011, DEC-065 (values proposed)*
 
-### A001-AC-14 — Bright landing with no dead controls, accessible
-*FR-45, FR-46 · NFR-06 · DEC-011, DEC-012*
+- **Given** `design/tokens.json` and the production frontend build,
+- **When** the token checker, unit tests and E2E run,
+- **Then**:
+  - every declared pair meets its WCAG ratio;
+  - the generated CSS equals the pinned tokens;
+  - pages use `color-scheme: light`;
+  - every interactive element shows the 2 px focus ring;
+  - `/` has exactly one interactive element (a working link) and a skip link;
+  - status uses icon + text;
+  - under reduced-motion emulation, computed transition and animation durations are ≤ 0.01 ms;
+  - axe reports 0 serious/critical issues on `/` and `/status`;
+  - a keyboard-only user reaches and operates every control.
+- **And** no product UI, navigation, icons or component library is present.
 
-- **Given** the production build (`next build && next start`),
-- **When** a user opens `/`,
-- **Then** the page uses the proposed bright tokens (canvas `#F8FAFE`, primary `#1769E0`) and contains exactly one interactive element, a link to `/status`, which works with mouse and keyboard. A skip-link is present. axe-core reports zero serious/critical violations on `/` and `/status`.
+**Verify:** S-08; F-04, F-06 tests; F-10 E2E (keyboard, reduced motion, axe).
+**Evidence:** checker output, Playwright report. **Tasks:** S-05, S-08, F-04, F-06, F-10.
 
-**Verify:** F4-03 (keyboard path), F4-04 (axe), DOM assertion that only one interactive element exists.
-**Evidence:** Playwright report. **Tasks:** F1-05, F3-01, F4-03, F4-04.
+### AC-15 — Status page tells the truth in every state
 
-### A001-AC-15 — Status page shows true state in every condition
-*FR-44*
+*FR-56*
 
-- **Given** `/status` against a running backend,
-- **When**
-  - (a) all dependencies are healthy,
-  - (b) Redis is stopped,
-  - (c) the API is unreachable,
-  - (d) the user presses Retry after recovery,
-- **Then**
-  - (a) it shows green checks and all provenance values;
-  - (b) it shows a degraded state naming Redis, with the correlation ID;
-  - (c) it shows an unreachable state with no fabricated values;
-  - (d) it refetches and returns to the healthy state.
-  - It never shows "ok" when the backend says otherwise.
+- **Given** `/status`,
+- **When** the backend is (a) healthy, (b) ready = 503, (c) unreachable, (d) diagnostics disabled, (e) returning an error, and (f) the user presses Retry after recovery,
+- **Then** the page shows, respectively:
+  - (a) green checks and provenance;
+  - (b) degraded, naming the failed dependency with its correlation ID;
+  - (c) unreachable, with no fabricated values;
+  - (d) health shown plus "Diagnostics disabled";
+  - (e) an error with its correlation ID;
+  - (f) a refetch that returns to healthy.
+- Changes are announced through the live region. It never shows "ok" when the backend says otherwise.
 
-**Verify:** component tests (F3-04) and E2E (F4-03).
-**Evidence:** Playwright report with screenshots of each state. **Tasks:** F3-02, F3-03, F3-04, F4-03.
+**Verify:** F-07 component tests (all states); F-10 E2E covers (a), (c) and (d) against the real backend.
+**Evidence:** test report plus Playwright traces. **Tasks:** F-07, F-10.
 
-### A001-AC-16 — Full-stack browser E2E against persisted backend in two engines
-*Tech §17.8 #6 · NFR-07 · DEC-012*
+### AC-16 — Chromium E2E against a persisted backend
+
+*Tech §17.8 #6 · FR-59 · DEC-012 · UX-NFR-011 (Chromium; second engine pending DEC-055)*
 
 - **Given** the frontend `e2e` CI job,
-- **When** it starts PostgreSQL, Redis, the backend at `e2e/backend.ref` (migrated, API + worker) and the production frontend build,
-- **Then** the status, keyboard, accessibility, visual and parity suites pass in Chromium and WebKit against the real backend. No route interception or mocks are used in acceptance tests.
+- **When** it starts isolated `postgres:15` and `redis:7.4` services, bootstraps roles, migrates, runs the backend at `e2e/backend.ref` (API + worker) and the production frontend build,
+- **Then** the status, keyboard, reduced-motion, accessibility and parity suites pass in Chromium with no route interception or mocks.
 
-**Verify:** frontend CI `e2e` job; grep confirms no `page.route(` in the acceptance specs.
-**Evidence:** run link plus Playwright HTML report artifact. **Tasks:** F4-02, F4-03, X1-01, X1-02.
+**Verify:** CI `e2e` job (F-12); `grep -r "page.route(" e2e/` returns nothing.
+**Evidence:** run link plus HTML report artifact. **Tasks:** F-10, F-12.
 
-### A001-AC-17 — Visual baselines exist and detect regressions
-*NFR-08 · UX-NFR-012*
+### AC-17 — Scope guard, exclusions and sign-off
 
-- **Given** golden screenshots of `/` and `/status` at 1440×900 and 1280×720 generated in the pinned Playwright container,
-- **When** a test PR changes `--brand-primary`,
-- **Then** the visual comparison fails. Reverting passes.
+*spec §2 · DEC-002 · DEC-046*
 
-**Verify:** F4-05 drill.
-**Evidence:** diff image from the failed run. **Tasks:** F4-05, X1-02.
-
----
-
-## D. Scope guard
-
-### A001-AC-18 — Foundation stays a foundation
-*spec §3 · DEC-002*
-
-- **Given** the release candidate of all three repositories,
-- **When** reviewers inspect the diff since the ATLAS-001 start,
+- **Given** the release SHAs,
+- **When** reviewers inspect the diff since ATLAS-001 started,
 - **Then** there are:
-  - no domain tables or models (entity, relationship, taxonomy, views);
-  - no authentication or authorization code beyond the diagnostics environment guard;
+  - no domain, job or outbox tables (only `0001_baseline`);
+  - no auth code beyond the diagnostics guard;
   - no UI beyond `/` and `/status`;
-  - no telemetry SDKs or enterprise telemetry ingestion;
-  - no PR-analysis functionality.
-  - The smoke journey meets A001-NFR-02 timings.
+  - no screenshot baselines or WebKit project enabled;
+  - no telemetry SDKs, tracing, PR-analysis, provisioning or AI functionality;
+  - no change to `brd/`, `ux/` or `technical/`;
+  - no shared-service change outside approved Atlas objects.
+- `evidence.md` lists every AC with evidence and is signed by the owner.
 
-**Verify:** reviewer checklist; `grep -ri "opentelemetry\|applicationinsights" atlas-backend atlas-frontend` returns nothing; migration list = `0001` only.
-**Evidence:** signed checklist. **Tasks:** X2-01, X2-02.
+**Verify:** reviewer checklist; `grep -riE "opentelemetry|applicationinsights|langchain|openai" atlas-backend atlas-frontend` returns nothing; `alembic history` shows only `0001_baseline`; `git log --stat -- brd ux technical` shows no ATLAS-001 commits.
+**Evidence:** signed checklist in `evidence.md`. **Tasks:** B-26, F-14, S-13.
 
 ---
 
 ## Sign-off
 
-| AC | Result | Evidence link | Verified by | Date |
-|---|---|---|---|---|
-| A001-AC-01 … A001-AC-18 | ☐ per row at sign-off | | | |
-
-ATLAS-001 is accepted when all 18 rows are ticked with evidence, and tags `contract-v0.1.0` (specs), `v0.1.0` (backend) and `v0.1.0` (frontend) are recorded together in each repository's release notes.
+ATLAS-001 is **Accepted** only when every AC above has evidence recorded in `evidence.md` and the owner signs it (G7). Tags: `atlas-specs` `contract-v0.1.0`, `atlas-backend` `v0.1.0`, `atlas-frontend` `v0.1.0`.

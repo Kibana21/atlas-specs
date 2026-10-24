@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Not found.",
+    "correlation_id": "<script>x</script>",
+    "details": {},
+    "recoverable": false
+  }
+}

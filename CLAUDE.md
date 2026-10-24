@@ -6,7 +6,7 @@ Independent Git repo (`origin` = github.com/Kibana21/atlas-specs). See `../CLAUD
 
 ## Current contents
 
-```
+```text
 brd/Atlas_Enterprise_Architecture_BRD_v2_2.md                    # product requirements (1400 lines)
 ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md              # screen/interaction spec
 technical/Atlas_Technical_Architecture_System_Design_v1_1.md     # stack, model, API, repos, phases
@@ -57,7 +57,6 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 ## Known inconsistencies to resolve (do not "fix" silently)
 
 The full list with severity and resolution path is in the blueprint §3 (CF-01…CF-15, gaps G-01…G-18). Headline items:
-
 
 - **Relationship types:** BRD INV-02 lists `CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPENDS_ON, PROTECTS`. Tech §3.3 uses `CONTAINS, SUPPORTS_CAPABILITY, EXPOSES_API, CONSUMES_API, PUBLISHES_TO, SUBSCRIBES_TO, STORES_IN, DEPLOYED_AS, CONNECTS_TO, OWNS, PRODUCES_DATA/CONSUMES_DATA, DECIDED_BY`.
 - **Roles:** BRD GOV-01/E17 (Viewer, Developer, Editor, Domain Owner, Architect Reviewer, Security Reviewer, Connector Operator, Administrator) vs tech §9.1 (Reader, Contributor, Architect, Steward, Reviewer, Security Reviewer, Source Admin, Platform Admin).
