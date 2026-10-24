@@ -1,0 +1,9 @@
+# markdownlint-cli2 configuration for atlas-specs (ATLAS-001 FR-07, S-10).
+# Run via the digest-pinned image in tools/images.lock (`make docs-lint`).
+config:
+  default: true
+  # House style uses wide tables whose rows cannot be wrapped in Markdown.
+  MD013: false
+  # House style writes table delimiter rows as `|---|`; GitHub renders this identically
+  # to `| --- |`. Disabled rather than reformatting approved documents for lint.
+  MD060: false
