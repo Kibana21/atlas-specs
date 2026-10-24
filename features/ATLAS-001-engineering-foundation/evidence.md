@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED** (2026-10-24). CP1 (S-01…S-12), CP2 (B-01…B-08, B-27, B-28), CP3 (B-09…B-12) and CP4 (B-13…B-17) complete; CP5 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED**, **Gate G5 PASSED** (2026-10-24). CP1 (S-01…S-12) and backend CP2–CP5 (B-01…B-25, B-27, B-28) complete; CP6 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -16,9 +16,10 @@
 | P-09 contract release `0.1.0` | **Approved conditionally** (owner, 2026-10-24); all conditions verified (§6) → tag created |
 | Amendments A1/A2/A3 (E-01/E-03/E-04) | Approved (A1, A2) / accepted provisionally (A3); spec v0.2.2 |
 | DEC-084 `pg_hba` hardening | Approved in principle; **not applied** (CP3 authorization excluded `pg_hba.conf` changes) |
-| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); `atlas-frontend` waits for its CI (CP6/CP7) |
+| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); backend required checks extended with `images` after its first green `main` run (§11.4); `atlas-frontend` waits for its CI (CP6/CP7) |
 | G2 / CP3 | G2 accepted and CP3 authorized by the owner (2026-10-24) |
 | G3 / CP4 | G3 accepted and CP4 authorized by the owner (2026-10-24), including completion of `getHealthReady` and emptying the pending list |
+| G4 / CP5 | G4 accepted and CP5 authorized by the owner (2026-10-24) |
 
 ## 2. Branch, commits and CI
 
@@ -330,3 +331,92 @@ Configured with the existing credential (repository admin). No bypass actors. Th
 | E-24 | FR-33's "keys outside the run prefix in DB 11 unchanged" is checked by key **count** (`DBSIZE`), not by listing key names. This follows the CP4 instruction not to scan unrelated keys; DB 1 and DB 10 are guarded the same way | Safer method; equivalent for the test's purposes |
 | E-25 | "Safe retries" means idempotent tasks plus a listener that reconnects after transient Redis errors. Task-level retries/backoff stay deferred (DEC-046 → BL-201); a failed task is reported once and not re-executed | Within approved scope |
 | E-26 | `make worker` runs one worker process (`--workers 1`) to stay within the shared server's footprint; scaling options are later work | Implementation detail |
+
+## 11. Checkpoint 5 — conformance drills, response contract tests, images, README (atlas-backend)
+
+**Authorization:** owner, 2026-10-24.
+
+- G4 accepted; CP5 (B-18…B-25) authorized.
+- Source of truth: the released `contract-v0.1.0`. It was not modified.
+- Excluded: Docker-based PostgreSQL for local development, shared-service changes, DEC-084, `atlas-frontend`, CP6.
+
+### 11.1 Tasks
+
+| Task | Delivered |
+|---|---|
+| B-18 | Pending list stays empty (since CP4). The re-add drill fails `UNEXPECTED_OPERATION getHealthReady`. Release-mode lock check kept |
+| B-19 | Drills run in `make contract` (CI `contract`) against the pinned conformance tool. Removed route → `MISSING_OPERATION getHealthLive`. Undeclared `GET /api/v1/diagnostics/extra` → `UNEXPECTED_OPERATION`. Extra optional property, renamed field, removed required field, changed status code and changed operationId each fail. The unchanged app conforms. Exports byte-identical |
+| B-20 | Every released operation and declared status is exercised on the real app: live 200; ready 200, 503 database, 503 Redis; build 200, 404 disabled; 422, 500 and unknown-route 404 envelopes through the shared error path. Each response is checked against the pinned contract: status declared, `application/json`, `X-Correlation-ID` pattern (equal to `error.correlation_id`), schema with no undeclared fields, and the matching JSON Schema file. Meta-tests prove the validator rejects six body mutations and wrong status, header and media type |
+| B-21 | `Dockerfile`, targets `api` and `worker`:<br>• digest-pinned `python:3.12.15-slim-trixie` and `uv:0.10.0`;<br>• locked runtime dependencies only; Debian `libpq5`;<br>• uid 10001, read-only `/app`;<br>• no env files, credentials, tests, caches or VCS data;<br>• health checks: api `/health/live`, worker Redis `PING`;<br>• graceful SIGTERM; `ATLAS_BUILD_SHA` |
+| B-22/B-23 | Done earlier (CP3/CP4; §9, §10) |
+| B-24 | CI `images` job (`scripts/images_check.sh`) and a dedicated Trivy secret scan in `security` (`make secret-scan`) |
+| B-25 | Backend README: prerequisites; environment setup; local PostgreSQL 15 and Redis; API on a configurable port; worker; migrations; tests and contract checks; Docker images; troubleshooting; security restrictions |
+
+### 11.2 Results
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-backend#5](https://github.com/Kibana21/atlas-backend/pull/5): 6 commits, 17 files (+1122/−38), file list equal to the reviewed diff, mergeable `clean`, merged under `protect-main` |
+| Merge commit | **`585f3f52e477b051cc33b15fdb549c8af6e6f44a`** |
+| CI on PR head `5637eb4` and on `main` | [backend-ci run 40079105731](https://github.com/Kibana21/atlas-backend/actions/runs/40079105731): `static`, `unit`, `contract`, `security`, `integration`, `images`: **6/6 success**. Every job ≤ 1 min (NFR-02 ≤ 15 min) |
+| `unit` | **163 passed, coverage 94.48 %** |
+| `contract` | Lock valid (release). `pending: none - full contract compared`. Conforms. **28 pinned-contract tests passed** (drills + response validation) |
+| `integration` | Bootstrap drift check OK. **35 passed, 0 skipped** (incl. `ci_auth` and the worker round trip) |
+| `security` | pip-audit "No known vulnerabilities found". 26 security tests passed. Trivy secret scan: 0 secrets |
+| `images` | See §11.3 |
+| Local (fresh clone, README walkthrough) | `make setup` created `.env`/`.env.test` with placeholders; credentials entered. `make doctor`: all PASS, `trust` WARN. `make migrate` → `0001_baseline (head)`. `make check`: 163 passed, 94.48 %. `make integration`: 27 passed (8 `ci_auth` CI-only). `make contract`: 28 passed. `make security`, `make secret-scan` clean. `make api API_PORT=8101` → ready `{database: ok, redis: ok}`. `make worker` + `make worker-smoke` → OK. `make images` → OK |
+
+### 11.3 Docker build, runtime and security findings
+
+| Check | Result (local and CI `main`) |
+|---|---|
+| Build | Both targets build from one commit with `ATLAS_BUILD_SHA` |
+| hadolint v2.14.0 | No findings |
+| Trivy 0.67.2: image vulnerabilities (HIGH/CRITICAL) | api and worker: **0 fixable**, **0 in Python packages**. 44 OS findings in the base image with no upstream fix yet: reported, not gating |
+| Trivy: secrets in images; Dockerfile misconfiguration | 0; 0 HIGH/CRITICAL |
+| Static image checks | uid 10001 (non-root); health check present; no `.env`, `.git`, tests, build output or tool caches in `/app`; no secret-named variables in the image environment |
+| Hardened runtime (isolated Docker network; own `postgres:15.19` + `redis:7.4.9`; `--read-only --cap-drop=ALL --security-opt=no-new-privileges`) | Bootstrap and `alembic upgrade head` from the api image. **api** and **worker** reach Docker `healthy`. `live` 200 (correlation ID echoed, `nosniff`, no `server` header). `ready` 200 `{database: ok, redis: ok}`. Build info: commit SHA and `0001_baseline`. Unknown route: 404 envelope |
+| Worker in container | Round trip on DB 10: marker = producer's correlation ID; correlation ID in worker logs |
+| Graceful shutdown | `docker stop`: api exit 0 (≈1 s, "Application shutdown complete"); worker exit 0 (≈1 s, `worker_stopped`). No credential in either log |
+
+### 11.4 Drills (real PRs, closed unmerged, branches deleted)
+
+| Drill | PR / run | Result |
+|---|---|---|
+| Quality gates: one Ruff error + one mypy error; untested module; fake credential (AC-01, AC-12, AC-13) | [#6](https://github.com/Kibana21/atlas-backend/pull/6), [run 40079303853](https://github.com/Kibana21/atlas-backend/actions/runs/40079303853) | `static` **failure** (`F401 os imported but unused`; the same commit fails mypy locally: `Incompatible return value type`). `unit` **failure** (`Required test coverage of 85.0% not reached. Total coverage: 70.27%`). `security` **failure** (`drill-fake-credential.txt: password in url`). `contract`, `integration`, `images` success. PR `blocked` by the ruleset |
+| Contract: undeclared `GET /api/v1/diagnostics/extra` (AC-03 c) | [#7](https://github.com/Kibana21/atlas-backend/pull/7), [run 40079379070](https://github.com/Kibana21/atlas-backend/actions/runs/40079379070) | `contract` **failure** (`UNEXPECTED_OPERATION: GET /api/v1/diagnostics/extra (getDiagnosticsExtra) is implemented but not in the contract`). `unit` also fails (the export test lists the released operations). Others success. PR `blocked` |
+| Revert | `main` (no drill commits) | 6/6 green (run 40079105731) |
+
+The `protect-main` ruleset on `atlas-backend` now requires `static, unit, contract, security, integration, images` (strict). Verified read-only after the change.
+
+### 11.5 Gate G5 evaluation
+
+| G5 criterion | Result |
+|---|---|
+| Backend CI fully green | ✔ 6/6 required jobs on the PR and `main` |
+| Conformance proven, incl. the AC-03 drills | ✔ Structural conformance with an empty pending list. Automated drills b, c, e, f, operationId and pending re-add. Real drill PR (c) fails `contract`. Response bodies validated against the released contract and JSON Schemas |
+| Images build | ✔ Both targets; non-root; scanned; hardened runtime verified |
+| README reproducible | ✔ Followed step by step on a clean clone (deviation E-28) |
+| AC-01 (backend) | ✔ `make check` exit 0 on a clean clone; CI green; lint/type drill fails `static` |
+| AC-02 (backend) | ✔ `make specs` release-mode lock validation (`contract-v0.1.0` commit). The frontend parity part is CP7 |
+| AC-03 (backend) | ✔ |
+| AC-05 | ✔ Readiness (G3/G4) plus images non-root (`id -u` = 10001) and healthy |
+| AC-08 (backend) | ✔ 404 (unknown route and diagnostics disabled), 422, 500 and 503 bodies validate against `error.v1.json`, with `correlation_id` equal to the header. The 500 body carries no traceback, SQL, host, path or settings value |
+| AC-12 (backend) | ✔ Redaction, CORS and headers (G2). Audit clean. Fake-secret drill fails `security`. Containers non-root. Workflows read-only, SHA-pinned, no `pull_request_target` |
+| AC-13 (backend) | ✔ Coverage drill fails `unit` (70.27 % < 85 %). Lint/type drill fails `static`. Release SHA 94.48 % |
+
+**Verdict: Gate G5 — PASS.**
+
+### 11.6 CP5 deviations, findings and risks
+
+| ID | Item | Status |
+|---|---|---|
+| E-27 | **Security finding fixed:** the `psycopg[binary]` wheel bundles C libraries built on EL8, including `libpcre2` 10.32 (8 HIGH/CRITICAL findings) and OpenSSL 1.1.1k, which OS updates never patch. Runtime now uses pure `psycopg` with Debian's `libpq5` (pinned `17.11-0+deb13u1`). `psycopg-binary` is dev-only (local and CI tests) | Fixed. Images verified. Local/CI tests still use the binary build (accepted: not shipped) |
+| E-28 | B-25 asks a **second engineer** to follow the README. There is one maintainer, so Claude followed the README step by step on a clean clone (§11.2) | Owner may repeat it; otherwise accepted |
+| E-29 | Base image `python:3.12.15-slim-trixie` (published 2026-10-21) is newer than the two-week supply-chain lag applied to PyPI. The 3.12.12 base had 83 fixable HIGH/CRITICAL OS findings; the current one has 0. Local Python is 3.12.12; images use 3.12.15 (same minor, `requires-python ==3.12.*`) | Security over lag for OS images; recorded |
+| E-30 | Trivy gate fails on **fixable** HIGH/CRITICAL findings, any Python-package finding, secrets and Dockerfile misconfiguration. 44 unfixed Debian findings are reported, not gating, so CI does not depend on upstream fix timing | Risk accepted; revisit when releasing to an environment |
+| E-31 | `libpq5` is pinned to an exact Debian version. A future Debian point release removes it from the mirror, so builds will fail until the pin is bumped in a reviewed PR | Deliberate (reproducible, reviewed updates) |
+| E-32 | CI `images` initially failed after **all checks had passed**: root-owned Trivy cache files made the cleanup trap fail on Linux. Trivy now runs as the invoking user, and cleanup never overrides the result. Also found before push: the URL-password rule flagged `${VAR}` placeholders; it now allows exactly `${NAME}` references, and literals are still flagged (tests) | Fixed |
+| E-33 | `opentelemetry-api` is a transitive dependency of taskiq. Atlas never imports or configures it (no tracing or telemetry; scope exclusion unaffected) | Noted |
+| E-34 | In the drill, `static` stops at the first failing step (Ruff), so mypy's failure was shown locally on the same commit. In the fake-secret drill, `make security` fails before the dedicated Trivy step | Behaviour as designed |
+| E-35 | `pg_hba` hardening (DEC-084) is still not applied. Locally, passwords are not enforced; CI and the image check enforce scram | Open owner decision |

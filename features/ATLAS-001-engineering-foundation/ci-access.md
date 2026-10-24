@@ -93,7 +93,7 @@ The App private key is a stored secret, but the credential used by jobs is minte
 | Repository | `required_status_checks` (context names; GitHub Actions app `integration_id` 15368) | Grows with |
 |---|---|---|
 | `atlas-specs` | `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` | — |
-| `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2), `integration` (from CP3) | `images` (CP5) |
+| `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2), `integration` (from CP3), `images` (from CP5) | — |
 | `atlas-frontend` | apply when its CI exists (CP6): `static`, `unit`, `generated`, `build`, `security`, `image`, `e2e` | — |
 
 **Why these values:**
