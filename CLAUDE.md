@@ -10,8 +10,14 @@ Independent Git repo (`origin` = github.com/Kibana21/atlas-specs). See `../CLAUD
 brd/Atlas_Enterprise_Architecture_BRD_v2_2.md                    # product requirements (1400 lines)
 ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md              # screen/interaction spec
 technical/Atlas_Technical_Architecture_System_Design_v1_1.md     # stack, model, API, repos, phases
+phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md   # readiness assessment + implementation order (proposed)
+phase0/requirement-traceability-matrix.md            # RTM (human-readable)
+phase0/requirements-registry.csv                     # RTM (machine-readable; intended requirement-ID authority)
+phase0/prioritized-backlog.md                        # BL-0xx…BL-5xx ranked backlog
+features/ATLAS-NNN-<slug>/{spec,plan,tasks,acceptance}.md  # work-item specs; ATLAS-001 = engineering foundation (draft)
 adr/README.md                    # empty; ADRs go here
-decisions/open-decisions.md      # empty; log unresolved decisions here
+decisions/decision-register.md   # all decisions: DEC-NNN, Confirmed/Proposed/Open
+decisions/open-decisions.md      # pointer to the register
 contracts/openapi/  contracts/schemas/        # empty (.gitkeep)
 acceptance/scenarios/  acceptance/test-data/  # empty (.gitkeep)
 ```
@@ -23,7 +29,7 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 - **BRD v2.2** defines *what* and *why*. Requirement families: INV, CAN, DEV, DEP, CON, GOV, AI, KNOW, FLOW, HIST, SAN, SEC, COST, SELF, SCORE, AIX, EXP, XRAY, PASS, ICR, PAT, RULE (§5.1–5.22). It adds MOD, BCM, REC, AAC, BRN, ADR, LIN, SDK, NTF, COL, CMD, STORY, IMP, FBK (§5.23–5.38). Experience sections are E01–E20, journeys J01–J06 and J-*-01, user stories US-01–10.
 - **UX v1.1** is normative for screen behaviour: UX-CAN-001–024, UX-XR-001–010, UX-PASS-001–012, UX-ICR, UX-PAT, UX-RULE, UX-GLB-001–012, UX-NFR-001–014, plus the §18 V2.2 additions (UX-MOD-01 … UX-FBK-01). Where the BRD is less specific, use the UX detail, subject to BRD security/evidence rules.
 - **Technical v1.1** proposes the implementation: modules, tables, API surface, connectors, repo layouts, phases, and ADR backlog (§22).
-- Conflict rule: the stricter security/evidence requirement wins, and the discrepancy goes to `decisions/open-decisions.md` before anyone implements it.
+- Conflict rule: the stricter security/evidence requirement wins, and the discrepancy goes to `decisions/decision-register.md` before anyone implements it.
 
 ## Editing rules
 
@@ -37,7 +43,9 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 
 - ADR files: `adr/ADR-NNNN-kebab-title.md` (e.g. `ADR-0001-canonical-identity.md`). Planned first set is in tech §17.3: canonical identity, graph/layout separation, source precedence, projection and scale, auth, three-repo contract governance. Tech §22 also lists ADR-001…ADR-014 as decisions to resolve. Map them to the four-digit files and record the mapping in `adr/README.md`.
 - Suggested ADR sections: Status (proposed/accepted/superseded), Context, Decision, Consequences, Alternatives, Related requirement IDs.
-- Unresolved items go in `decisions/open-decisions.md` with ID, question, current proposal, owner, and the source document/section.
+- Decisions live in `decisions/decision-register.md` as `DEC-NNN` (status Confirmed / Proposed / Open, owner, needed-by, blocked items). When accepted, write the ADR and set the row to Confirmed. Never mark a decision Confirmed without the user saying it was approved.
+- `DEC-` IDs exist because `ADR-01…05` is a BRD *requirement* family and tech §22 uses `ADR-001…014`. Refer to tech backlog epics as `TE01–TE09` (BRD already uses E01–E20).
+- When requirement mappings or decision statuses change, update `phase0/requirements-registry.csv` and the RTM markdown together. Every requirement must map to at least one `BL-` item and every `DEC-`/`BL-` reference must exist.
 
 ## Contracts (when created)
 
@@ -47,6 +55,9 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 - Acceptance scenarios use Given/When/Then and reference requirement IDs. Golden test data stays small, deterministic, and sanitized. The seeded UX dataset is about 250 entities / 700 relationships (tech §4.4).
 
 ## Known inconsistencies to resolve (do not "fix" silently)
+
+The full list with severity and resolution path is in the blueprint §3 (CF-01…CF-15, gaps G-01…G-18). Headline items:
+
 
 - **Relationship types:** BRD INV-02 lists `CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPENDS_ON, PROTECTS`. Tech §3.3 uses `CONTAINS, SUPPORTS_CAPABILITY, EXPOSES_API, CONSUMES_API, PUBLISHES_TO, SUBSCRIBES_TO, STORES_IN, DEPLOYED_AS, CONNECTS_TO, OWNS, PRODUCES_DATA/CONSUMES_DATA, DECIDED_BY`.
 - **Roles:** BRD GOV-01/E17 (Viewer, Developer, Editor, Domain Owner, Architect Reviewer, Security Reviewer, Connector Operator, Administrator) vs tech §9.1 (Reader, Contributor, Architect, Steward, Reviewer, Security Reviewer, Source Admin, Platform Admin).
