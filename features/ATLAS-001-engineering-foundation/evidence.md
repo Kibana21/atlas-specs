@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED**, **Gate G2 PASSED** (2026-10-24). CP1 (S-01…S-12) and CP2 (B-01…B-08, B-27, B-28) complete; CP3 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED** (2026-10-24). CP1 (S-01…S-12), CP2 (B-01…B-08, B-27, B-28) and CP3 (B-09…B-12) complete; CP4 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -9,13 +9,15 @@
 |---|---|
 | P-01 specification set v0.2.1 | Approved for Implementation |
 | P-02 D-07 stack decisions | Approved (register v0.3/v0.4) |
-| P-03 PostgreSQL four-role SQL | Approved as design; **execution not authorized** |
+| P-03 PostgreSQL four-role SQL | **Applied 2026-10-24** under the owner's conditional CP3 authorization, after a passing read-only preflight (§9.1) |
 | P-05 pinned images / PyPI / local venvs / temporary containers | Confirmed |
 | P-06 / DEC-085 repository visibility | **PUBLIC** (owner decision); CI Mode A |
 | P-08 change workflow | Confirmed, then **superseded by the owner's standard workflow (2026-10-24):** Claude creates the feature branch and PR, waits for required checks, reviews the diff, merges when all gates pass, and confirms `main` CI. Never force-push shared branches, bypass protection, or merge failing checks |
 | P-09 contract release `0.1.0` | **Approved conditionally** (owner, 2026-10-24); all conditions verified (§6) → tag created |
 | Amendments A1/A2/A3 (E-01/E-03/E-04) | Approved (A1, A2) / accepted provisionally (A3); spec v0.2.2 |
-| DEC-084 `pg_hba` hardening | Approved in principle; not applied (re-verify before CP3) |
+| DEC-084 `pg_hba` hardening | Approved in principle; **not applied** (CP3 authorization excluded `pg_hba.conf` changes) |
+| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); `atlas-frontend` waits for its CI (CP6/CP7) |
+| G2 / CP3 | G2 accepted and CP3 authorized by the owner (2026-10-24) |
 
 ## 2. Branch, commits and CI
 
@@ -179,3 +181,93 @@ The credential is an **OAuth token** (`gho_…`) held by the macOS keychain for 
 4. Verify: `git ls-remote origin` works. CI is unaffected (Mode A uses no secrets).
 
 Optionally review GitHub → Settings → **Security log** for unexpected `oauth_access` events.
+
+## 9. Checkpoint 3 — backend persistence and migrations (atlas-backend)
+
+**Authorization:** owner, 2026-10-24.
+
+- G2 accepted; CP3 (B-09…B-12) authorized.
+- P-03 SQL execution conditionally authorized, subject to a read-only preflight.
+- Rulesets to be applied only if they preserve the automated PR workflow.
+- Excluded: `pg_hba.conf`, server settings, unrelated databases, `atlas-frontend`, CP4.
+
+### 9.1 P-03 preflight (read-only) and execution
+
+| Preflight item | Result |
+|---|---|
+| Server | Homebrew PostgreSQL **15.12** on port 5432 (`server_version_num` 150012). Executor: the local bootstrap superuser |
+| `atlas_db` empty | Only schema `public`. 0 relations, functions, types, large objects, publications and default ACLs. Only `plpgsql`. `tup_inserted = 0`. Default ACL. The only session was the owner's idle pgAdmin connection |
+| `atlas_test` / Atlas roles | Absent / 0 `atlas_*` roles |
+| Change list | Exactly the proposal: 4 login roles and their role settings; `atlas_db` owner + ACL; new `atlas_test`; in both Atlas databases, `public`-schema `PUBLIC` privileges revoked; schema `atlas` + default `SELECT` privileges + per-database `search_path` |
+| Non-Atlas objects | None modified. No other database, role, schema, ownership, privilege, `pg_hba.conf` or server setting is touched |
+| Rerun safety | The guards abort with zero changes on a rerun (verified again in the CI rehearsal: `ABORT: atlas_* roles already exist`) |
+| Rollback | Documented in the proposal. Original `atlas_db` owner = the local bootstrap superuser (name not recorded in this public repo). Original ACL = default (`PUBLIC` CONNECT/TEMP; `public` schema `U` for `PUBLIC`) |
+| Least privilege | Matches spec §6.2 (verified after apply, below) |
+| Credentials | Generated in memory and passed to `psql` through environment variables. Written only to the git-ignored `.env`/`.env.test` (mode 0600). psql output redacted. Never on a command line, in shell history, logs or Git. `log_statement = none` (no statement logging) |
+| Version check | File unchanged since the approved v0.2.1 baseline (`ff3a5ae`) and identical at the pinned `bfe4a09` |
+
+**Execution:** `psql` exit 0; every step committed.
+
+**Verification:**
+
+- 4 login roles. All elevated flags false; connection limits 3/10.
+- Owners `atlas_migrator` / `atlas_test_migrator`. No `PUBLIC` entry in either database ACL.
+- `atlas_app`: no `CREATE` on `atlas`, no `TEMP`.
+- All four cross-environment `CONNECT` privileges false.
+- Database count 18 → 19 (`atlas_test`). 0 non-Atlas ACL or role-setting changes.
+- `make doctor`: PASS for version, roles, databases, schema and the runtime-role session. WARN for `trust` (DEC-084, expected).
+
+### 9.2 Implementation and CI
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-backend#3](https://github.com/Kibana21/atlas-backend/pull/3): 5 commits, 33 files (+1391/−37), file list equal to the reviewed local diff, mergeable `clean` |
+| Merge commit | **`7826f640d1522c0febb5880d8cec93254a321fd2`** (merge commit, head-SHA guard) |
+| CI on PR head `9f3992a` and on `main` | [backend-ci run 40071857701](https://github.com/Kibana21/atlas-backend/actions/runs/40071857701) (`main`): `static`, `unit`, `contract`, `security`, `integration`: **5/5 success** (also 5/5 on the PR head) |
+| `integration` job log (`main`) | `OK: bootstrap.sql = approved proposal + documented CI-ONLY block`; setup complete; `Running upgrade -> 0001_baseline`; `0001_baseline (head)` on `atlas_db`; **26 passed, 0 skipped** (incl. 8 `ci_auth` wrong/missing-password rejections under scram-sha-256). Role passwords masked; no unmasked password-length value in the log |
+| Local (clean clone of the committed branch) | `make check`: 122 passed, **coverage 95.10 %**. `make contract`: conforms. `make security`: pip-audit clean + 7 tests. `make integration`: **18 passed**, 8 `ci_auth` skipped by design (local `trust`, no wrong-password probes) |
+| B-09 live smoke (127.0.0.1:8100) | `GET /health/ready` → `200 {"status":"ok","checks":{"database":"ok"}}` with `X-Correlation-ID`. `/diagnostics/build` → `db_migration_revision: "0001_baseline"`. Only the Atlas process started for the smoke run was stopped |
+| B-10 | `make migrate` on `atlas_db`, then `alembic current` → `0001_baseline (head)`. `atlas.alembic_version` owned by `atlas_migrator`. `atlas_app` has `SELECT` and no `INSERT`. `alembic check`: no drift |
+| CI rehearsal (before push) | Disposable `postgres:15.19` container (loopback-only random port, removed afterwards): bootstrap OK, rerun aborts, migrate OK, 26/26 integration tests |
+| Shared services after CP3 | PG: 19 databases. No non-Atlas ACL or role-setting change. `atlas_db` and `atlas_test` each hold only `atlas.alembic_version`. Redis: DB1 = 3 keys (unchanged), DB10/DB11 = 0. CP3 issues no Redis commands |
+
+### 9.3 Gate G3 evaluation
+
+| G3 criterion | Result |
+|---|---|
+| Migrations round-trip as the test migrator | ✔ `upgrade head → downgrade base → upgrade head`, `alembic check`, single head: local (trust) and CI (scram) |
+| Runtime role cannot run DDL | ✔ `CREATE` in `atlas`/`public` and `TEMP` denied. Writes denied without a grant, allowed only after an explicit per-table grant. `UPDATE`/`DELETE` still denied |
+| No Atlas test touched any non-Atlas database | ✔ Integration connections are restricted in code to `atlas_test` (plus the expected-denied `atlas_db` attempts). The session guard (non-Atlas databases, ACLs, roles, role settings) was unchanged in every run. Before/after inventory unchanged |
+| AC-05 (database part) | ✔ 200 with the database; 503 `DEPENDENCY_UNAVAILABLE` naming `database` for a closed port, with no host, port, role or credential in the body. The Redis part follows in G4 |
+| AC-06 | ✔ |
+| AC-07 (CP3 part) | ✔ Privilege tests; cross-environment `CONNECT` denied (connection attempts for the test roles; catalog checks for all four pairs); no elevated flags; `ci_auth` in CI |
+| AC-09 (revision) | ✔ `db_migration_revision = 0001_baseline`, read by the runtime role (integration test, CI and live smoke) |
+
+**Verdict: Gate G3 — PASS.**
+
+### 9.4 Rulesets (P-07), applied
+
+The §6 settings preserve the automated workflow:
+
+- **0 required approvals:** a single maintainer can still merge.
+- **Merge commits only:** the method the PR helper already uses.
+- **Strict required checks:** a PR that is behind `main` stops; it is never merged around the rule.
+
+Configured with the existing credential (repository admin). No bypass actors. The owner can still edit or remove the rulesets.
+
+| Repository | Ruleset (id) | Effective rules on `main` (read back) |
+|---|---|---|
+| `atlas-specs` | `protect-main` (25773158), `immutable-release-tags` (25773159) | `deletion`, `non_fast_forward`, `pull_request` (merge only, 0 approvals), strict checks `docs-lint, contract, tools, tokens, registry, breaking`. Tags `contract-v*`: no update or deletion |
+| `atlas-backend` | `protect-main` (25773160) | Same rules; strict checks `static, unit, contract, security, integration` |
+| `atlas-frontend` | not applied | Has no CI yet, so required checks could never report. Apply with F-11/F-12 (`ci-access.md` §6.1) |
+
+### 9.5 CP3 deviations and findings
+
+| ID | Item | Status |
+|---|---|---|
+| E-16 | The contract's `ReadinessChecks` requires `database` **and** `redis`, but the Redis check is B-13 (CP4). `getHealthReady` therefore stays in `contract-pending.yaml` (now `lands_in: B-09 + B-13`, removed by B-18), and the route is excluded from the generated schema until it is complete. Conformance stays exact; the route never claims `redis: ok` | Implementation sequencing, consistent with B-18; reversible |
+| E-17 | Database parts of B-22 (`scripts/db/bootstrap.sql`, drift-checked against the pinned proposal) and B-23 (`integration` job, scram service, masked random passwords, `ci_auth`) brought forward from CP5, as "appropriate CI verification" for CP3. Redis service, worker round trip and `images` stay in CP4/CP5 | Scope moved earlier within ATLAS-001; no new scope |
+| E-18 | The CP2 hygiene rule "no `services:` / `localhost:5432` in workflows" is narrowed, not removed. A job may reach `localhost:5432` only if it declares its own digest-pinned scram `postgres:15` service. `localhost:6379` is still forbidden | Strengthened check |
+| E-19 | Clean-clone verification caught a scanner hit (`…:secret@…` in a new unit-test URL). Replaced with the approved placeholder before pushing | Process working as intended (E-13) |
+| E-20 | The CI bootstrap superuser password is a fixed value scoped to the ephemeral, job-local container. The four Atlas role passwords are random per run and masked (FR-39) | Accepted CI detail |
+| E-15 | Updated: `getHealthReady` partly implemented (database). Completes in B-13; list emptied by G5 (B-18) | Open, on plan |
