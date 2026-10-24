@@ -4,12 +4,14 @@
 
 | ID | Kind | Source | Summary | State |
 |---|---|---|---|---|
-| A001-DEF-01 | Backend defect | E-48 | First readiness check after a Redis outage falsely reports Redis failed in an API process that was idle during the outage | **Open** — needs a scheduled backend task |
+| A001-DEF-01 | Backend defect | E-48 | First readiness check after a Redis outage falsely reports Redis failed in an API process that was idle during the outage | **Closed 2026-10-24** by ATLAS-002 CP0 (backend `2987262`, frontend `8ed5deb`; `features/ATLAS-002-canonical-graph-foundation/evidence.md` §1) |
 | A001-OBS-01 | Tracked observation | E-62 | One unreproduced axe violation in a fresh-clone E2E run | **Open** — monitoring |
 | DEC-084 | Open owner decision | E-35 | Local `pg_hba` hardening approved in principle, not applied | **Open** (unchanged; no infrastructure change) |
 | E-07 | Optional owner action | §8.3 | Rotation of the existing git OAuth credential | **Open** (unchanged; no credential change) |
 
 ## A001-DEF-01 — Redis readiness after an outage (E-48)
+
+**Closed 2026-10-24 (ATLAS-002 CP0).** Fix: one reconnect on a connection error within the 1 s budget, as proposed below. The required integration and E2E regression tests were written first and fail on `585f3f5`. Backend [atlas-backend#8](https://github.com/Kibana21/atlas-backend/pull/8) → `2987262`; frontend [atlas-frontend#9](https://github.com/Kibana21/atlas-frontend/pull/9) → `8ed5deb` (`e2e/backend.ref` moved). The ATLAS-001 release tags are unchanged. The original record follows.
 
 **Severity:** low–medium. A transient false "degraded" status: the API reports `redis` failed although Redis is reachable again. It self-corrects on the next check. No data is affected, but it violates FR-56 / AC-15 "never shows a false state" for one check, and invariant 3 (unknown stays unknown, failures are not invented).
 
