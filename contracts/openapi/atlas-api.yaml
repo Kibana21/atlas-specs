@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: Atlas API
+  version: 0.1.0
+  description: >-
+    Atlas engineering-foundation contract (ATLAS-001). Contains only health and
+    environment-restricted build diagnostics. Conventions: contracts/conventions.md.
+    Dialect: contracts/style-guide.md. Compatibility and release rules:
+    contracts/compatibility.md.
+  license:
+    name: Proprietary - all rights reserved
+servers:
+  - url: /
+    description: Same origin as the client (deployment sets the host).
+paths:
+  /api/v1/health/live:
+    get:
+      operationId: getHealthLive
+      summary: Process liveness
+      tags: [health]
+      responses:
+        '200':
+          description: The API process is running.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthLive'
+        '500':
+          description: Unexpected server error.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/health/ready:
+    get:
+      operationId: getHealthReady
+      summary: Dependency readiness (PostgreSQL and Redis)
+      tags: [health]
+      responses:
+        '200':
+          description: All required dependencies responded within their timeout.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReady'
+        '503':
+          description: >-
+            A required dependency is unavailable (code DEPENDENCY_UNAVAILABLE;
+            details.failed_check names it, without host or credential information).
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected server error.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/v1/diagnostics/build:
+    get:
+      operationId: getDiagnosticsBuild
+      summary: Build provenance (environment-restricted diagnostics)
+      description: >-
+        Available only when diagnostics are enabled (local, dev, test). Otherwise
+        returns 404 NOT_FOUND. Identity-based access control arrives with BL-104.
+      tags: [diagnostics]
+      responses:
+        '200':
+          description: Build provenance of the running backend.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuildInfo'
+        '404':
+          description: Diagnostics are disabled in this environment (code NOT_FOUND).
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Unexpected server error.
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/X-Correlation-ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+components:
+  headers:
+    X-Correlation-ID:
+      description: >-
+        Correlation ID of the request. Echoes a valid inbound value, otherwise a
+        server-generated one. Equals error.correlation_id in error bodies.
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{8,64}$'
+  schemas:
+    ErrorEnvelope:
+      title: ErrorEnvelope
+      description: Error envelope returned by every non-2xx response.
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+      required: [error]
+    ErrorBody:
+      title: ErrorBody
+      type: object
+      properties:
+        code:
+          description: Error code from the append-only catalog (contracts/conventions.md §7).
+          type: string
+          pattern: '^[A-Z][A-Z0-9_]*$'
+        message:
+          description: Human-readable message without internal details.
+          type: string
+        correlation_id:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{8,64}$'
+        details:
+          type: object
+          additionalProperties: true
+        recoverable:
+          type: boolean
+      required: [code, message, correlation_id, details, recoverable]
+    HealthLive:
+      title: HealthLive
+      type: object
+      properties:
+        status:
+          type: string
+          const: ok
+      required: [status]
+    ReadinessChecks:
+      title: ReadinessChecks
+      type: object
+      properties:
+        database:
+          type: string
+          const: ok
+        redis:
+          type: string
+          const: ok
+      required: [database, redis]
+    HealthReady:
+      title: HealthReady
+      type: object
+      properties:
+        status:
+          type: string
+          const: ok
+        checks:
+          $ref: '#/components/schemas/ReadinessChecks'
+      required: [status, checks]
+    BuildInfo:
+      title: BuildInfo
+      type: object
+      properties:
+        backend_sha:
+          description: Full commit SHA of the backend build, or "unknown" in local runs.
+          type: string
+          pattern: '^([0-9a-f]{40}|unknown)$'
+        specs_sha:
+          description: atlas-specs commit pinned in the backend specs.lock.
+          type: string
+          pattern: '^[0-9a-f]{40}$'
+        contract_version:
+          type: string
+          pattern: '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+        db_migration_revision:
+          description: Current Alembic revision, or null when unavailable.
+          anyOf:
+            - type: string
+            - type: 'null'
+        environment:
+          type: string
+          enum: [local, dev, test, uat, prod]
+      required: [backend_sha, specs_sha, contract_version, db_migration_revision, environment]
