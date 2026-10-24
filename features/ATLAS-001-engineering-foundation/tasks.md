@@ -1,6 +1,6 @@
 # ATLAS-001 — Engineering Foundation: Tasks
 
-**Version:** 0.2.3 (CP2 plan amendment) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Spec:** `spec.md` v0.2.1 · **Acceptance:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
+**Version:** 0.2.3 (CP2 plan amendment) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1–CP7 completed; **ATLAS-001 Accepted** (owner, 24 Oct 2026, Gate G7; `evidence.md` §13.11) · **Spec:** `spec.md` v0.2.1 · **Acceptance:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
 
 ## Rules
 
@@ -150,7 +150,7 @@
 | F-14 | frontend | Tag `v0.1.0` at the SHA that passed F-12; its `specs.lock` must point at a `contract-v*` release commit | F-12 | `git rev-parse v0.1.0` equals the CI-green SHA; lock SHA carries `contract-v0.1.0` | AC-02, AC-17 |
 | S-13 | specs | Complete `evidence.md`: every AC with evidence links, the SHA triple (specs/backend/frontend), the open-decision snapshot | B-26, F-14, P-07 | Every AC row in `acceptance.md` has a linked evidence entry. The owner signs | AC-17 |
 
-**Gate G7 (ATLAS-001 sign-off):** all ACs evidenced; the owner signs `evidence.md`; register updated by owner instruction. ATLAS-001 becomes **Accepted** only when the owner signs.
+**Gate G7 (ATLAS-001 sign-off):** all ACs evidenced; the owner signs `evidence.md`; register updated by owner instruction. ATLAS-001 becomes **Accepted** only when the owner signs. **Done: accepted 24 Oct 2026 (`evidence.md` §13.11).**
 
 ---
 

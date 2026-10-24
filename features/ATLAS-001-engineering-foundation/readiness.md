@@ -1,7 +1,7 @@
 # ATLAS-001 — Implementation Readiness Summary and Final Approval Request
 
 **Date:** 24 October 2026 · **Specification set:** `spec.md` v0.2.1, `plan.md` v0.2.1, `tasks.md` v0.2.1, `acceptance.md` v0.2.1 · **Register:** `decisions/decision-register.md` v0.3
-**Status:** **Approved for Implementation** (owner, 24 Oct 2026). **Checkpoint 1 authorized**; CP2–CP7 not authorized. ATLAS-001 **not Accepted** until G7.
+**Status:** **Approved for Implementation** (owner, 24 Oct 2026). CP1–CP7 were authorized and completed in turn. **ATLAS-001 Accepted** (owner, 24 Oct 2026, Gate G7; `evidence.md` §13.11).
 
 ## Owner decisions recorded on 24 Oct 2026
 

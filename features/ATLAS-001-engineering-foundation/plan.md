@@ -1,6 +1,6 @@
 # ATLAS-001 — Engineering Foundation: Implementation Plan
 
-**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Implements:** `spec.md` v0.2.1 · **Tasks:** `tasks.md` v0.2.1 · **Verification:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
+**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1–CP7 completed; **ATLAS-001 Accepted** (owner, 24 Oct 2026, Gate G7; `evidence.md` §13.11) · **Implements:** `spec.md` v0.2.1 · **Tasks:** `tasks.md` v0.2.1 · **Verification:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
 
 ## 1. Approach
 
