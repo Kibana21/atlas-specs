@@ -18,6 +18,7 @@ This repository is the source of truth for Atlas requirements, UX, technical arc
 ## Work items
 
 - `features/ATLAS-001-engineering-foundation/` — engineering foundation: spec, plan, tasks, acceptance, evidence, follow-ups. **Accepted** (owner, 24 Oct 2026; release `contract-v0.1.0` / `v0.1.0`)
+- `features/ATLAS-002-canonical-graph-foundation/` — canonical graph foundation: scope, decision matrix, evidence. Approved in principle; CP0 done; CP1 decisions **Proposed** (ADRs in `adr/`)
 
 ## Intended companion repositories
 

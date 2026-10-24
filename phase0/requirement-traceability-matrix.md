@@ -1,6 +1,6 @@
 # Atlas — Requirement Traceability Matrix (Phase 0)
 
-**Status:** Proposed working baseline · **Date:** 24 October 2026 · **Generated from:** `brd/Atlas_Enterprise_Architecture_BRD_v2_2.md`, `ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md`; mapping per `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md` and `phase0/prioritized-backlog.md`.  
+**Status:** Proposed working baseline · **Date:** 24 October 2026 (readiness regenerated 24 Oct 2026 after register v0.6: DEC-050/056/058/070 Proposed) · **Generated from:** `brd/Atlas_Enterprise_Architecture_BRD_v2_2.md`, `ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md`; mapping per `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md` and `phase0/prioritized-backlog.md`.  
 **Machine-readable source:** `phase0/requirements-registry.csv` (same rows, full text, extra columns). Edit the CSV and this file together, or regenerate both.
 
 > Engineering phase, backlog mapping, module mapping, readiness and gaps are **blueprint proposals**, not approved scope. Requirement text is quoted from the baselines (truncated here; full text in CSV). UX-OD-01–12 are decisions and live in `decisions/decision-register.md`.
@@ -21,20 +21,20 @@
 
 - **By engineering phase:** P0 = 2, P1 = 179, P2 = 56, P3 = 88, P4 = 51, P5 = 17
 
-- **By readiness:** R0 Blocked = 177, R1 Gaps = 137, R2 Contract-ready = 79
+- **By readiness:** R0 Blocked = 124, R1 Gaps = 180, R2 Contract-ready = 89
 
 - **Gaps:** generic acceptance criteria = 79, missing API = 250, missing data model = 34
 
-- **Most-blocking open decisions (requirement count):** DEC-050 (37), DEC-056 (29), DEC-051 (16), DEC-063 (14), DEC-057 (14), DEC-054 (11), DEC-073 (10), DEC-072 (9), DEC-075 (8), DEC-064 (6), DEC-055 (6), DEC-062 (6)
+- **Most-blocking open decisions (requirement count):** DEC-051 (16), DEC-063 (14), DEC-057 (14), DEC-054 (11), DEC-073 (10), DEC-072 (9), DEC-075 (8), DEC-064 (6), DEC-055 (6), DEC-062 (6), DEC-059 (5), DEC-069 (5)
 
 ## Coverage by family
 
 | Family | Area | Count | Phases | R0 | R1 | R2 | Primary backlog |
 |---|---|---:|---|---:|---:|---:|---|
-| INV | Canonical graph | 7 | P1 P2 | 7 | 0 | 0 | BL-101 BL-103 BL-203 |
+| INV | Canonical graph | 7 | P1 P2 | 0 | 7 | 0 | BL-101 BL-103 BL-203 |
 | CAN | Canvas | 12 | P1 P3 | 5 | 7 | 0 | BL-106 BL-108 BL-109 BL-114 BL-115 BL-117 BL-120 BL-307 |
 | DEV | Search & developer portal | 8 | P1 P4 | 2 | 6 | 0 | BL-110 BL-111 BL-112 BL-119 BL-507 |
-| DEP | Dependency intelligence | 9 | P1 P2 P3 P4 | 9 | 0 | 0 | BL-101 BL-109 BL-110 BL-211 BL-305 BL-401 BL-406 |
+| DEP | Dependency intelligence | 9 | P1 P2 P3 P4 | 0 | 9 | 0 | BL-101 BL-109 BL-110 BL-211 BL-305 BL-401 BL-406 |
 | CON | Discovery connectors | 10 | P1 P2 P5 | 8 | 2 | 0 | BL-124 BL-201 BL-204 BL-205 BL-206 BL-207 BL-208 BL-210 BL-212 BL-505 |
 | GOV | Governance & lifecycle | 7 | P1 P2 P3 | 7 | 0 | 0 | BL-104 BL-110 BL-116 BL-118 BL-211 BL-306 |
 | AI | AI assistant | 8 | P4 | 8 | 0 | 0 | BL-404 |
@@ -47,16 +47,16 @@
 | SELF | Governed self-service | 4 | P1 P5 | 2 | 2 | 0 | BL-104 BL-110 BL-119 BL-503 |
 | SCORE | Quality scorecards | 5 | P4 | 0 | 5 | 0 | BL-405 |
 | AIX | AI design intelligence | 5 | P4 | 0 | 5 | 0 | BL-404 |
-| EXP | Product experience | 5 | P1 P3 P5 | 2 | 1 | 2 | BL-109 BL-111 BL-122 BL-308 BL-506 |
-| XRAY | Architecture X-Ray | 7 | P1 | 3 | 0 | 4 | BL-113 BL-114 BL-115 |
-| PASS | Architecture Passport | 8 | P1 | 8 | 0 | 0 | BL-110 BL-112 BL-119 |
+| EXP | Product experience | 5 | P1 P3 P5 | 1 | 1 | 3 | BL-109 BL-111 BL-122 BL-308 BL-506 |
+| XRAY | Architecture X-Ray | 7 | P1 | 2 | 0 | 5 | BL-113 BL-114 BL-115 |
+| PASS | Architecture Passport | 8 | P1 | 4 | 4 | 0 | BL-110 BL-112 BL-119 |
 | ICR | Contract registry | 9 | P2 | 2 | 7 | 0 | BL-209 |
 | PAT | Pattern library | 8 | P3 | 1 | 7 | 0 | BL-304 BL-305 |
 | RULE | Rule engine | 10 | P3 | 1 | 9 | 0 | BL-305 |
-| MOD | Multi-level modeling | 6 | P1 | 6 | 0 | 0 | BL-101 BL-108 BL-114 |
-| BCM | Capability mapping | 6 | P1 P4 | 6 | 0 | 0 | BL-123 BL-402 |
+| MOD | Multi-level modeling | 6 | P1 | 1 | 5 | 0 | BL-101 BL-108 BL-114 |
+| BCM | Capability mapping | 6 | P1 P4 | 2 | 0 | 4 | BL-123 BL-402 |
 | REC | Reconciliation | 7 | P2 | 7 | 0 | 0 | BL-202 BL-203 BL-208 |
-| AAC | Architecture-as-code | 6 | P3 | 6 | 0 | 0 | BL-301 |
+| AAC | Architecture-as-code | 6 | P3 | 0 | 6 | 0 | BL-301 |
 | BRN | Branching & merging | 6 | P1 P3 | 1 | 5 | 0 | BL-116 BL-303 |
 | ADR | Decisions & knowledge (req family) | 5 | P3 | 0 | 5 | 0 | BL-306 |
 | LIN | Data lineage | 7 | P4 | 1 | 0 | 6 | BL-401 |
@@ -69,18 +69,18 @@
 | FBK | Feedback & correction | 5 | P1 P4 | 2 | 3 | 0 | BL-119 BL-405 |
 | J | Acceptance journeys | 15 | P1 P2 P3 P4 | 1 | 0 | 14 | BL-108 BL-110 BL-116 BL-119 BL-123 BL-203 BL-204 BL-207 BL-211 BL-301 BL-302 BL-303 BL-307 BL-401 BL-406 |
 | US | User stories | 10 | P1 P2 P3 P4 | 1 | 0 | 9 | BL-110 BL-111 BL-113 BL-114 BL-119 BL-122 BL-207 BL-303 BL-404 BL-406 |
-| UX-CAN | Canvas | 24 | P1 P2 P3 | 6 | 18 | 0 | BL-108 BL-109 BL-111 BL-113 BL-114 BL-115 BL-116 BL-117 BL-120 BL-211 BL-307 |
-| UX-XR | Architecture X-Ray | 10 | P1 P4 | 3 | 0 | 7 | BL-113 BL-114 BL-404 |
-| UX-PASS | Architecture Passport | 12 | P1 | 12 | 0 | 0 | BL-110 BL-114 BL-119 |
+| UX-CAN | Canvas | 24 | P1 P2 P3 | 5 | 19 | 0 | BL-108 BL-109 BL-111 BL-113 BL-114 BL-115 BL-116 BL-117 BL-120 BL-211 BL-307 |
+| UX-XR | Architecture X-Ray | 10 | P1 P4 | 2 | 0 | 8 | BL-113 BL-114 BL-404 |
+| UX-PASS | Architecture Passport | 12 | P1 | 3 | 9 | 0 | BL-110 BL-114 BL-119 |
 | UX-ICR | Contract registry | 7 | P2 | 2 | 5 | 0 | BL-209 |
 | UX-PAT | Pattern library | 6 | P3 | 1 | 5 | 0 | BL-304 BL-305 |
 | UX-RULE | Rule engine | 6 | P3 | 1 | 5 | 0 | BL-305 |
-| UX-GLB | Product experience | 12 | P1 | 4 | 0 | 8 | BL-104 BL-105 BL-109 BL-111 BL-112 BL-114 BL-115 BL-116 BL-119 BL-121 |
-| UX-NFR | Non-functional (BRD §8, proposed IDs) | 14 | P0 P1 P2 | 10 | 0 | 4 | BL-025 BL-101 BL-104 BL-108 BL-109 BL-110 BL-111 BL-114 BL-115 BL-120 BL-122 BL-208 |
-| UX-MOD | Multi-level modeling | 1 | P1 | 1 | 0 | 0 | BL-108 |
+| UX-GLB | Product experience | 12 | P1 | 2 | 0 | 10 | BL-104 BL-105 BL-109 BL-111 BL-112 BL-114 BL-115 BL-116 BL-119 BL-121 |
+| UX-NFR | Non-functional (BRD §8, proposed IDs) | 14 | P0 P1 P2 | 9 | 0 | 5 | BL-025 BL-101 BL-104 BL-108 BL-109 BL-110 BL-111 BL-114 BL-115 BL-120 BL-122 BL-208 |
+| UX-MOD | Multi-level modeling | 1 | P1 | 0 | 1 | 0 | BL-108 |
 | UX-BCM | Capability mapping | 1 | P1 | 1 | 0 | 0 | BL-123 |
 | UX-REC | Reconciliation | 1 | P2 | 1 | 0 | 0 | BL-203 |
-| UX-AAC | Architecture-as-code | 1 | P3 | 1 | 0 | 0 | BL-301 |
+| UX-AAC | Architecture-as-code | 1 | P3 | 0 | 1 | 0 | BL-301 |
 | UX-BRN | Branching & merging | 1 | P3 | 0 | 1 | 0 | BL-303 |
 | UX-ADR | Decisions & knowledge (req family) | 1 | P3 | 0 | 1 | 0 | BL-306 |
 | UX-LIN | Data lineage | 1 | P4 | 0 | 0 | 1 | BL-401 |
@@ -102,13 +102,13 @@ Backend: `catalog, domain, persistence` · Frontend: `-` · API: GET /entities/{
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| INV-01 | BRD 5.1 Enterprise inventory an… | Must | Maintain canonical IDs for business capabilities, domains, systems, applications, services, deployments, cloud resource… | P1 | BL-101 | DEC-050 DEC-058 | AC API | R0 |  |
-| INV-02 | BRD 5.1 Enterprise inventory an… | Must | Support directed typed relationships: CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPE… | P1 | BL-101 BL-002 | DEC-050 | AC API | R0 |  |
-| INV-03 | BRD 5.1 Enterprise inventory an… | Must | Record source system, evidence pointer, discovery method, confidence, first/last seen, validity period and verification… | P1 | BL-101 BL-202 | DEC-050 DEC-056 | AC API | R0 |  |
-| INV-04 | BRD 5.1 Enterprise inventory an… | Must | Support deduplication, alias matching, merge review and conflict resolution across multiple discovery sources. | P2 | BL-203 | DEC-050 | AC API | R0 |  |
-| INV-05 | BRD 5.1 Enterprise inventory an… | Must | Represent environment and regional separation, shared infrastructure and many-to-many ownership. | P1 | BL-101 | DEC-050 DEC-058 | AC API | R0 |  |
-| INV-06 | BRD 5.1 Enterprise inventory an… | Must | Retain history and soft deletion/tombstones for removed resources; distinguish missing data from verified removal. | P1 | BL-101 BL-202 | DEC-050 | AC API | R0 |  |
-| INV-07 | BRD 5.1 Enterprise inventory an… | Must | Provide graph and catalog APIs with pagination, filters and access-aware responses. | P1 | BL-103 BL-108 | DEC-050 | AC API | R0 |  |
+| INV-01 | BRD 5.1 Enterprise inventory an… | Must | Maintain canonical IDs for business capabilities, domains, systems, applications, services, deployments, cloud resource… | P1 | BL-101 |  | AC API | R1 |  |
+| INV-02 | BRD 5.1 Enterprise inventory an… | Must | Support directed typed relationships: CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPE… | P1 | BL-101 BL-002 |  | AC API | R1 |  |
+| INV-03 | BRD 5.1 Enterprise inventory an… | Must | Record source system, evidence pointer, discovery method, confidence, first/last seen, validity period and verification… | P1 | BL-101 BL-202 |  | AC API | R1 |  |
+| INV-04 | BRD 5.1 Enterprise inventory an… | Must | Support deduplication, alias matching, merge review and conflict resolution across multiple discovery sources. | P2 | BL-203 |  | AC API | R1 |  |
+| INV-05 | BRD 5.1 Enterprise inventory an… | Must | Represent environment and regional separation, shared infrastructure and many-to-many ownership. | P1 | BL-101 |  | AC API | R1 |  |
+| INV-06 | BRD 5.1 Enterprise inventory an… | Must | Retain history and soft deletion/tombstones for removed resources; distinguish missing data from verified removal. | P1 | BL-101 BL-202 |  | AC API | R1 |  |
+| INV-07 | BRD 5.1 Enterprise inventory an… | Must | Provide graph and catalog APIs with pagination, filters and access-aware responses. | P1 | BL-103 BL-108 |  | AC API | R1 |  |
 
 ### CAN — Canvas
 
@@ -150,15 +150,15 @@ Backend: `projections, contracts` · Frontend: `features/explore (path focus, im
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| DEP-01 | BRD 5.4 Integration and depende… | Must | Model APIs and event contracts as first-class entities, not only labels on edges. | P1 | BL-101 | DEC-050 | AC API | R0 |  |
-| DEP-02 | BRD 5.4 Integration and depende… | Must | Inspect endpoint/method, contract/version, configured producer/consumer, authentication, data classification and eviden… | P1 | BL-110 BL-209 | DEC-050 | API | R0 | AC via UX-CAN-008 |
-| DEP-03 | BRD 5.4 Integration and depende… | Must | Trace upstream/downstream dependencies with direction, hop limits, environment filters and cycle-safe traversal. | P2 | BL-211 | DEC-050 | API | R0 | AC via UX-CAN-022 |
-| DEP-04 | BRD 5.4 Integration and depende… | Must | Distinguish configuration-derived, contract-derived, manually verified and inferred links in UI and export; do not impl… | P1 | BL-109 BL-003 | DEC-050 DEC-056 | API | R0 | AC via UX-GLB-010 |
-| DEP-05 | BRD 5.4 Integration and depende… | Must | Offer business process and data lineage overlays where supporting sources exist. | P4 | BL-401 | DEC-050 | AC API | R0 |  |
-| DEP-06 | BRD 5.4 Integration and depende… | Must | Provide explainable impact reports listing candidate affected systems, paths, owners, criticality, confidence and unkno… | P2 | BL-211 | DEC-050 | AC API | R0 |  |
-| DEP-07 | BRD 5.4 Integration and depende… | Must | Avoid presenting potential blast radius as guaranteed failure impact; expose assumptions and missing evidence. | P2 | BL-211 | DEC-050 | AC API | R0 |  |
-| DEP-08 | BRD 5.4 Integration and depende… | Should | Provide design-time dependency and business-criticality overlays without live health or telemetry integration. | P4 | BL-406 | DEC-050 | AC API | R0 |  |
-| DEP-09 | BRD 5.4 Integration and depende… | Should | Detect stale contracts, unowned interfaces, unsupported API versions and dangling dependencies. | P3 | BL-305 | DEC-050 | AC API | R0 |  |
+| DEP-01 | BRD 5.4 Integration and depende… | Must | Model APIs and event contracts as first-class entities, not only labels on edges. | P1 | BL-101 |  | AC API | R1 |  |
+| DEP-02 | BRD 5.4 Integration and depende… | Must | Inspect endpoint/method, contract/version, configured producer/consumer, authentication, data classification and eviden… | P1 | BL-110 BL-209 |  | API | R1 | AC via UX-CAN-008 |
+| DEP-03 | BRD 5.4 Integration and depende… | Must | Trace upstream/downstream dependencies with direction, hop limits, environment filters and cycle-safe traversal. | P2 | BL-211 |  | API | R1 | AC via UX-CAN-022 |
+| DEP-04 | BRD 5.4 Integration and depende… | Must | Distinguish configuration-derived, contract-derived, manually verified and inferred links in UI and export; do not impl… | P1 | BL-109 BL-003 |  | API | R1 | AC via UX-GLB-010 |
+| DEP-05 | BRD 5.4 Integration and depende… | Must | Offer business process and data lineage overlays where supporting sources exist. | P4 | BL-401 |  | AC API | R1 |  |
+| DEP-06 | BRD 5.4 Integration and depende… | Must | Provide explainable impact reports listing candidate affected systems, paths, owners, criticality, confidence and unkno… | P2 | BL-211 |  | AC API | R1 |  |
+| DEP-07 | BRD 5.4 Integration and depende… | Must | Avoid presenting potential blast radius as guaranteed failure impact; expose assumptions and missing evidence. | P2 | BL-211 |  | AC API | R1 |  |
+| DEP-08 | BRD 5.4 Integration and depende… | Should | Provide design-time dependency and business-criticality overlays without live health or telemetry integration. | P4 | BL-406 |  | AC API | R1 |  |
+| DEP-09 | BRD 5.4 Integration and depende… | Should | Detect stale contracts, unowned interfaces, unsupported API versions and dangling dependencies. | P3 | BL-305 |  | AC API | R1 |  |
 
 ### CON — Discovery connectors
 
@@ -166,11 +166,11 @@ Backend: `connectors, sources, workers, jobs` · Frontend: `admin (sources)` · 
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| CON-01 | BRD 5.5 Discovery, connectors a… | Must | Read Azure Resource Graph and approved Azure APIs for resource inventory and hierarchy. | P2 | BL-204 | DEC-069 DEC-070 DEC-072 | AC API | R0 |  |
-| CON-02 | BRD 5.5 Discovery, connectors a… | Must | Ingest APIM APIs, operations and policy metadata where permitted. | P2 | BL-205 | DEC-069 DEC-070 DEC-072 | AC API | R0 |  |
-| CON-03 | BRD 5.5 Discovery, connectors a… | Must | Discover AKS namespaces, services, ingress, workloads and deployment metadata with least-privilege access. | P2 | BL-206 | DEC-069 DEC-070 DEC-072 | AC API | R0 |  |
+| CON-01 | BRD 5.5 Discovery, connectors a… | Must | Read Azure Resource Graph and approved Azure APIs for resource inventory and hierarchy. | P2 | BL-204 | DEC-069 DEC-072 | AC API | R0 |  |
+| CON-02 | BRD 5.5 Discovery, connectors a… | Must | Ingest APIM APIs, operations and policy metadata where permitted. | P2 | BL-205 | DEC-069 DEC-072 | AC API | R0 |  |
+| CON-03 | BRD 5.5 Discovery, connectors a… | Must | Discover AKS namespaces, services, ingress, workloads and deployment metadata with least-privilege access. | P2 | BL-206 | DEC-069 DEC-072 | AC API | R0 |  |
 | CON-04 | BRD 5.5 Discovery, connectors a… | Must | Ingest repositories, IaC manifests, OpenAPI/AsyncAPI, deployment metadata and documentation from approved source contro… | P2 | BL-212 | DEC-069 DEC-072 DEC-078 | AC API | R0 |  |
-| CON-05 | BRD 5.5 Discovery, connectors a… | Must | Ingest messaging topology and configuration metadata (queues, topics, subscriptions, routing rules) without message pay… | P2 | BL-207 | DEC-069 DEC-070 DEC-072 | AC API | R0 |  |
+| CON-05 | BRD 5.5 Discovery, connectors a… | Must | Ingest messaging topology and configuration metadata (queues, topics, subscriptions, routing rules) without message pay… | P2 | BL-207 | DEC-069 DEC-072 | AC API | R0 |  |
 | CON-06 | BRD 5.5 Discovery, connectors a… | Must | Support scheduled incremental sync, manual refresh, connector health, rate limiting, retries and idempotency. | P2 | BL-201 BL-210 | DEC-072 | AC API | R0 |  |
 | CON-07 | BRD 5.5 Discovery, connectors a… | Must | Expose connector coverage, sync lag, permissions, errors and provenance at record level. | P2 | BL-208 | DEC-072 | AC API | R0 |  |
 | CON-08 | BRD 5.5 Discovery, connectors a… | Must | Provide an import path for curated Visio/draw.io/CSV architecture inventory with validation. | P1 | BL-124 BL-302 |  | AC API | R1 | build with IMP-* (draw.io/Visio) + CSV import |
@@ -324,7 +324,7 @@ Backend: `-` · Frontend: `shell` · API: n/a · Data: -
 | EXP-02 | BRD 5.17 Product experience and… | Must | Provide responsive, accessible, high-performance diagram interactions with browser-based end-to-end tests. | P1 | BL-122 | DEC-055 |  | R0 | AC via UX-NFR-011 |
 | EXP-03 | BRD 5.17 Product experience and… | Should | Allow extensions for approved connectors, entity types, policies and developer portal widgets without compromising the… | P5 | BL-506 |  | AC | R1 |  |
 | EXP-04 | BRD 5.17 Product experience and… | Should | Support collaborative annotations, comments, diagram ownership and publication review. | P3 | BL-308 |  |  | R2 | AC via UX-COL-01; build with COL-01/02 |
-| EXP-05 | BRD 5.17 Product experience and… | Must | Expose a clear distinction between curated, discovered, inferred and proposed architecture states. | P1 | BL-109 BL-003 | DEC-056 |  | R0 | AC via UX-GLB-010; build with DEC-056 trust model |
+| EXP-05 | BRD 5.17 Product experience and… | Must | Expose a clear distinction between curated, discovered, inferred and proposed architecture states. | P1 | BL-109 BL-003 |  |  | R2 | AC via UX-GLB-010; build with DEC-056 trust model |
 
 ### XRAY — Architecture X-Ray
 
@@ -338,7 +338,7 @@ Backend: `projections, layouts` · Frontend: `features/explore (X-Ray)` · API: 
 | XRAY-04 | BRD 5.18 Architecture X-Ray | Should | Reveal and collapse cross-boundary dependencies with grouped connector counts and on-demand expansion. | P1 | BL-113 BL-108 |  |  | R2 |  |
 | XRAY-05 | BRD 5.18 Architecture X-Ray | Should | Preserve per-user and curated X-Ray layout state independently of topology data. | P1 | BL-114 | DEC-059 |  | R0 |  |
 | XRAY-06 | BRD 5.18 Architecture X-Ray | Must | Provide keyboard navigation, accessible node list, and controlled rendering budgets for large nested systems. | P1 | BL-115 BL-113 |  |  | R2 |  |
-| XRAY-07 | BRD 5.18 Architecture X-Ray | Must | Label discovered, curated, inferred and proposed elements distinctly at every level. | P1 | BL-113 BL-003 | DEC-056 |  | R0 |  |
+| XRAY-07 | BRD 5.18 Architecture X-Ray | Must | Label discovered, curated, inferred and proposed elements distinctly at every level. | P1 | BL-113 BL-003 |  |  | R2 |  |
 
 ### PASS — Architecture Passport
 
@@ -346,14 +346,14 @@ Backend: `passports` · Frontend: `/applications/:id, inspector` · API: GET /en
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| PASS-01 | BRD 5.19 Architecture Passport | Must | Generate a canonical Passport page for every supported entity type with stable identifier, name, type, purpose, lifecyc… | P1 | BL-110 | DEC-056 DEC-062 | API | R0 |  |
-| PASS-02 | BRD 5.19 Architecture Passport | Must | Display business owner, technical owner, support group, contact method and stewardship status. | P1 | BL-110 | DEC-056 DEC-062 | API | R0 |  |
-| PASS-03 | BRD 5.19 Architecture Passport | Must | Show direct dependencies and integrations with typed direction, related contract and supporting evidence. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| PASS-04 | BRD 5.19 Architecture Passport | Must | Link to approved repositories, ADRs, API specifications, deployment diagrams, runbooks, onboarding material and service… | P1 | BL-110 | DEC-056 | API | R0 |  |
-| PASS-05 | BRD 5.19 Architecture Passport | Should | Display environment-specific deployment locations, Azure resource references and last successful source synchronization… | P1 | BL-110 | DEC-056 | API | R0 |  |
-| PASS-06 | BRD 5.19 Architecture Passport | Must | Support proposed corrections, owner attestation, audit history and approval before publishing authoritative changes. | P1 | BL-119 | DEC-056 DEC-063 | API | R0 |  |
-| PASS-07 | BRD 5.19 Architecture Passport | Should | Provide a completeness checklist with unknown, missing, verified and stale states. | P1 | BL-110 | DEC-056 DEC-062 | API | R0 |  |
-| PASS-08 | BRD 5.19 Architecture Passport | Should | Offer shareable links and embeddable references without bypassing authentication or leaking restricted metadata. | P1 | BL-112 | DEC-056 | API | R0 |  |
+| PASS-01 | BRD 5.19 Architecture Passport | Must | Generate a canonical Passport page for every supported entity type with stable identifier, name, type, purpose, lifecyc… | P1 | BL-110 | DEC-062 | API | R0 |  |
+| PASS-02 | BRD 5.19 Architecture Passport | Must | Display business owner, technical owner, support group, contact method and stewardship status. | P1 | BL-110 | DEC-062 | API | R0 |  |
+| PASS-03 | BRD 5.19 Architecture Passport | Must | Show direct dependencies and integrations with typed direction, related contract and supporting evidence. | P1 | BL-110 |  | API | R1 |  |
+| PASS-04 | BRD 5.19 Architecture Passport | Must | Link to approved repositories, ADRs, API specifications, deployment diagrams, runbooks, onboarding material and service… | P1 | BL-110 |  | API | R1 |  |
+| PASS-05 | BRD 5.19 Architecture Passport | Should | Display environment-specific deployment locations, Azure resource references and last successful source synchronization… | P1 | BL-110 |  | API | R1 |  |
+| PASS-06 | BRD 5.19 Architecture Passport | Must | Support proposed corrections, owner attestation, audit history and approval before publishing authoritative changes. | P1 | BL-119 | DEC-063 | API | R0 |  |
+| PASS-07 | BRD 5.19 Architecture Passport | Should | Provide a completeness checklist with unknown, missing, verified and stale states. | P1 | BL-110 | DEC-062 | API | R0 |  |
+| PASS-08 | BRD 5.19 Architecture Passport | Should | Offer shareable links and embeddable references without bypassing authentication or leaking restricted metadata. | P1 | BL-112 |  | API | R1 |  |
 
 ### ICR — Contract registry
 
@@ -409,12 +409,12 @@ Backend: `catalog, projections` · Frontend: `canvas (lens/level selector)` · A
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| MOD-01 | BRD 5.23 Canonical multi-level… | Must/P0 | Define a versioned type taxonomy for capability, domain, application, system, container, component, API, data asset, de… | P1 | BL-101 BL-002 | DEC-050 DEC-062 | API | R0 |  |
-| MOD-02 | BRD 5.23 Canonical multi-level… | Must/P0 | Support context, system, container/component and deployment projections over the same canonical graph. | P1 | BL-108 | DEC-050 | API | R0 |  |
-| MOD-03 | BRD 5.23 Canonical multi-level… | Must/P0 | Validate parent-child and relationship-type rules, including multi-deployment logical services. | P1 | BL-101 | DEC-050 | API | R0 |  |
-| MOD-04 | BRD 5.23 Canonical multi-level… | Must/P0 | Support aliases, environment-qualified identities and lifecycle states. | P1 | BL-101 | DEC-050 | API | R0 |  |
-| MOD-05 | BRD 5.23 Canonical multi-level… | Must/P0 | Maintain explicit view provenance, authorship and revision independent of graph facts. | P1 | BL-114 | DEC-050 | API | R0 |  |
-| MOD-06 | BRD 5.23 Canonical multi-level… | Must/P0 | Support cross-view navigation and scoped access control. | P1 | BL-108 BL-104 | DEC-050 | API | R0 |  |
+| MOD-01 | BRD 5.23 Canonical multi-level… | Must/P0 | Define a versioned type taxonomy for capability, domain, application, system, container, component, API, data asset, de… | P1 | BL-101 BL-002 | DEC-062 | API | R0 |  |
+| MOD-02 | BRD 5.23 Canonical multi-level… | Must/P0 | Support context, system, container/component and deployment projections over the same canonical graph. | P1 | BL-108 |  | API | R1 |  |
+| MOD-03 | BRD 5.23 Canonical multi-level… | Must/P0 | Validate parent-child and relationship-type rules, including multi-deployment logical services. | P1 | BL-101 |  | API | R1 |  |
+| MOD-04 | BRD 5.23 Canonical multi-level… | Must/P0 | Support aliases, environment-qualified identities and lifecycle states. | P1 | BL-101 |  | API | R1 |  |
+| MOD-05 | BRD 5.23 Canonical multi-level… | Must/P0 | Maintain explicit view provenance, authorship and revision independent of graph facts. | P1 | BL-114 |  | API | R1 |  |
+| MOD-06 | BRD 5.23 Canonical multi-level… | Must/P0 | Support cross-view navigation and scoped access control. | P1 | BL-108 BL-104 |  | API | R1 |  |
 
 ### BCM — Capability mapping
 
@@ -422,12 +422,12 @@ Backend: `catalog, projections` · Frontend: `features/intelligence (capability 
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| BCM-01 | BRD 5.24 Business capability ma… | Must/P0 | Model capability hierarchy, business owner, criticality, lifecycle and supporting applications. | P1 | BL-123 | DEC-050 DEC-052 |  | R0 |  |
-| BCM-02 | BRD 5.24 Business capability ma… | Must/P0 | Provide business-first heatmaps and capability-to-technology drill-down. | P1 | BL-123 | DEC-050 DEC-052 |  | R0 |  |
-| BCM-03 | BRD 5.24 Business capability ma… | Must/P0 | Distinguish direct support, enabling dependency and inferred associations. | P4 | BL-402 | DEC-050 |  | R0 |  |
-| BCM-04 | BRD 5.24 Business capability ma… | Must/P0 | Allow curated capability maps with ownership and approval. | P4 | BL-402 | DEC-050 |  | R0 |  |
-| BCM-05 | BRD 5.24 Business capability ma… | Should/P0 | Filter by business domain, region, environment, criticality and ownership. | P4 | BL-402 | DEC-050 |  | R0 |  |
-| BCM-06 | BRD 5.24 Business capability ma… | Should/P0 | Support capability gap and redundancy review without automatic recommendations being treated as facts. | P4 | BL-402 | DEC-050 |  | R0 |  |
+| BCM-01 | BRD 5.24 Business capability ma… | Must/P0 | Model capability hierarchy, business owner, criticality, lifecycle and supporting applications. | P1 | BL-123 | DEC-052 |  | R0 |  |
+| BCM-02 | BRD 5.24 Business capability ma… | Must/P0 | Provide business-first heatmaps and capability-to-technology drill-down. | P1 | BL-123 | DEC-052 |  | R0 |  |
+| BCM-03 | BRD 5.24 Business capability ma… | Must/P0 | Distinguish direct support, enabling dependency and inferred associations. | P4 | BL-402 |  |  | R2 |  |
+| BCM-04 | BRD 5.24 Business capability ma… | Must/P0 | Allow curated capability maps with ownership and approval. | P4 | BL-402 |  |  | R2 |  |
+| BCM-05 | BRD 5.24 Business capability ma… | Should/P0 | Filter by business domain, region, environment, criticality and ownership. | P4 | BL-402 |  |  | R2 |  |
+| BCM-06 | BRD 5.24 Business capability ma… | Should/P0 | Support capability gap and redundancy review without automatic recommendations being treated as facts. | P4 | BL-402 |  |  | R2 |  |
 
 ### REC — Reconciliation
 
@@ -449,12 +449,12 @@ Backend: `designs, sources` · Frontend: `features/studio (import preview)` · A
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| AAC-01 | BRD 5.26 Architecture-as-Code | Must/P1 | Publish versioned schemas for entities, relationships, environment scope and metadata. | P3 | BL-301 | DEC-050 | API | R0 |  |
-| AAC-02 | BRD 5.26 Architecture-as-Code | Must/P1 | Support dry-run import with preview of additions, updates, removals and conflicts. | P3 | BL-301 | DEC-050 | API | R0 |  |
-| AAC-03 | BRD 5.26 Architecture-as-Code | Must/P1 | Provide schema validation and precise line/path errors. | P3 | BL-301 | DEC-050 | API | R0 |  |
-| AAC-04 | BRD 5.26 Architecture-as-Code | Must/P1 | Export authorized architecture snapshots to stable, deterministic YAML/JSON. | P3 | BL-301 | DEC-050 | API | R0 |  |
-| AAC-05 | BRD 5.26 Architecture-as-Code | Must/P1 | Support explicit merge rules between declarative, discovered and curated sources. | P3 | BL-301 | DEC-050 | API | R0 |  |
-| AAC-06 | BRD 5.26 Architecture-as-Code | Should/P1 | Document local CLI/API import workflow without requiring repository hooks or PR integration. | P3 | BL-301 | DEC-050 | API | R0 |  |
+| AAC-01 | BRD 5.26 Architecture-as-Code | Must/P1 | Publish versioned schemas for entities, relationships, environment scope and metadata. | P3 | BL-301 |  | API | R1 |  |
+| AAC-02 | BRD 5.26 Architecture-as-Code | Must/P1 | Support dry-run import with preview of additions, updates, removals and conflicts. | P3 | BL-301 |  | API | R1 |  |
+| AAC-03 | BRD 5.26 Architecture-as-Code | Must/P1 | Provide schema validation and precise line/path errors. | P3 | BL-301 |  | API | R1 |  |
+| AAC-04 | BRD 5.26 Architecture-as-Code | Must/P1 | Export authorized architecture snapshots to stable, deterministic YAML/JSON. | P3 | BL-301 |  | API | R1 |  |
+| AAC-05 | BRD 5.26 Architecture-as-Code | Must/P1 | Support explicit merge rules between declarative, discovered and curated sources. | P3 | BL-301 |  | API | R1 |  |
+| AAC-06 | BRD 5.26 Architecture-as-Code | Should/P1 | Document local CLI/API import workflow without requiring repository hooks or PR integration. | P3 | BL-301 |  | API | R1 |  |
 
 ### BRN — Branching & merging
 
@@ -648,7 +648,7 @@ Backend: `layouts, projections` · Frontend: `components/canvas, features/explor
 | UX-CAN-020 | UX 4.2 Canvas interaction requ… | Must | Handle thousands of total entities via semantic zoom and progressive rendering. | P1 | BL-108 BL-109 | DEC-060 | API | R0 |  |
 | UX-CAN-021 | UX 4.2 Canvas interaction requ… | Should | Support pinned labels, bookmarks, annotation callouts and curated view layouts. | P3 | BL-307 |  | API | R1 |  |
 | UX-CAN-022 | UX 4.2 Canvas interaction requ… | Should | Show edge-path focus: upstream, downstream, one-hop, N-hop. | P2 | BL-211 |  | API | R1 |  |
-| UX-CAN-023 | UX 4.2 Canvas interaction requ… | Must | Show source freshness and uncertainty on visible entities. | P1 | BL-109 | DEC-056 | API | R0 |  |
+| UX-CAN-023 | UX 4.2 Canvas interaction requ… | Must | Show source freshness and uncertainty on visible entities. | P1 | BL-109 |  | API | R1 |  |
 | UX-CAN-024 | UX 4.2 Canvas interaction requ… | Must | Context menu offers only permitted actions. | P1 | BL-109 BL-104 | DEC-051 | API | R0 |  |
 
 ### UX-XR — Architecture X-Ray
@@ -661,7 +661,7 @@ Backend: `projections, layouts` · Frontend: `features/explore (X-Ray)` · API: 
 | UX-XR-002 | UX 5.1 Interaction model | Must | Multi-level nested navigation with breadcrumbs. | P1 | BL-113 |  |  | R2 |  |
 | UX-XR-003 | UX 5.1 Interaction model | Must | Abstraction level selector. | P1 | BL-113 | DEC-060 |  | R0 |  |
 | UX-XR-004 | UX 5.1 Interaction model | Must | Cross-boundary edge bundling. | P1 | BL-113 |  |  | R2 |  |
-| UX-XR-005 | UX 5.1 Interaction model | Must | Evidence and uncertainty display. | P1 | BL-113 | DEC-056 |  | R0 |  |
+| UX-XR-005 | UX 5.1 Interaction model | Must | Evidence and uncertainty display. | P1 | BL-113 |  |  | R2 |  |
 | UX-XR-006 | UX 5.1 Interaction model | Must | Per-view expansion state persistence. | P1 | BL-114 | DEC-059 |  | R0 |  |
 | UX-XR-007 | UX 5.1 Interaction model | Must | Large-child-set handling. | P1 | BL-113 |  |  | R2 |  |
 | UX-XR-008 | UX 5.1 Interaction model | Should | Side-by-side logical and physical mapping. | P1 | BL-113 |  |  | R2 |  |
@@ -674,18 +674,18 @@ Backend: `passports` · Frontend: `/applications/:id, inspector` · API: GET /en
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| UX-PASS-001 | UX 6.3 Passport interaction re… | Must | Stable deep link and canonical identity. | P1 | BL-110 BL-112 | DEC-056 | API | R0 |  |
-| UX-PASS-002 | UX 6.3 Passport interaction re… | Must | Clear overview with owner, purpose, lifecycle and evidence freshness above the fold. | P1 | BL-110 | DEC-056 DEC-062 | API | R0 |  |
-| UX-PASS-003 | UX 6.3 Passport interaction re… | Must | Dependency mini-map with upstream/downstream tabs. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| UX-PASS-004 | UX 6.3 Passport interaction re… | Must | Links to contracts, diagrams, ADRs, runbooks and repositories. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| UX-PASS-005 | UX 6.3 Passport interaction re… | Must | Environment switcher with explicit environment scoping. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| UX-PASS-006 | UX 6.3 Passport interaction re… | Must | Proposed correction workflow. | P1 | BL-119 | DEC-056 DEC-063 | API | R0 |  |
-| UX-PASS-007 | UX 6.3 Passport interaction re… | Must | Provenance per important field. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| UX-PASS-008 | UX 6.3 Passport interaction re… | Must | Explicit missing, stale and conflicting information states. | P1 | BL-110 | DEC-056 | API | R0 |  |
-| UX-PASS-009 | UX 6.3 Passport interaction re… | Should | Follow/bookmark and share exact Passport section. | P1 | BL-114 | DEC-056 | API | R0 |  |
-| UX-PASS-010 | UX 6.3 Passport interaction re… | Must | Restricted metadata redaction. | P1 | BL-110 BL-104 | DEC-056 | API | R0 |  |
-| UX-PASS-011 | UX 6.3 Passport interaction re… | Should | Completeness checklist and stewardship action. | P1 | BL-119 | DEC-056 DEC-063 | API | R0 |  |
-| UX-PASS-012 | UX 6.3 Passport interaction re… | Must | One-click “Explore on canvas” and “Open X-Ray.” | P1 | BL-110 BL-112 | DEC-056 | API | R0 |  |
+| UX-PASS-001 | UX 6.3 Passport interaction re… | Must | Stable deep link and canonical identity. | P1 | BL-110 BL-112 |  | API | R1 |  |
+| UX-PASS-002 | UX 6.3 Passport interaction re… | Must | Clear overview with owner, purpose, lifecycle and evidence freshness above the fold. | P1 | BL-110 | DEC-062 | API | R0 |  |
+| UX-PASS-003 | UX 6.3 Passport interaction re… | Must | Dependency mini-map with upstream/downstream tabs. | P1 | BL-110 |  | API | R1 |  |
+| UX-PASS-004 | UX 6.3 Passport interaction re… | Must | Links to contracts, diagrams, ADRs, runbooks and repositories. | P1 | BL-110 |  | API | R1 |  |
+| UX-PASS-005 | UX 6.3 Passport interaction re… | Must | Environment switcher with explicit environment scoping. | P1 | BL-110 |  | API | R1 |  |
+| UX-PASS-006 | UX 6.3 Passport interaction re… | Must | Proposed correction workflow. | P1 | BL-119 | DEC-063 | API | R0 |  |
+| UX-PASS-007 | UX 6.3 Passport interaction re… | Must | Provenance per important field. | P1 | BL-110 |  | API | R1 |  |
+| UX-PASS-008 | UX 6.3 Passport interaction re… | Must | Explicit missing, stale and conflicting information states. | P1 | BL-110 |  | API | R1 |  |
+| UX-PASS-009 | UX 6.3 Passport interaction re… | Should | Follow/bookmark and share exact Passport section. | P1 | BL-114 |  | API | R1 |  |
+| UX-PASS-010 | UX 6.3 Passport interaction re… | Must | Restricted metadata redaction. | P1 | BL-110 BL-104 |  | API | R1 |  |
+| UX-PASS-011 | UX 6.3 Passport interaction re… | Should | Completeness checklist and stewardship action. | P1 | BL-119 | DEC-063 | API | R0 |  |
+| UX-PASS-012 | UX 6.3 Passport interaction re… | Must | One-click “Explore on canvas” and “Open X-Ray.” | P1 | BL-110 BL-112 |  | API | R1 |  |
 
 ### UX-ICR — Contract registry
 
@@ -737,12 +737,12 @@ Backend: `-` · Frontend: `shell` · API: n/a · Data: -
 | UX-GLB-002 | UX 10. Cross-screen interactio… | Must | Search result opens exact entity or relevant graph view. | P1 | BL-111 BL-112 |  |  | R2 |  |
 | UX-GLB-003 | UX 10. Cross-screen interactio… | Must | Role-aware actions and navigation. | P1 | BL-104 | DEC-027 DEC-051 |  | R0 |  |
 | UX-GLB-004 | UX 10. Cross-screen interactio… | Must | Contextual onboarding and empty states. | P1 | BL-121 |  |  | R2 |  |
-| UX-GLB-005 | UX 10. Cross-screen interactio… | Must | Consistent save, draft, review and publish language. | P1 | BL-116 BL-121 | DEC-056 |  | R0 |  |
+| UX-GLB-005 | UX 10. Cross-screen interactio… | Must | Consistent save, draft, review and publish language. | P1 | BL-116 BL-121 |  |  | R2 |  |
 | UX-GLB-006 | UX 10. Cross-screen interactio… | Must | Toasts and errors identify action, outcome and recovery. | P1 | BL-121 |  |  | R2 |  |
 | UX-GLB-007 | UX 10. Cross-screen interactio… | Must | Accessibility: keyboard, focus, labels, contrast, reduced motion. | P1 | BL-115 BL-122 |  |  | R2 |  |
 | UX-GLB-008 | UX 10. Cross-screen interactio… | Must | Share links preserve entity, view, lens, filters and focus where authorized. | P1 | BL-112 | DEC-067 |  | R0 |  |
 | UX-GLB-009 | UX 10. Cross-screen interactio… | Should | User preferences for density, label size and panel width. | P1 | BL-114 |  |  | R2 |  |
-| UX-GLB-010 | UX 10. Cross-screen interactio… | Must | Trust indicators show source, sync time, verified status and scope. | P1 | BL-109 BL-003 | DEC-056 |  | R0 |  |
+| UX-GLB-010 | UX 10. Cross-screen interactio… | Must | Trust indicators show source, sync time, verified status and scope. | P1 | BL-109 BL-003 |  |  | R2 |  |
 | UX-GLB-011 | UX 10. Cross-screen interactio… | Must | Global feedback entry for incorrect architecture data. | P1 | BL-119 |  |  | R2 |  |
 | UX-GLB-012 | UX 10. Cross-screen interactio… | Must | No PR or telemetry affordances. | P1 | BL-105 BL-122 |  |  | R2 |  |
 
@@ -765,7 +765,7 @@ Backend: `cross-cutting` · Frontend: `cross-cutting` · API: n/a · Data: -
 | UX-NFR-011 | UX 11. Scale, speed and qualit… | Gate | Browser E2E: All flagship flows tested in real Chromium and one additional supported browser | P1 | BL-122 | DEC-055 |  | R0 |  |
 | UX-NFR-012 | UX 11. Scale, speed and qualit… | Gate | Visual regression: Golden screenshots at 1440×900 and 1280×720 for core screens; meaningful review of changes | P1 | BL-122 | DEC-055 |  | R0 |  |
 | UX-NFR-013 | UX 11. Scale, speed and qualit… | Gate | Pilot usability: 5+ representatives per key persona group in moderated testing; track task completion, time and satisfa… | P0 | BL-025 | DEC-054 |  | R0 |  |
-| UX-NFR-014 | UX 11. Scale, speed and qualit… | Gate | Data trust: Every imported fact carries source and timestamp; conflicts visible; no fabricated default ownership | P1 | BL-101 BL-202 | DEC-056 |  | R0 |  |
+| UX-NFR-014 | UX 11. Scale, speed and qualit… | Gate | Data trust: Every imported fact carries source and timestamp; conflicts visible; no fabricated default ownership | P1 | BL-101 BL-202 |  |  | R2 |  |
 
 ### UX-MOD — Multi-level modeling
 
@@ -773,7 +773,7 @@ Backend: `catalog, projections` · Frontend: `canvas (lens/level selector)` · A
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| UX-MOD-01 | UX 18. V2.2 additional bright… | - | [All] Switch context, application, component and deployment projection from view selector | P1 | BL-108 | DEC-050 | API | R0 |  |
+| UX-MOD-01 | UX 18. V2.2 additional bright… | - | [All] Switch context, application, component and deployment projection from view selector | P1 | BL-108 |  | API | R1 |  |
 
 ### UX-BCM — Capability mapping
 
@@ -781,7 +781,7 @@ Backend: `catalog, projections` · Frontend: `features/intelligence (capability 
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| UX-BCM-01 | UX 18. V2.2 additional bright… | - | [Intelligence] Browse color-coded capability map and expand Claims into supporting systems | P1 | BL-123 BL-402 | DEC-050 DEC-052 |  | R0 |  |
+| UX-BCM-01 | UX 18. V2.2 additional bright… | - | [Intelligence] Browse color-coded capability map and expand Claims into supporting systems | P1 | BL-123 BL-402 | DEC-052 |  | R0 |  |
 
 ### UX-REC — Reconciliation
 
@@ -797,7 +797,7 @@ Backend: `designs, sources` · Frontend: `features/studio (import preview)` · A
 
 | ID | Src § | Pri | Requirement | Phase | Backlog | Open decisions | Gaps | Ready | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| UX-AAC-01 | UX 18. V2.2 additional bright… | - | [Studio] Import YAML/JSON and inspect staged graph diff | P3 | BL-301 | DEC-050 | API | R0 |  |
+| UX-AAC-01 | UX 18. V2.2 additional bright… | - | [Studio] Import YAML/JSON and inspect staged graph diff | P3 | BL-301 |  | API | R1 |  |
 
 ### UX-BRN — Branching & merging
 
