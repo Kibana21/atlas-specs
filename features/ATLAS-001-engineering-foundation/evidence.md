@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gates G1–G6 PASSED**; **Gate G7: engineering verdict PASS (§13.11), owner signature pending** (2026-10-24). CP1–CP7 complete (S-01…S-13, B-01…B-28, F-01…F-14; release tags per §13.9). ATLAS-001 **not yet Accepted**: it becomes Accepted when the owner signs §13.11.
+**Status:** **Gates G1–G6 PASSED**; **Gate G7: engineering verdict PASS (§13.11), owner signature pending** (2026-10-24). CP1–CP7 complete (S-01…S-13, B-01…B-28, F-01…F-14); release tags `contract-v0.1.0`, backend `v0.1.0`, frontend `v0.1.0` created and protected (§13.9). ATLAS-001 **not yet Accepted**: it becomes Accepted when the owner signs §13.11.
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -646,7 +646,15 @@ Earlier drills: backend lint/type/coverage/fake-secret [#6](https://github.com/K
 
 ### 13.9 Release tags
 
-Created after this evidence is merged (owner CP7 §5); results are appended here by a follow-up evidence PR: tag objects, `git rev-parse v0.1.0^{commit}` per repository, and the release-lock check (`git -C atlas-specs tag --points-at <lock sha>` lists `contract-v0.1.0`).
+Created on 2026-10-24 after the evidence PR [atlas-specs#11](https://github.com/Kibana21/atlas-specs/pull/11) merged (`e1be0ad`; specs-ci 6/6 on its head, [run 40092147752](https://github.com/Kibana21/atlas-specs/actions/runs/40092147752), and on `main`, [run 40092208373](https://github.com/Kibana21/atlas-specs/actions/runs/40092208373)). Pre-tag checks: no `v*` tag existed in either repository; backend `make specs` (release mode) `OK: specs.lock pins a valid atlas-specs commit (release)`; both tagged commits pin `bfe4a09…`, and `git -C atlas-specs tag --points-at bfe4a09…` lists `contract-v0.1.0`; frontend `e2e/backend.ref` at the tagged commit = the backend tag commit.
+
+| Repository | Tag | Annotated tag object | `git rev-parse v0.1.0^{commit}` | On GitHub (`ls-remote`) |
+|---|---|---|---|---|
+| `atlas-specs` | `contract-v0.1.0` | `c70743d9dfa49cea6e68c84e05aa887aa6da0ec8` | `bfe4a09e5d7d260afe15576b4fb9fd7530949370` | equal (§6) |
+| `atlas-backend` (B-26) | `v0.1.0` | `4f945c65483c822ce1c6753e509d93ee606283c0` | `585f3f52e477b051cc33b15fdb549c8af6e6f44a` | equal |
+| `atlas-frontend` (F-14) | `v0.1.0` | `6447ba61ae94dbfe701ea253c97f9172317212c6` | `b9f235e9c0209497a0ebca3f09c3d25bfd70fa63` | equal |
+
+**Tag protection** (`ci-access.md` §6.2, "later also `v*` in the other repos"): ruleset `immutable-release-tags` (`refs/tags/v*`; rules `update`, `deletion`; no bypass actors; creation still allowed) applied to `atlas-backend` (id 25781032) and `atlas-frontend` (id 25781035), read back active.
 
 ### 13.10 Open-decision snapshot (unchanged by CP7)
 
@@ -691,4 +699,5 @@ Owner sign-off: ______________________ (name, date) — *not signed*
 | E-60 | F-13 asks a second engineer to reproduce from the README; with one maintainer, Claude followed it on a fresh clone (as E-28) | Owner may repeat it |
 | E-61 | API processes exit 143 under `uv` after uvicorn's "Application shutdown complete"; the stack asserts that line instead of exit 0 | Signal semantics |
 | E-62 | **Intermittent result:** one fresh-clone run reported an axe violation in the first `/status` scan; details were truncated in the terminal and it did not reproduce in 24 further runs (local and CI). Most likely cause: a running opacity transition sampled mid-way. Each scan now waits until `document.getAnimations()` is empty; no rule disabled | Monitor; the HTML report attaches the full axe JSON per scan |
+| E-64 | **Process note:** the push and PR-merge command for #11 was rejected in the terminal while it was already running; it had completed (push, PR, required checks 6/6, merge). This was only noticed afterwards, when re-running it found no new commits; until then Claude had wrongly told the owner nothing was pushed. #11 passed every gate (head and `main` 6/6, `main` tree = reviewed branch), so nothing was reverted. Reported to the owner in the CP7 completion report | Disclosed |
 | E-63 | Harness fix during development: signalling the worker's whole process group left taskiq's parent waiting until the timeout; SIGTERM now goes to the top process (as `docker stop`), with a group SIGKILL only as a fallback | Fixed; graceful stop asserted |
