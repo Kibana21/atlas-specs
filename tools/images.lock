@@ -1,0 +1,16 @@
+# Digest-pinned container images used by atlas-specs validation (P-05, approved 2026-10-24).
+# Selected releases were at least two weeks old at pinning time. Never use mutable tags.
+# Update only through a reviewed change that records the new tag and digest.
+images:
+  oasdiff:
+    ref: tufin/oasdiff@sha256:6263a96dd2ef0726c54e21fea9b8e1607eac4841add0079324b424c1f52b819c
+    tag: v1.33.0
+    purpose: contract structural diff and breaking-change detection
+  redocly:
+    ref: redocly/cli@sha256:02511945b4d6dbc1e51138f1c8fcc532ba269bb61aea30d3dcbc9978af61af42
+    tag: "2.58.2"
+    purpose: OpenAPI lint
+  markdownlint:
+    ref: davidanson/markdownlint-cli2@sha256:d5f3f3f04b2e285dcbcdcd13b4454d119e273e3c393a9dabd163dba4abad526d
+    tag: v0.23.3
+    purpose: Markdown lint (non-baseline documents)
