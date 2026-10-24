@@ -195,7 +195,4 @@ components:
           anyOf:
             - type: string
             - type: 'null'
-        environment:
-          type: string
-          enum: [local, dev, test, uat, prod]
-      required: [backend_sha, specs_sha, contract_version, db_migration_revision, environment]
+      required: [backend_sha, specs_sha, contract_version, db_migration_revision]
