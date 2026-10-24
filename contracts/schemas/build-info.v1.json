@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:build-info:v1",
+  "title": "BuildInfo",
+  "description": "Body of GET /api/v1/diagnostics/build (environment-restricted diagnostics).",
+  "type": "object",
+  "properties": {
+    "backend_sha": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|unknown)$"
+    },
+    "specs_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "contract_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "db_migration_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "local",
+        "dev",
+        "test",
+        "uat",
+        "prod"
+      ]
+    }
+  },
+  "required": [
+    "backend_sha",
+    "specs_sha",
+    "contract_version",
+    "db_migration_revision",
+    "environment"
+  ]
+}
