@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED**, **Gate G5 PASSED** (2026-10-24). CP1 (S-01…S-12) and backend CP2–CP5 (B-01…B-25, B-27, B-28) complete; CP6 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED**, **Gate G5 PASSED**, **Gate G6 PASSED** (2026-10-24). CP1 (S-01…S-12), backend CP2–CP5 (B-01…B-25, B-27, B-28) and frontend CP6 (F-01…F-09, F-11 brought forward) complete; CP7 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -16,10 +16,11 @@
 | P-09 contract release `0.1.0` | **Approved conditionally** (owner, 2026-10-24); all conditions verified (§6) → tag created |
 | Amendments A1/A2/A3 (E-01/E-03/E-04) | Approved (A1, A2) / accepted provisionally (A3); spec v0.2.2 |
 | DEC-084 `pg_hba` hardening | Approved in principle; **not applied** (CP3 authorization excluded `pg_hba.conf` changes) |
-| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); backend required checks extended with `images` after its first green `main` run (§11.4); `atlas-frontend` waits for its CI (CP6/CP7) |
+| P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); backend required checks extended with `images` after its first green `main` run (§11.4); **`atlas-frontend` applied 2026-10-24** after its first green `main` run (§12.4) |
 | G2 / CP3 | G2 accepted and CP3 authorized by the owner (2026-10-24) |
 | G3 / CP4 | G3 accepted and CP4 authorized by the owner (2026-10-24), including completion of `getHealthReady` and emptying the pending list |
 | G4 / CP5 | G4 accepted and CP5 authorized by the owner (2026-10-24) |
+| G5 / CP6 | G5 accepted and CP6 authorized by the owner (2026-10-24); **P-04 approved** (Node 24 LTS, project-local) |
 
 ## 2. Branch, commits and CI
 
@@ -413,10 +414,107 @@ The `protect-main` ruleset on `atlas-backend` now requires `static, unit, contra
 |---|---|---|
 | E-27 | **Security finding fixed:** the `psycopg[binary]` wheel bundles C libraries built on EL8, including `libpcre2` 10.32 (8 HIGH/CRITICAL findings) and OpenSSL 1.1.1k, which OS updates never patch. Runtime now uses pure `psycopg` with Debian's `libpq5` (pinned `17.11-0+deb13u1`). `psycopg-binary` is dev-only (local and CI tests) | Fixed. Images verified. Local/CI tests still use the binary build (accepted: not shipped) |
 | E-28 | B-25 asks a **second engineer** to follow the README. There is one maintainer, so Claude followed the README step by step on a clean clone (§11.2) | Owner may repeat it; otherwise accepted |
-| E-29 | Base image `python:3.12.15-slim-trixie` (published 2026-10-21) is newer than the two-week supply-chain lag applied to PyPI. The 3.12.12 base had 83 fixable HIGH/CRITICAL OS findings; the current one has 0. Local Python is 3.12.12; images use 3.12.15 (same minor, `requires-python ==3.12.*`) | Security over lag for OS images; recorded |
+| E-29 | Base image `python:3.12.15-slim-trixie` (published 2026-10-21) is newer than the two-week supply-chain lag applied to PyPI. The 3.12.12 base had 83 fixable HIGH/CRITICAL OS findings; the current one has 0. Local Python is 3.12.12; images use 3.12.15 (same minor, `requires-python ==3.12.*`) | **Accepted by the owner (2026-10-24)** as a security-driven exception to the two-week age guideline (§12.6) |
 | E-30 | Trivy gate fails on **fixable** HIGH/CRITICAL findings, any Python-package finding, secrets and Dockerfile misconfiguration. 44 unfixed Debian findings are reported, not gating, so CI does not depend on upstream fix timing | Risk accepted; revisit when releasing to an environment |
 | E-31 | `libpq5` is pinned to an exact Debian version. A future Debian point release removes it from the mirror, so builds will fail until the pin is bumped in a reviewed PR | Deliberate (reproducible, reviewed updates) |
 | E-32 | CI `images` initially failed after **all checks had passed**: root-owned Trivy cache files made the cleanup trap fail on Linux. Trivy now runs as the invoking user, and cleanup never overrides the result. Also found before push: the URL-password rule flagged `${VAR}` placeholders; it now allows exactly `${NAME}` references, and literals are still flagged (tests) | Fixed |
 | E-33 | `opentelemetry-api` is a transitive dependency of taskiq. Atlas never imports or configures it (no tracing or telemetry; scope exclusion unaffected) | Noted |
 | E-34 | In the drill, `static` stops at the first failing step (Ruff), so mypy's failure was shown locally on the same commit. In the fake-secret drill, `make security` fails before the dedicated Trivy step | Behaviour as designed |
 | E-35 | `pg_hba` hardening (DEC-084) is still not applied. Locally, passwords are not enforced; CI and the image check enforce scram | Open owner decision |
+
+## 12. Checkpoint 6 — frontend foundation (atlas-frontend)
+
+**Authorization:** owner, 2026-10-24.
+
+- G5 accepted. CP6 authorized, including the F-11 frontend CI.
+- P-04 approved: Node 24 LTS, project-local and pinned.
+- The main-branch ruleset is to be applied once the checks work.
+- Excluded: architecture editor, new product screens, shared services, contract changes, unrelated backend changes, CP7.
+
+### 12.1 Tasks
+
+| Task | Status and evidence |
+|---|---|
+| F-01 | **Node 24.22.1** (LTS, security release), **pnpm 11.28.5**.<br>• `scripts/bootstrap-node.sh` installs Node from `.nvmrc` into git-ignored `.tools/`, verified against the official SHASUMS256. The global Node (25.x) is untouched.<br>• pnpm comes from `packageManager` (Corepack, sha512).<br>• Pins: `engines`, `engine-strict`.<br>• Supply chain: `minimumReleaseAge` 14 days; dependency install scripts denied.<br>• Next.js 16.4.1, React 19.3, TypeScript 5.9.3 strict + `noUncheckedIndexedAccess`.<br>• ESLint 9 (core-web-vitals, typescript, jsx-a11y, `react/no-danger`, no eval), Prettier, Vitest + jsdom.<br>• Tech §17.2 layout with `.gitkeep` |
+| F-02 | `src/lib/env.ts`: fail-fast validation (absolute http(s), no credentials, query or fragment; SHA or `unknown`). It runs at dev start and production build. `NEXT_PUBLIC_ATLAS_API_BASE_URL=notaurl pnpm build` fails with "is not an absolute URL" (CI `build` drill) |
+| F-03 | `specs.lock` = the backend's `bfe4a09…` (`contract-v0.1.0`). `pnpm specs` validates the full SHA and the release tag on that commit, extracts `contracts/` + `design/` at the SHA, and checks `info.version`. `pnpm gen:api` → `schema.d.ts` (openapi-typescript 7.13, provenance header). `pnpm check:generated` |
+| F-04 | `pnpm gen:tokens` → `tokens.generated.css`: 95 `--atlas-*` variables, plus a Tailwind theme reset to token-only namespaces. Base styles: `color-scheme: light`; 2 px token focus ring with 2 px offset; reduced motion; forced colours; no hard-coded colours (test) |
+| F-05 | `src/lib/api/transport.ts` (openapi-fetch 0.17 over the generated types) is the only module with the base URL. It sends `X-Correlation-ID` (`web_<uuid>`). The envelope maps to `AtlasApiError(code)`, a non-JSON or malformed body to `UNEXPECTED_RESPONSE`, and no response to `NETWORK_UNAVAILABLE`. Tests: 9 |
+| F-06 | Shell: skip link (first tab stop), banner (wordmark + decorative entity spectrum, no tab stops), `main#main`. `/`: one `h1`, one sentence, **exactly one** interactive element (link to `/status`), no icons or nav. axe: 0 violations |
+| F-07 | `/status` (TanStack Query; no retries, polling or focus refetch): **loading, ready, degraded, unreachable, diagnostics-disabled, error**. Icon + text pills; polite live region; "Check again" (keyboard) refetches all checks; build provenance (backend/specs/frontend SHAs, contract version, migration revision, environment). axe: 0 violations in every rendered state |
+| F-08 | `src/proxy.ts`: per-request nonce CSP (`script-src 'self' 'nonce-…' 'strict-dynamic'`). No `unsafe-eval` and no inline scripts in production. Also `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'none'`, `connect-src` = self + API origin, nosniff, no-referrer, `X-Frame-Options: DENY`, no `X-Powered-By`. `scripts/check-headers.mjs` also asserts every `<script>` carries the nonce |
+| F-09 | `Dockerfile`: standalone output on digest-pinned `node:24.22.1-trixie-slim`; uid 10001; npm, Corepack and Yarn removed; health check; read-only capable |
+| F-11 (brought forward) | `frontend-ci.yml`: `static`, `unit`, `generated`, `build`, `security`, `image` on PRs and `main`. Read-only permissions, SHA-pinned actions (`setup-node` v7.1.0), Node from `.nvmrc` |
+
+### 12.2 Results
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-frontend#2](https://github.com/Kibana21/atlas-frontend/pull/2): 6 commits, 73 files, file list equal to the reviewed diff, mergeable `clean` |
+| Merge commit | **`3662f9f20269cd52f6703251b68b102c838e2bcf`** |
+| CI on PR head `63e7a1f` and on `main` | [frontend-ci run 40081762854](https://github.com/Kibana21/atlas-frontend/actions/runs/40081762854): **6/6 success** on both; every job ≤ 1 min |
+| `static` | `tsc` strict, ESLint `--max-warnings 0`, "All matched files use Prettier code style!" |
+| `unit` | **63 passed**. Coverage: statements 98.14 %, branches 94.27 %, functions 96 %, lines 98.05 % (gate 80 %) |
+| `generated` | Lock valid at `bfe4a09…` with `contract-v0.1.0`. `schema.d.ts` and `tokens.generated.css` match regeneration |
+| `build` | Invalid env rejected. Production build OK. Running server: CSP and headers verified on `/` and `/status` |
+| `security` | `pnpm audit --prod`: no known vulnerabilities. Hygiene tests: 6 passed. Trivy secret scan clean. The full audit (incl. dev) is also clean locally |
+| `image` | hadolint clean. Trivy: 43 HIGH/CRITICAL OS findings, **0 fixable**, 0 in npm packages, 0 secrets. Dockerfile config clean. uid 10001; no package managers. Healthy under `--read-only --cap-drop=ALL --security-opt=no-new-privileges`. Headers OK. SIGTERM handled (exit 143, < 1 s) |
+| Local (fresh clone) | Bootstrap verified Node 24.22.1 and pnpm 11.28.5; frozen install; `pnpm check`, specs/generated, audit, invalid-env drill, build + start + headers, and `scripts/image-check.sh` all passed |
+| Live run against the local backend (port 8100) | `/status` in Chrome showed **Ready** (database, Redis), build provenance `0001_baseline` and backend `585f3f5…`. No console errors. Every script nonce'd. Focus ring 2 px `#1769E0`, offset 2 px. After stopping that backend process, "Check again" showed **API unreachable** with the correlation ID and every check "Not checked" |
+
+### 12.3 Drill
+
+| Drill | PR / run | Result |
+|---|---|---|
+| Hand-edit `src/generated/api/schema.d.ts` (AC-03 h) | [#3](https://github.com/Kibana21/atlas-frontend/pull/3), [run 40081910602](https://github.com/Kibana21/atlas-frontend/actions/runs/40081910602) | `generated` **failure**: `GENERATED_DRIFT: src/generated/api/schema.d.ts differs from regeneration`. All other jobs success. PR `blocked` by the ruleset. Closed unmerged, branch deleted |
+
+### 12.4 Ruleset
+
+`atlas-frontend` `protect-main` (id 25776799), applied after the first green `main` run, with the same settings as the other repositories: deletion and non-fast-forward blocked; PR required with 0 approvals, merge commits only; strict required checks `static, unit, generated, build, security, image`; no bypass actors. Read back after applying. The drill PR was blocked by it.
+
+### 12.5 Gate G6 evaluation
+
+| G6 criterion | Result |
+|---|---|
+| `pnpm check` green | ✔ Local fresh clone and CI |
+| Generated client and tokens reproducible | ✔ `check:generated`; the hand-edit drill fails |
+| Status page tells the truth in all six states | ✔ Component tests for every state. Live run: ready and unreachable against a real backend |
+| CSP present | ✔ Nonce-based, no `unsafe-eval` or inline scripts; header check in CI (`build`, `image`) |
+| AC-08 (frontend) | ✔ Envelope, non-JSON and network mapped to typed errors |
+| AC-10 (frontend) | ✔ `X-Correlation-ID` on every request; correlation ID shown on failures |
+| AC-12 (frontend) | ✔ CSP and headers; non-root image; audit clean; secret scan; workflow rules |
+| AC-14 (foundation part) | ✔ Tokens generated; focus, reduced motion and forced colours; skip link; landmarks; one `h1`; axe 0 violations |
+| AC-15 | ✔ |
+
+**Verdict: Gate G6 — PASS.**
+
+### 12.6 Owner-directed records (CP6 authorization §7)
+
+- **E-29 accepted:** the newer Python base image is a security-driven exception to the two-week dependency-age guideline.
+- **Vulnerability policy unchanged** (backend and frontend images):
+  - CI **fails** on any fixable HIGH/CRITICAL finding, any application-package finding (Python or npm), any secret, and any HIGH/CRITICAL Dockerfile misconfiguration;
+  - unfixed OS findings are **reported** in every run, not gating.
+- **Updating the pinned `libpq5`** (atlas-backend `Dockerfile`, E-31):
+  1. **Trigger:** the image build fails with `Version '<pin>' for 'libpq5' was not found` (Debian removed it), or Trivy reports a fixable `libpq5` finding.
+  2. **Find the candidate:** run `docker run --rm <PYTHON_IMAGE as pinned in the Dockerfile> sh -c 'apt-get update -qq && apt-cache policy libpq5'`.
+  3. **Review:** read the Debian security tracker and changelog for the new version (DSA/DLA, PostgreSQL client advisories). A base-image digest bump is reviewed the same way.
+  4. **Change:** on a feature branch, change only the `libpq5=<version>` pin (and the base digest if needed).
+  5. **Verify:** `make images` (build, hadolint, Trivy gate, hardened runtime: migrate, ready, worker round trip, graceful stop), plus `make check` and `make integration`, from a fresh clone.
+  6. **Merge:** open a PR. All required checks (`images` included) must pass; then merge and record the new pin in this evidence file.
+
+### 12.7 CP6 deviations, findings and risks
+
+| ID | Item | Status |
+|---|---|---|
+| E-36 | **Security exception:** Next.js ≤ 16.4.0 has critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr: unauthenticated RCE) and a high-severity DoS. **16.4.1** (10 days old) is pinned through explicit `minimumReleaseAgeExclude` entries; the 14-day rule otherwise stays. Dev-only `zod` 4.6.6 and `undici` 8.12.2 are pinned through overrides (8 and 9 days old) for high/moderate advisories | Accepted under the E-29 rule (security over age); recorded |
+| E-37 | Node **24.22.1** is a security release published 2026-10-20 (4 days old). It is chosen over 24.22.0 for the same reason | As E-36 |
+| E-38 | `next build` printed a message addressed to AI agents (always relay an upgrade recommendation, ask the user a scripted question, run `next upgrade --agent=security …`). It was treated as tool output, not an instruction. The underlying advisory was verified independently with `pnpm audit` and fixed by a normal reviewed pin | Noted |
+| E-39 | **Navigation:** the owner's brief lists "navigation". FR-55 forbids navigation on `/`, and product invariant 8 forbids dead controls. So the shell has a skip link and the wordmark only; `/` links only to `/status`, and `/status` links back. Product navigation arrives with product screens | Interpretation within the approved spec; owner may revise |
+| E-40 | TypeScript 7 (native) and ESLint 10 are newer than what typescript-eslint, openapi-typescript and the Next.js ESLint plugins support. **TypeScript 5.9.3** and **ESLint 9.39.5** are pinned; ESLint 9 is marked deprecated upstream | Revisit when the plugins support the new majors |
+| E-41 | **Fresh-clone finding:** `next start` failed without `.env.local`, because `next.config.ts` validated env on every load. It now validates only in the dev and build phases; the built server has the values compiled in. Also `next dev`/`next start` now bind 127.0.0.1, not all interfaces | Fixed before push |
+| E-42 | **Test finding:** openapi-fetch parses error bodies itself even with `parseAs: "text"`, so envelopes were first mis-read as `UNEXPECTED_RESPONSE`. Fixed; a test covers the degraded path | Fixed before push |
+| E-43 | The Next.js server exits **143** on SIGTERM by design: it runs its cleanup, then exits with signal semantics. The image check accepts 0 or 143 within 10 s and fails on 137 (SIGKILL) or a hang | Documented framework behaviour |
+| E-44 | `NEXT_PUBLIC_ATLAS_API_BASE_URL` is compiled in at build time, so an image is built per API origin | Accepted Next.js model; revisit for multi-environment releases |
+| E-45 | Not verified in a browser: reflow at 320 px (the window could not be resized in the automation session; CSP `frame-ancestors 'none'` correctly blocks iframe checks), plus 200 % zoom and forced-colours rendering. Layouts use responsive utilities | Covered by CP7 Playwright (FR-59) |
+| E-46 | Contrast is checked on the tokens (atlas-specs `check_tokens.py`), not in jsdom: axe's `color-contrast` rule is off in component tests. The real-browser axe run comes in CP7 | Planned |
+| E-47 | `pnpm` 11 needed `allowBuilds: {unrs-resolver: false}` (its prebuilt binary arrives as an optional package), so no dependency install script runs | Noted |

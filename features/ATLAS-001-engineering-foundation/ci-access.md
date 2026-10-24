@@ -94,7 +94,7 @@ The App private key is a stored secret, but the credential used by jobs is minte
 |---|---|---|
 | `atlas-specs` | `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` | — |
 | `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2), `integration` (from CP3), `images` (from CP5) | — |
-| `atlas-frontend` | apply when its CI exists (CP6): `static`, `unit`, `generated`, `build`, `security`, `image`, `e2e` | — |
+| `atlas-frontend` | `static`, `unit`, `generated`, `build`, `security`, `image` (applied CP6) | `e2e` (CP7) |
 
 **Why these values:**
 
