@@ -92,9 +92,9 @@ Before the push, the full branch diff against `main` (2,996 added lines) and all
 
 | ID | Item | Status |
 |---|---|---|
-| E-01 | FR-02 named one `health.v1` schema; delivered `health-live.v1` + `health-ready.v1` because a union schema accepted an invalid readiness body | Refinement — owner acknowledgement requested |
+| E-01 | FR-02 named one `health.v1` schema; delivered `health-live.v1` + `health-ready.v1` because a union schema accepted an invalid readiness body | **Approved** (owner, 2026-10-24); spec amendment A1 (v0.2.2) |
 | E-02 | Config files introduced earlier than their task for verification (`.markdownlint-cli2.yaml` in S-01, `redocly.yaml` in S-04, `tools/images.lock` in S-07), finalized in S-10 | Sequencing only |
-| E-03 | Relationship colour and sizing tokens added per the owner's CP1 instruction §10 (spec §7.1 did not list them) | Owner instruction — spec §7.1 amendment pending in a later revision |
-| E-04 | `api` text on its own tint passes at exactly 4.50:1 (zero margin) | Palette decision for DEC-065; value unchanged |
+| E-03 | Relationship colour and sizing tokens added per the owner's CP1 instruction §10 (spec §7.1 did not list them) | **Approved** (owner, 2026-10-24); spec amendment A2 (v0.2.2) |
+| E-04 | `api` text on its own tint passes at exactly 4.50:1 (zero margin) | **Accepted provisionally** (owner, 2026-10-24); recorded under DEC-065 and spec §7.1 (A3); reassess at final palette approval |
 | E-05 | Whitespace-only lint fixes in non-baseline documents (incl. approved ATLAS-001 docs); `git diff -w --ignore-blank-lines` shows only a code-fence language, one heading level and backticks around a literal | Formatting only |
 | E-06 | `breaking` tagged path proven only locally (no release tag exists on GitHub yet) | Re-verified in CI after `contract-v0.1.0` exists |

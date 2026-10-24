@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Work item | ATLAS-001 Engineering Foundation |
-| Version | **0.2.1** — final candidate of v0.2: owner decisions D-01…D-07 applied, PostgreSQL roles simplified, authentication and repository-visibility analysis added (24 Oct 2026) |
+| Version | **0.2.2** (controlled amendment of 0.2.1; see §13) — final candidate of v0.2: owner decisions D-01…D-07 applied, PostgreSQL roles simplified, authentication and repository-visibility analysis added (24 Oct 2026) |
 | Status | **Approved for Implementation** (owner, 24 Oct 2026; baseline v0.2.1). Checkpoint 1 authorized; later checkpoints need their own authorization. The ATLAS-001 feature is **not Accepted** until Gate G7 |
 | Basis | Phase 0 Blueprint (approved as plan); `decisions/decision-register.md` v0.3; Technical Design v1.1 §6, §8, §16.2, §17 (deviations recorded in `decisions/baseline-deviations.md`) |
 | Companions | `plan.md`, `tasks.md`, `acceptance.md`, `readiness.md` (approval request), `changes-v0.2.md`, `ci-access.md`, `proposals/postgres-local-setup.sql` and `proposals/pg_hba-atlas.conf` (review only, **not applied**) |
@@ -115,7 +115,7 @@ IDs are renumbered for v0.2 (mapping from v0.1 in `changes-v0.2.md` §2).
 | ID | Requirement |
 |---|---|
 | A001-FR-01 | `contracts/openapi/atlas-api.yaml` **0.1.0**, OpenAPI 3.1, written in the **Pydantic-compatible dialect** of `contracts/style-guide.md`. It defines exactly three operations (§6.5), shared components (error envelope, `X-Correlation-ID` header) and per-operation error responses. |
-| A001-FR-02 | JSON Schemas (2020-12) `error.v1`, `build-info.v1`, `health.v1` in `contracts/schemas/`, each with ≥1 valid and ≥1 invalid example in `contracts/examples/`. |
+| A001-FR-02 | JSON Schemas (2020-12) `error.v1`, `build-info.v1`, `health-live.v1` and `health-ready.v1` in `contracts/schemas/`, **one schema per response body**, each with ≥1 valid and ≥1 invalid example in `contracts/examples/<schema>/`. *(Amendment A1, v0.2.2: originally a single `health.v1`; split because a union schema accepted an invalid readiness body that also matched the liveness shape. Owner-approved E-01.)* |
 | A001-FR-03 | `contracts/conventions.md`: base path, IDs, cursor pagination shape (reserved), headers (`X-Correlation-ID`; `If-Match`, `Idempotency-Key` reserved), status-code usage, error-code catalog (§6.6). `contracts/style-guide.md`: operationId naming, component naming, nullable form (`anyOf` with `null`), no inline shared schemas, error responses on every operation. |
 | A001-FR-04 | `contracts/compatibility.md`: semver for `atlas-api.yaml`, breaking-change definitions, deprecation, backend-first rollout (Tech §17.4(6)). |
 | A001-FR-05 | `tools/check_specs_lock.py` validates a consumer's `specs.lock` (§6.4) with self-tests. |
@@ -343,12 +343,16 @@ All values are **proposed (DEC-065)**. They extend Tech §5.3 and UX §2.1 with 
 | Entity tints (10% over white) | application `#EEEEFB`, api `#E8F1FD`, compute `#F4EEFB`, messaging `#F9F2E7`, data `#E6F2F4`, security `#F8EDF1`, capability `#E9F3EF` |
 | Status (with icon + text) | success `#1B7A4E`, warning `#8F5A0E`, danger `#B42318`, info `#1257BE` (each ≥4.6:1 on surfaces and own tint) |
 | Typography | system sans stack (`ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`), mono stack. Sizes 12 / 14 / 16 / 20 / 24 / 32 px. Weights 400 / 500 / 600. Line-height 1.25 headings, 1.4 UI, 1.5 body |
+| Relationships *(Amendment A2)* | `relationship-default #5F6E82` (neutral slate), `relationship-selected #1769E0`, `relationship-muted #7A8AA0`; all ≥ 3:1 on every surface; line widths 1.5 px default / 2.5 px selected. Category accents reuse entity accents |
 | Spacing | 4-px scale: 0, 4, 8, 12, 16, 24, 32, 48, 64 |
+| Sizing *(Amendment A2)* | controls 24 / 32 / 40 px (24 px = minimum target, AR-07); icons 16 / 20 / 24 px; border widths 1 / 2 px; focus ring 2 px width, 2 px offset |
 | Radius | 4, 8, 12, full |
 | Elevation | three subtle ink-tinted shadows (`rgba(21,40,63,.08/.10/.14)`) |
 | Motion | `duration-fast 120ms`, `duration-base 160ms`, `duration-slow 220ms`; `easing-standard cubic-bezier(0.2,0,0,1)`, `easing-exit cubic-bezier(0.4,0,1,1)` |
 
 Trust/evidence state tokens are **not** defined, because they depend on DEC-056 (Open).
+
+**Known limitation (E-04, accepted provisionally):** `api` text on its own 10% tint (`#146BD5` on `#E8F1FD`) is exactly **4.50:1**, meeting AA with zero margin. The value is retained and recorded under DEC-065 for reassessment at final palette approval. `tools/check_tokens.py` keeps enforcing ≥ 4.5:1, so any drift fails CI.
 
 ### 7.2 Accessibility rules (`design/tokens.md`, enforced in UI tests)
 
@@ -442,4 +446,5 @@ ATLAS-001 is **not Accepted** by this document. It becomes Accepted only through
 |---|---|---|
 | 0.1 | 2026-10-24 | Initial draft |
 | 0.2 | 2026-10-24 | Revised per review-01 and owner decisions D-01…D-06; see `changes-v0.2.md` |
+| 0.2.2 | 2026-10-24 | **Controlled amendment** (owner-approved E-01, E-03, E-04; no change to BRD, UX or Technical Design baselines):<br>• **A1** FR-02 health schemas split into `health-live.v1` and `health-ready.v1`;<br>• **A2** relationship-colour and sizing tokens added to §7.1;<br>• **A3** `api` text-on-tint 4.50:1 limitation recorded (DEC-065).<br>Approval status of v0.2.1 carries over to v0.2.2 for these amendments only |
 | 0.2.1 | 2026-10-24 | **Approved for Implementation** by the owner (CP1 authorized; repositories remain public by owner decision DEC-085). Final candidate content: D-07 applied; roles simplified (6 → 4) and runtime default narrowed to read-only; local-trust limitation and CI scram enforcement specified; shared-server cross-database finding and optional `pg_hba` hardening; contract pinning/release-tag rules; repository-visibility security analysis; CP1 tooling via pinned containers; see `changes-v0.2.md` §8 |
