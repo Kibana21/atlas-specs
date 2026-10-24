@@ -1,5 +1,5 @@
 # Redocly CLI configuration for atlas-specs (ATLAS-001 FR-07; pinned image in tools/images.lock).
-# Introduced with the contract in S-04; finalized in S-10.
+# Introduced with the contract in S-04; finalized in S-10. Run: `make contract`.
 apis:
   atlas:
     root: contracts/openapi/atlas-api.yaml

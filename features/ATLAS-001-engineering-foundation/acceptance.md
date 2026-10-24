@@ -32,6 +32,7 @@
 ---
 
 ### AC-01 — Each repository passes its own checks independently
+
 *Tech §17.8 #1 · FR-07, FR-20, FR-50 · NFR-01, NFR-03*
 
 - **Given** a clean clone of one repository and its README only,
@@ -42,6 +43,7 @@
 **Evidence:** run links plus terminal logs. **Tasks:** S-09, S-10, S-11, B-01, B-23, B-24, F-01, F-11.
 
 ### AC-02 — One immutable specs revision, with parity enforced
+
 *Tech §17.8 #2 · FR-05, FR-36, FR-51, FR-59 · DEC-039 (pending D-07)*
 
 - **Given** `specs.lock` in backend and frontend,
@@ -53,6 +55,7 @@
 **Evidence:** validator output for the valid case and five invalid cases; drill run link; release-tag check output; owner's release approval. **Tasks:** S-02, S-06, S-12, B-18, F-03, F-10, B-26, F-14.
 
 ### AC-03 — Contract conformance detects missing, unexpected and changed operations
+
 *Tech §17.8 #3 (client part), #5 · FR-06, FR-36, FR-51 · DEC-095*
 
 - **Given** contract 0.1.0 and the conformance tool at the pinned SHA,
@@ -76,6 +79,7 @@
 *Note:* the "does not bypass authorization" half of Tech §17.8 #3 is deferred to BL-104.
 
 ### AC-04 — Local development on existing services is reproducible and safe
+
 *FR-21, FR-35, spec §8 · NFR-01, NFR-06 · DEC-043/044/045/048*
 
 - **Given** the owner's existing PostgreSQL 15 and Redis, P-03 applied, Node 24 and uv,
@@ -90,6 +94,7 @@
 **Evidence:** timed log and the snapshot diff. **Tasks:** B-08, B-17, B-25, F-02, F-13.
 
 ### AC-05 — Health, readiness and buildable images
+
 *Tech §17.8 #4 · FR-26, FR-31, FR-37, FR-58*
 
 - **Given** the API running,
@@ -101,6 +106,7 @@
 **Evidence:** test reports, `curl -i` transcripts, `id -u` outputs. **Tasks:** B-06, B-09, B-13, B-21, F-09.
 
 ### AC-06 — Migration mechanism
+
 *FR-28, FR-29 · DEC-046*
 
 - **Given** `atlas_test` and `atlas_test_migrator`,
@@ -111,6 +117,7 @@
 **Evidence:** CI integration log; `\dt atlas.*` output. **Tasks:** B-10, B-11.
 
 ### AC-07 — Credential separation, least privilege and authentication strength
+
 *FR-21, FR-28, FR-30, FR-35, FR-39 · DEC-044, DEC-084*
 
 - **Given** the approved four roles (`atlas_migrator`, `atlas_app`, `atlas_test_migrator`, `atlas_test_app`),
@@ -128,6 +135,7 @@
 **Evidence:** test reports; read-only role listing; CI `ci_auth` log; doctor warning output. **Tasks:** B-03, B-08, B-12, B-22, B-23.
 
 ### AC-08 — Uniform error envelope
+
 *FR-01, FR-03, FR-24, FR-52 · Tech §6.3*
 
 - **Given** the API,
@@ -138,6 +146,7 @@
 **Evidence:** test reports. **Tasks:** S-01, S-03, B-05, B-20, F-05.
 
 ### AC-09 — Build provenance, environment-restricted
+
 *FR-27, FR-56 · Tech §17.4(7)*
 
 - **Given** diagnostics enabled under `ATLAS_ENV=test`,
@@ -152,6 +161,7 @@
 **Evidence:** JSON vs `git rev-parse`; startup failure log. **Tasks:** B-07, B-12, F-07.
 
 ### AC-10 — Correlation IDs end to end
+
 *FR-23, FR-32, FR-52*
 
 - **Given** the frontend sends `X-Correlation-ID: req_test123456`,
@@ -162,6 +172,7 @@
 **Evidence:** test reports plus one captured log pair. **Tasks:** B-04, B-14, F-05.
 
 ### AC-11 — Taskiq/Redis seam with key hygiene
+
 *FR-31…FR-34 · DEC-045, DEC-046*
 
 - **Given** Redis DB 11 and run prefix `atlas:test:<run_id>:`,
@@ -178,6 +189,7 @@
 **Evidence:** test report; `scripts/redis_keys.py` before/after outputs. **Tasks:** B-13, B-14, B-15, B-16, B-17.
 
 ### AC-12 — Security baseline
+
 *FR-24, FR-25, FR-38, FR-57 · NFR-05*
 
 - **Given** backend and frontend builds,
@@ -195,6 +207,7 @@
 **Evidence:** reports, header transcripts, drill link. **Tasks:** B-04, B-05, B-06, B-24, F-08, F-11.
 
 ### AC-13 — Quality gates and coverage
+
 *NFR-03, NFR-04*
 
 - **Given** backend and frontend CI,
@@ -205,6 +218,7 @@
 **Evidence:** coverage summaries, drill links. **Tasks:** B-02, B-23, F-01, F-11.
 
 ### AC-14 — Bright design foundation and accessibility
+
 *FR-08, FR-54, FR-55 · spec §7 · UX §1.2, §2.1–2.2, §12 · DEC-011, DEC-065 (values proposed)*
 
 - **Given** `design/tokens.json` and the production frontend build,
@@ -225,6 +239,7 @@
 **Evidence:** checker output, Playwright report. **Tasks:** S-05, S-08, F-04, F-06, F-10.
 
 ### AC-15 — Status page tells the truth in every state
+
 *FR-56*
 
 - **Given** `/status`,
@@ -242,6 +257,7 @@
 **Evidence:** test report plus Playwright traces. **Tasks:** F-07, F-10.
 
 ### AC-16 — Chromium E2E against a persisted backend
+
 *Tech §17.8 #6 · FR-59 · DEC-012 · UX-NFR-011 (Chromium; second engine pending DEC-055)*
 
 - **Given** the frontend `e2e` CI job,
@@ -252,6 +268,7 @@
 **Evidence:** run link plus HTML report artifact. **Tasks:** F-10, F-12.
 
 ### AC-17 — Scope guard, exclusions and sign-off
+
 *spec §2 · DEC-002 · DEC-046*
 
 - **Given** the release SHAs,

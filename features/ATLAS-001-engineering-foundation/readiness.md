@@ -3,7 +3,7 @@
 **Date:** 24 October 2026 · **Specification set:** `spec.md` v0.2.1, `plan.md` v0.2.1, `tasks.md` v0.2.1, `acceptance.md` v0.2.1 · **Register:** `decisions/decision-register.md` v0.3
 **Status:** **Approved for Implementation** (owner, 24 Oct 2026). **Checkpoint 1 authorized**; CP2–CP7 not authorized. ATLAS-001 **not Accepted** until G7.
 
-### Owner decisions recorded on 24 Oct 2026
+## Owner decisions recorded on 24 Oct 2026
 
 | Item | Decision |
 |---|---|
@@ -32,6 +32,7 @@ Nothing in this round changed PostgreSQL, Redis, GitHub settings, repository vis
 | 6 | Readiness summary with genuine blockers to checkpoint 1 | §3 below | — |
 
 D-07 decisions are applied as approved, with their modifications (register §A2):
+
 - DEC-020: Python 3.12 with a pinning policy (FR-20a).
 - DEC-024 and DEC-028: as approved.
 - DEC-038: includes mypy and openapi-typescript.
@@ -54,6 +55,7 @@ D-07 decisions are applied as approved, with their modifications (register §A2)
 | 8 | PyPI | Dependency | uv 0.10.0 present; Python 3.12.12 available via uv | Anonymous download of the pinned `tools/` dependencies (PyYAML, jsonschema, check-jsonschema, pytest) into a **project-local** environment. No global install | Public |
 
 **Not needed for checkpoint 1:**
+
 - PostgreSQL and Redis (CP3/CP4);
 - Node.js (no Node tooling in `atlas-specs`);
 - GitHub App, PATs, deploy keys, repository secrets or variables;

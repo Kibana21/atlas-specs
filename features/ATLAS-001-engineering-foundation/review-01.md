@@ -23,12 +23,14 @@ The spec hard-codes PostgreSQL 16 in §6.1, FD-11, B1-06, B6-02, AC-04 and AC-06
 
 **C-02 · Test designs are destructive on shared services.**
 Using the existing PostgreSQL and Redis makes these planned steps unsafe:
+
 - B4-10 `FLUSHALL` wipes every project's Redis data, including db1.
 - B4-02, AC-05 and AC-15 "stop redis" stop the shared container.
 - Plan §5.2 per-session `atlas_test_<worker>` databases require CREATE DATABASE on a shared superuser role.
 - Running the app as the local superuser is not production-quality.
 
 *Fix:*
+
 - Dedicated non-superuser role and dedicated dev and test databases (D-02).
 - A dedicated Redis DB index per environment plus an `atlas:` key/queue prefix (D-03).
 - A guard that refuses destructive test operations unless `ATLAS_ENV=test` **and** the target is the Atlas test DB/index.
@@ -52,6 +54,7 @@ What the probe showed:
 | Optional fields come out as `anyOf: [{type}, {type: null}]` | Hand-authored `type: [string, "null"]` would differ structurally |
 
 *Corrected method (verified feasible):*
+
 1. Explicit `operation_id` on every route.
 2. Declare the envelope for 422/4xx/5xx on every route, via router-level `responses` or explicitly per route. In the probe, a route that declared 422 no longer got the automatic `HTTPValidationError`; the router-level variant is confirmed in the first B5 task.
 3. A small `app.openapi()` hook that adds the shared `X-Correlation-ID` header reference to every response.
@@ -64,17 +67,20 @@ What the probe showed:
 
 **M-01 · Scope: durable jobs and the transactional outbox should be deferred.**
 B4 (11 tasks, ≈2.5 days) pulls BL-201 forward from Phase 2: the job/attempt tables, outbox, relay, retry/backoff, Redis-loss recovery and two job endpoints. ATLAS-001 contains **no job with business value**, so none of that durability protects anything yet. It also adds two endpoints to contract 0.1.0 that would need deprecating. "Minimal but production-quality" here means proving the **seams**:
+
 - Taskiq broker configuration with an Atlas-isolated queue;
 - a worker built from the same codebase and image;
 - one diagnostic task's round trip;
 - Redis readiness.
 
 *Recommendation (D-04):*
+
 - Defer the outbox, durable job state, retries and the job endpoints to BL-201. Make that a hard prerequisite of the first real background job (exports, connectors).
 - Keep a `diagnostics.ping` round-trip integration test and a `make worker-smoke` command, using Taskiq's Redis result backend with a short TTL on the Atlas Redis index. Redis is acceptable here because nothing durable is stored.
 - Migrations still need proving. Use a reviewed **empty baseline revision** `0001_baseline` so the upgrade/downgrade, drift and single-head checks run with zero domain tables. The first real tables arrive with BL-101.
 
 **M-02 · Some tasks span several repositories or can't be verified on their own.**
+
 - **Multi-repo:** M0-05 (backend + frontend), M0-06 (all three), X2-01 (all), X2-02 (all). *Fix:* split into one task per repo. Sign-off evidence lives in specs; tags are separate backend and frontend tasks.
 - **Forward verification:** F1-05 is verified in F4-02, F1-06 and F2-04 in F4-01. A task can't prove itself before the test harness exists. *Fix:* move Vitest setup into F1 (new F1-0x) and have each task ship its own tests.
 - **Vague checks:**
@@ -85,6 +91,7 @@ B4 (11 tasks, ≈2.5 days) pulls BL-201 forward from Phase 2: the job/attempt ta
 
 **M-03 · Frontend design language is too thin.**
 FR-46 defines only Tech §5.3 colours and omits:
+
 - Compute violet `#8C58D8` (UX §2.1, CF-14);
 - typography scale and font strategy (self-hosted, so the security policy needs no exception);
 - spacing, radii, elevation;
@@ -94,6 +101,7 @@ FR-46 defines only Tech §5.3 colours and omits:
 - an explicit `color-scheme: light`, since UX says never dark by default.
 
 *Fix:*
+
 - Complete the token set and mark it "proposed — DEC-065".
 - Add an automated **WCAG contrast unit test** for every declared text/background pair, so palette validation starts now.
 - Keep no navigation rail, no product components and no shadcn/ui primitives until Phase 1.
@@ -102,6 +110,7 @@ FR-46 defines only Tech §5.3 colours and omits:
 **M-04 · Visual regression and a second browser engine exceed a minimal skeleton.**
 Golden screenshots of a one-link page (AC-17, F4-05) add container-pinning work and flakiness for almost no protection. WebKit E2E also depends on DEC-055, which is still Open.
 *Fix:*
+
 - Defer visual baselines to the first real screen (BL-105/BL-109).
 - Run E2E in **Chromium only** for ATLAS-001, with Playwright projects structured so a second engine is a one-line addition once DEC-055 closes.
 - Keep axe accessibility checks; they're cheap.

@@ -131,7 +131,6 @@ Ordered by needed-by, then by number of requirements blocked (counts from the RT
 
 ---
 
-
 ## D. Mapping of source decision lists
 
 | Source item | Register ID |

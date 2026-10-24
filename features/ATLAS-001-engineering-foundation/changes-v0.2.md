@@ -43,6 +43,7 @@ Product exclusions are unchanged (requirement 7): no PR analysis, telemetry, tra
 The quoted text is the current register row. **Requested scope** is what ATLAS-001 needs approved; anything outside it stays *Proposed*.
 
 ### DEC-020 — Backend language and framework
+
 > *"Python 3.12+ (pinned patch), FastAPI, Pydantic v2, SQLAlchemy 2, Alembic (tech §0; specs README; backend `.gitignore`)"* · Owner (proposed): Backend lead + Security · Needed by: P0 · Blocks: all backend work
 
 - **Requested scope:** approve as written. ATLAS-001 uses Python **3.12** (patch locked by uv; 3.12.12 already available locally), FastAPI, Pydantic v2, SQLAlchemy 2 (async, psycopg 3) and Alembic.
@@ -53,6 +54,7 @@ The quoted text is the current register row. **Requested scope** is what ATLAS-0
 - **If not approved:** CP2–CP5 cannot start, and the Tech Design §0, §17.1 backend design would need to be redone.
 
 ### DEC-024 — Frontend framework and libraries
+
 > *"Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, TanStack Query, Zustand (tech §5.1)"* · Alternative noted: enterprise-approved component kit instead of shadcn/ui · Needed by: P0 · Blocks: BL-105
 
 - **Requested scope (narrower than the wording):** approve **Next.js App Router, TypeScript strict, Tailwind and TanStack Query**. Leave **shadcn/ui and Zustand Proposed** until Phase 1 (BL-105/BL-109) needs them.
@@ -64,6 +66,7 @@ The quoted text is the current register row. **Requested scope** is what ATLAS-0
 - **If not approved:** CP6–CP7 cannot start.
 
 ### DEC-028 — Background jobs
+
 > *"Taskiq + Redis dispatch, PostgreSQL durable job records + outbox (tech ADR-005, §8)"* · Alternatives noted: Celery, Arq, Dramatiq · Needed by: P1 (needed P2 at scale) · Blocks: BL-201
 
 - **Requested scope (narrowed by DEC-046):** approve **Taskiq + Redis as the dispatch mechanism** only. "PostgreSQL durable job records + outbox" stays Proposed until BL-201.
@@ -74,6 +77,7 @@ The quoted text is the current register row. **Requested scope** is what ATLAS-0
 - **If not approved:** CP4 cannot start. The migration mechanism (CP3) is unaffected.
 
 ### DEC-038 — Tooling
+
 > *"Backend: `uv`, Ruff, mypy or pyright (strict), pytest, Hypothesis. Frontend: pnpm, ESLint, Vitest, Playwright. Typed client generator TBD (tech §17.1, §17.5)"* · Alternatives noted: Poetry; pyright vs mypy; npm/yarn; client generators · Needed by: P0
 
 - **Requested scope:** approve **uv, Ruff, pytest, pnpm, ESLint, Vitest and Playwright**. The two open choices inside the wording are taken as **Provisional**: DEC-091 = mypy, DEC-092 = openapi-typescript + openapi-fetch. You may override them without blocking. Hypothesis is not used in ATLAS-001 (no property-based targets remain once retries are deferred) and stays in the approved set for later.
@@ -83,6 +87,7 @@ The quoted text is the current register row. **Requested scope** is what ATLAS-0
 - **If not approved:** no repository bootstrap (B-01, F-01).
 
 ### DEC-039 — Contract-first workflow
+
 > *"OpenAPI + JSON Schema in `atlas-specs`, consumers pin a commit SHA in `specs.lock`, frontend client generated from the pinned contract, CI compares emitted OpenAPI (tech §17.4)"* · Owner (proposed): Architecture + release coordinator · Needed by: P0
 
 - **Requested scope:** approve as written. "CI compares emitted OpenAPI" is made concrete by Provisional DEC-095 (inventory + normalized exact diff).
@@ -94,6 +99,7 @@ The quoted text is the current register row. **Requested scope** is what ATLAS-0
 - **If not approved:** the alternative is code-first (backend exports the schema into specs). That contradicts Tech §17.4 and weakens AC-02/AC-03. Large rework of CP1/CP5.
 
 ### DEC-040 — `atlas-specs` folder layout
+
 > *"Align to tech §17.3 or update §17.3 to match the repo. **Recommendation:** keep the current `contracts/openapi`, `contracts/schemas`, `acceptance/scenarios`, `acceptance/test-data`, `decisions/` and add `contracts/examples/`, `contracts/compatibility.md`, `design/tokens.md`, `phase0/`; amend tech §17.3 at its next revision"* · Needed by: P0
 
 - **Requested scope:** approve the layout. ATLAS-001 adds:

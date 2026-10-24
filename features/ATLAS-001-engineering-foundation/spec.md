@@ -178,6 +178,7 @@ IDs are renumbered for v0.2 (mapping from v0.1 in `changes-v0.2.md` §2).
 ### 6.2 PostgreSQL isolation and credentials (DEC-044)
 
 **Verification of `atlas_db` (read-only, 24 Oct 2026):**
+
 - only schema `public`;
 - 0 relations, 0 functions, 0 user types;
 - only extension `plpgsql`;
@@ -207,6 +208,7 @@ The three required separations hold: runtime vs migration, and local vs test. Th
 `PUBLIC` loses `CONNECT`/`TEMP` on both Atlas databases and all privileges on schema `public` in them. Passwords use SCRAM and come from environment variables at execution time, never committed. The exact SQL, its verification queries and a rollback are in `proposals/postgres-local-setup.sql` (**not applied**).
 
 **Dry-run evidence (24 Oct 2026, disposable `postgres:15-alpine` containers; no host port; removed afterwards; the Homebrew server untouched):**
+
 - Guards: missing password, non-empty `atlas_db` and a re-run each exit 3 with zero changes.
 - Roles: 4 created, all elevated flags false.
 - Migrator owns `alembic_version` and test tables; it cannot create databases or roles.
@@ -225,6 +227,7 @@ The three required separations hold: runtime vs migration, and local vs test. Th
 **Shared-server finding:** PostgreSQL's default `CONNECT` grant to `PUBLIC` on other databases means Atlas roles *can connect to other projects' databases* on this server (verified: `atlas_app` → `postgres`). They gain only what those databases grant to `PUBLIC`. Atlas will not modify other databases to fix this.
 
 **Optional, owner-decided hardening:** `proposals/pg_hba-atlas.conf` adds six lines that apply **only to the four Atlas roles**:
+
 - passwords are enforced (`scram-sha-256`);
 - Atlas roles are **rejected on every non-Atlas database**;
 - every other user's behaviour is unchanged.
@@ -259,6 +262,7 @@ contract_version: "0.1.0"
 ```
 
 Rules (DEC-039 as approved):
+
 - `specs_commit` is a **full 40-hex SHA of a reviewed commit on `atlas-specs` `main`**. Never a branch or tag name. Development and CI may pin any such commit.
 - **Release tags `contract-vX.Y.Z` are created only for approved contract releases**, not for each API change. An approved release requires owner approval of the contract diff since the previous release.
 - **Release builds** (backend/frontend version tags such as `v0.1.0`) must pin a commit that carries a `contract-v*` release tag. The G7 gate checks this.
@@ -281,6 +285,7 @@ Rules (DEC-039 as approved):
 ### 6.6 Error envelope and codes
 
 Envelope per Tech §6.3. Codes in 0.1.0:
+
 - **In use:** `NOT_FOUND`, `VALIDATION_FAILED`, `DEPENDENCY_UNAVAILABLE`, `INTERNAL_ERROR`.
 - **Reserved:** `REVISION_CONFLICT`, `IDEMPOTENCY_KEY_REQUIRED`, `RATE_LIMITED`.
 
@@ -307,6 +312,7 @@ The tool lives in `atlas-specs/tools/` and is versioned with the contract, so th
 **Owner decision (24 Oct 2026):** `Kibana21/atlas-specs`, `Kibana21/atlas-backend` and `Kibana21/atlas-frontend` **remain public**. This is the approved configuration. The earlier recommendation (private) is superseded. Engineering never changes visibility.
 
 **Consequences adopted:**
+
 - CI uses **Mode A** (`ci-access.md` §3): public cross-repository checkout, read-only, pinned to immutable SHAs, minimal `GITHUB_TOKEN` permissions. No GitHub App, no personal access tokens, no repository secrets for cross-repository reads.
 - Rulesets/branch protection remain available on public repositories (P-07, before G7).
 
@@ -380,6 +386,7 @@ Trust/evidence state tokens are **not** defined, because they depend on DEC-056 
 | frontend | `pnpm install` · `pnpm dev` · `pnpm gen` · `pnpm check` · `pnpm e2e` | Install / dev on :3000 / regenerate / static + unit + generated check / Chromium E2E against a running backend |
 
 **Smoke journey:**
+
 1. `make doctor` green.
 2. `make migrate`, then `make api` and `make worker`.
 3. `make worker-smoke` OK.
@@ -421,6 +428,7 @@ Trust/evidence state tokens are **not** defined, because they depend on DEC-056 
 ## 12. Approval gate (stop point)
 
 Implementation of CP1 starts only when **all** of these hold:
+
 1. You explicitly approve this final specification set (spec v0.2.1, `plan.md`, `tasks.md`, `acceptance.md`).
 2. The CP1 preconditions in `readiness.md` §3 are confirmed: P-05 pinned container images, P-08 branch/PR workflow, and P-06 the visibility decision, or an explicit "keep public for now".
 

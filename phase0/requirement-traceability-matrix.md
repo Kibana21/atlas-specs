@@ -27,7 +27,6 @@
 
 - **Most-blocking open decisions (requirement count):** DEC-050 (37), DEC-056 (29), DEC-051 (16), DEC-063 (14), DEC-057 (14), DEC-054 (11), DEC-073 (10), DEC-072 (9), DEC-075 (8), DEC-064 (6), DEC-055 (6), DEC-062 (6)
 
-
 ## Coverage by family
 
 | Family | Area | Count | Phases | R0 | R1 | R2 | Primary backlog |
@@ -96,7 +95,6 @@
 | NFR | Non-functional (BRD §8, proposed IDs) | 13 | P1 P2 | 9 | 0 | 4 | BL-104 BL-108 BL-109 BL-111 BL-115 BL-122 BL-125 BL-126 BL-208 |
 
 ## Matrix
-
 
 ### INV — Canonical graph
 
