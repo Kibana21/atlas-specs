@@ -57,17 +57,74 @@ The App private key is a stored secret, but the credential used by jobs is minte
   - Mode A: all jobs run without secrets.
   - Mode B: cross-repo jobs are skipped for forks with an explicit notice. Enable "Require approval for first-time contributors" in repo Actions settings (owner action).
 
-## 6. Repository settings the owner applies later (not part of any implementation task)
+## 6. Proposed rulesets (E-08) — owner applies; not applied by Claude
 
-| Setting | Proposal | Note |
+**Enforceability (checked read-only 2026-10-24):** account `Kibana21` is on **GitHub Free** (personal); all three repositories are **public**; none has a ruleset or classic branch protection. Rulesets are available for public repositories on GitHub Free, so the settings below are enforceable as written. No bypass actors are configured, so they also bind the owner's account and Claude's merges through it.
+
+**Prerequisite (amendment A6):** workflows run every required job on `pull_request` and on `push` to `main`. A required check can therefore never be satisfied by a skipped job.
+
+### 6.1 Ruleset `protect-main` (one per repository; Settings → Rules → Rulesets → New branch ruleset, or `POST /repos/Kibana21/<repo>/rulesets`)
+
+```json
+{
+  "name": "protect-main",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"], "exclude": []}},
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "pull_request", "parameters": {
+      "required_approving_review_count": 0,
+      "dismiss_stale_reviews_on_push": false,
+      "require_code_owner_review": false,
+      "require_last_push_approval": false,
+      "required_review_thread_resolution": false,
+      "allowed_merge_methods": ["merge"]}},
+    {"type": "required_status_checks", "parameters": {
+      "strict_required_status_checks_policy": true,
+      "do_not_enforce_on_create": false,
+      "required_status_checks": "<per repository, below>"}}
+  ]
+}
+```
+
+| Repository | `required_status_checks` (context names; GitHub Actions app `integration_id` 15368) | Grows with |
 |---|---|---|
-| CODEOWNERS | `* @Kibana21` | Committed by implementation tasks S-11, B-24, F-11 |
-| Ruleset / branch protection on `main` | Require PR; require status checks (below); block force-push and deletion | With a single maintainer, **required approving reviews would block all merges** (authors cannot approve their own PR). Keep required reviews at 0 until a second maintainer exists (DEC-081). If the repos become private on a personal GitHub Free account, rulesets are generally unavailable without GitHub Pro; confirm the plan first |
-| Required checks | specs: `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` · backend: `static`, `unit`, `integration`, `contract`, `security`, `images` · frontend: `static`, `unit`, `generated`, `build`, `security`, `e2e`, `image` | Names are fixed by tasks S-11, B-23/B-24, F-11/F-12 |
-| Actions permissions | Allow GitHub-owned and SHA-pinned actions; default workflow token permissions **read** | |
+| `atlas-specs` | `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` | — |
+| `atlas-backend` | `static`, `unit`, `contract`, `security` (from CP2) | `integration` (CP3/CP5), `images` (CP5) |
+| `atlas-frontend` | apply when its CI exists (CP6): `static`, `unit`, `generated`, `build`, `security`, `image`, `e2e` | — |
+
+**Why these values:**
+
+- **Zero required approvals:** with a single maintainer, authors cannot approve their own PRs, so any required approval would block every merge. Raise it once a second maintainer exists (DEC-081).
+- **Strict up-to-date checks:** a PR must pass against the current `main`.
+- **Merge commits only:** this keeps release trees and task-commit traceability (PR #1).
+
+### 6.2 Ruleset `immutable-release-tags` (`atlas-specs`; later also `v*` in the other repos)
+
+```json
+{
+  "name": "immutable-release-tags",
+  "target": "tag",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {"ref_name": {"include": ["refs/tags/contract-v*"], "exclude": []}},
+  "rules": [{"type": "update"}, {"type": "deletion"}]
+}
+```
+
+Tag *creation* stays allowed, so approved releases can still be published. Moving or deleting a release tag becomes impossible.
+
+### 6.3 Other settings
+
+- **CODEOWNERS:** `* @Kibana21`, committed by tasks S-11, B-28 and F-11.
+- **Actions:** allow GitHub-owned and SHA-pinned actions. The default workflow token permission is **read**.
+- **Branch hygiene:** "Automatically delete head branches" may be enabled. Merged feature branches are not needed after merge, because commits remain on `main`.
 
 ## 7. Owner checklist (only when needed)
 
 1. Mode A: nothing to create.
 2. Before making any repo private: create the `atlas-ci-reader` App (§4), install it on `atlas-specs` and `atlas-backend`, and add the variable and secret to `atlas-backend` and `atlas-frontend`. Workflows already contain the Mode B branch (if `vars.ATLAS_CI_APP_ID` is set, mint a token; otherwise use Mode A).
-3. After the first green CI runs: apply the §6 ruleset with the required check names.
+3. Now that every required check has run at least once on `main`, apply §6.1 to each repository with CI and §6.2 to `atlas-specs`. Claude verifies them read-only afterwards.

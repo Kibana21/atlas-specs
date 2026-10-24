@@ -40,7 +40,7 @@
 - **Then** everything passes without copying files from another repository. The only cross-repo inputs are read-only checkouts at pinned SHAs. `atlas-specs` checks need only Docker (digest-pinned lint images) and uv, not Node.
 
 **Verify:** local commands exit 0, and the three workflows are green. Drill: a PR with one lint error and one type error fails `static` (backend and frontend).
-**Evidence:** run links plus terminal logs. **Tasks:** S-09, S-10, S-11, B-01, B-23, B-24, F-01, F-11.
+**Evidence:** run links plus terminal logs. **Tasks:** S-09, S-10, S-11, B-01, B-28, B-23, B-24, F-01, F-11.
 
 ### AC-02 — One immutable specs revision, with parity enforced
 
@@ -75,7 +75,7 @@
 - **Then** every case gives the expected outcome, and reverting each drill turns its job green.
 
 **Verify:** `tools/tests/test_conformance.py` (S-07); `make contract` (B-19); CI jobs `contract` (B-24), `breaking` (S-11), `generated` (F-11).
-**Evidence:** test report plus 5 drill run links. **Tasks:** S-02, S-04, S-07, S-11, B-19, B-24, F-03, F-11.
+**Evidence:** test report plus 5 drill run links. **Tasks:** S-02, S-04, S-07, S-11, B-27, B-28, B-18, B-19, F-03, F-11.
 *Note:* the "does not bypass authorization" half of Tech §17.8 #3 is deferred to BL-104.
 
 ### AC-04 — Local development on existing services is reproducible and safe
@@ -129,7 +129,7 @@
   - neither environment's roles can connect to the other environment's database;
   - no Atlas role is superuser, or can create roles or databases, replicate or bypass RLS;
   - **in CI**, a wrong or missing password is rejected for every Atlas role;
-  - **locally**, `make doctor` reports the `trust` limitation explicitly. It is documented, not hidden.
+  - **locally**, `make doctor` reports the authentication method read-only from `pg_hba_file_rules` (or *deferred*), so the `trust` limitation is documented, not hidden. No active authentication probe is run (A4).
 
 **Verify:** `tests/integration/test_privileges.py` (B-12); `tests/unit/test_settings.py` (B-03); `ci_auth` test in CI (B-23); doctor output (B-08).
 **Evidence:** test reports; read-only role listing; CI `ci_auth` log; doctor warning output. **Tasks:** B-03, B-08, B-12, B-22, B-23.
@@ -215,7 +215,7 @@
 - **Then** the relevant job fails. On the release SHAs the thresholds are met.
 
 **Verify:** coverage reports; one failing drill per repo.
-**Evidence:** coverage summaries, drill links. **Tasks:** B-02, B-23, F-01, F-11.
+**Evidence:** coverage summaries, drill links. **Tasks:** B-02, B-28, B-23, F-01, F-11.
 
 ### AC-14 — Bright design foundation and accessibility
 

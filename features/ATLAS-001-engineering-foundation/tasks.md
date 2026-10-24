@@ -1,6 +1,6 @@
 # ATLAS-001 — Engineering Foundation: Tasks
 
-**Version:** 0.2.1 (final candidate) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Spec:** `spec.md` v0.2.1 · **Acceptance:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
+**Version:** 0.2.3 (CP2 plan amendment) · **Date:** 24 October 2026 · **Status:** Approved for Implementation (owner, 24 Oct 2026); CP1 authorized; ATLAS-001 not Accepted until G7 · **Spec:** `spec.md` v0.2.1 · **Acceptance:** `acceptance.md` v0.2.1 · **Readiness:** `readiness.md`
 
 ## Rules
 
@@ -16,7 +16,7 @@
    - no shared-service state is changed (spec NFR-06).
 5. **Never in ATLAS-001:** domain or job tables, auth code, outbox, UI beyond `/` and `/status`, screenshot baselines, WebKit, product exclusions (spec §2).
 
-**Totals:** 53 implementation tasks in 7 checkpoints (specs 13 · backend 26 · frontend 14), plus 9 owner preconditions (P-01…P-09). v0.1 had 108; the reduction is explained in `changes-v0.2.md` §4. v0.2.1 changes task content, not task count.
+**Totals:** 55 implementation tasks in 7 checkpoints (specs 13 · backend 28 · frontend 14; v0.2.3 added B-27/B-28 by moving backend static/unit/contract/security CI into CP2), plus 9 owner preconditions (P-01…P-09). v0.1 had 108; the reduction is explained in `changes-v0.2.md` §4. v0.2.1 changes task content, not task count.
 
 ---
 
@@ -68,9 +68,11 @@
 | B-05 | `core/errors.py`: `AtlasError` + handlers (Atlas, validation, HTTP, unhandled) → envelope | B-04 | `uv run pytest tests/unit/test_errors.py`: codes, statuses, `correlation_id` = header; 500 body contains no traceback/SQL/path text | AC-08, AC-12 |
 | B-06 | `main.py` app factory with router conventions (explicit `operation_id`, router-level envelope responses, `X-Correlation-ID` header hook, schema identical across envs, docs only in `local`); `GET /health/live`; CORS + security headers; `make api` | B-05 | `uv run pytest tests/unit/test_app.py`: live 200 + headers; unlisted origin gets no ACAO; `app.openapi()` byte-identical under `local` and `test`; no `HTTPValidationError` component | AC-05, AC-12 |
 | B-07 | `GET /diagnostics/build` (guarded, 404 when disabled) + `version.py` (backend SHA from `ATLAS_BUILD_SHA` → git → `"unknown"`; specs SHA/version from `specs.lock` when present; `db_migration_revision` `null` until B-12) | B-06 | `uv run pytest tests/unit/test_diagnostics.py`: enabled 200, disabled 404 envelope, each SHA fallback | AC-09 |
-| B-08 | `make doctor`: read-only preflight (spec FR-35) with remediation messages, **including local-auth detection** (one deliberate wrong-password attempt; warns if trust). `make doctor SNAPSHOT=file` writes a read-only inventory (database names, role names, Redis key count per DB) for before/after diffs | B-03 | Run against the existing services. Before P-03 it reports server 15.x and "Atlas roles missing → proposals/…". After P-03 it reports the trust warning. A test asserts only `SELECT`/`PING`/`INFO`/`SCAN`/`DBSIZE` and the auth probe are issued | AC-04, AC-07 |
+| B-08 | `make doctor`: **read-only** preflight (spec FR-35) with remediation messages: PostgreSQL major (=15), Atlas roles/databases/schema presence and local auth method read from `pg_hba_file_rules` (or reported **deferred** if not readable) via a read-only session; Redis `PING`/`INFO`/`DBSIZE`/bounded `SCAN` on DBs 10/11; `make doctor SNAPSHOT=file` writes a read-only inventory for before/after diffs. **No wrong-password or other active authentication probe** (owner restriction, CP2 approval) | B-03 | Run against the existing services: before P-03 it reports server 15.x and "Atlas roles missing → proposals/…". Unit tests with recording fakes assert that only `SELECT`/`SHOW`/read-only session settings and `PING`/`INFO`/`DBSIZE`/`SCAN` are issued | AC-04, AC-07 |
+| B-27 | `specs.lock` → `contract-v0.1.0` (`bfe4a09`); `make specs` (extract `contracts/` + `tools/` at the pinned SHA via `git archive`, validate the lock with `--release`); deterministic `scripts/export_openapi.py`; `make contract` runs the pinned conformance tool against the contract **minus an explicit pending-operation list** (`contract-pending.yaml`: only `getHealthReady` → B-09, with its two components). A test asserts every pending entry exists in the contract and names its landing task | B-06, B-07, S-12 | `make contract` exit 0 and prints the pending list; removing `/diagnostics/build` or adding an undeclared route makes it fail | AC-02, AC-03 |
+| B-28 | `.github/workflows/backend-ci.yml` (no shared infrastructure; never connects to local PostgreSQL/Redis): `static` (`uv lock --check`, `uv sync --locked`, Ruff lint + format check, strict mypy), `unit` (pytest, coverage ≥ 85%), `contract` (checkout `atlas-specs` at lock SHA, Mode A; B-27), `security` (pip-audit; tracked-file secret-pattern test; settings-guard tests). Triggers `pull_request` + `push` to `main`; `permissions: {}`/`contents: read`; actions SHA-pinned; `CODEOWNERS` | B-02, B-27 | PR run: 4 jobs green; no service containers and no local-service URLs in the workflow | AC-01, AC-03, AC-12, AC-13 |
 
-**Gate G2:** `make check` green with coverage ≥ 85%; live endpoint returns envelope-conformant errors and correlation headers; doctor runs read-only against shared services. ACs: AC-08/10/12/13 (backend unit level).
+**Gate G2:** `make check` green with coverage ≥ 85%; backend CI (`static`, `unit`, `contract`, `security`) green on the PR and on `main`; `make contract` exact except the declared pending `getHealthReady`; live endpoint returns envelope-conformant errors and correlation headers; doctor runs read-only against shared services. ACs: AC-08/10/12/13 (backend unit level).
 
 ---
 
@@ -105,13 +107,13 @@
 
 | ID | Task | Depends | Verify | AC |
 |---|---|---|---|---|
-| B-18 | `specs.lock` → the immutable commit of release `contract-v0.1.0`; `make specs` extracts `contracts/` and `tools/` at the SHA via `git archive` into `build/specs/` and validates the lock | S-12, B-07 | `make specs` exit 0; `build/specs/tools/check_specs_lock.py` comes from the pinned SHA (checksum matches `git show <sha>:tools/check_specs_lock.py`) | AC-02 |
-| B-19 | Transport models aligned to the contract; deterministic `scripts/export_openapi.py`; `make contract` runs the pinned conformance tool | B-18, B-12, B-13 | `make contract` exit 0. Two exports byte-identical | AC-03 |
+| B-18 | Retire the pending-operation list: after B-09/B-13 implement `getHealthReady`, empty `contract-pending.yaml`; conformance runs against the full contract; release-mode lock check kept | B-27, B-13 | `make contract` exit 0 with **no** pending operations; re-adding a pending entry fails a test | AC-02, AC-03 |
+| B-19 | Contract drills on the full contract: renaming a response field and adding an undeclared route each fail `make contract`; two exports byte-identical | B-18 | Drill branches fail CI `contract`; revert passes | AC-03 |
 | B-20 | Response contract tests: bodies of all 3 operations (incl. 404/503 envelopes) validate against JSON Schemas at the pinned SHA | B-18 | `uv run pytest -m contract` passes | AC-08 |
 | B-21 | Multi-stage `Dockerfile` (`api`, `worker` targets, non-root, `ATLAS_BUILD_SHA`) | B-14 | `docker build --target api .` and `--target worker .` succeed; `docker run --rm <img> id -u` ≠ 0 | AC-05 |
 | B-22 | `scripts/db/bootstrap.sql`: CI copy of the **approved** 4-role proposal (adds `CREATE DATABASE atlas_db` for empty CI servers); header cites the proposal SHA | P-03, B-12 | `diff` against the proposal shows only the documented CI difference; used successfully by B-23 | AC-07 |
-| B-23 | `.github/workflows/backend-ci.yml` part 1: jobs `static`, `unit`, `integration`. Services `postgres:15` with `scram-sha-256` (FR-39) and `redis:7.4`. Random per-run role passwords (masked) passed to the B-22 bootstrap; `ci_auth` test enabled (`ATLAS_EXPECT_PASSWORD_AUTH=true`) | B-02, B-22, B-15 | PR run: 3 jobs green; integration log shows migration round trip, worker round trip, and `ci_auth` (wrong/missing password rejected) passing | AC-01, AC-07, AC-13 |
-| B-24 | Workflow part 2: jobs `contract` (checkout `atlas-specs` at lock SHA, Mode A, with optional Mode B branch per `ci-access.md`), `security` (pip-audit, secret scan), `images` (build both targets); `CODEOWNERS` | B-23, B-19, B-21 | PR run: all 6 jobs green; `permissions` read-only; no secrets referenced unless `vars.ATLAS_CI_APP_ID` is set | AC-01, AC-03, AC-12 |
+| B-23 | `backend-ci.yml` `integration` job: services `postgres:15` (scram-sha-256, FR-39) and `redis:7.4`; random per-run role passwords (masked) via the B-22 bootstrap; `ci_auth` test (`ATLAS_EXPECT_PASSWORD_AUTH=true`) | B-22, B-15, B-28 | PR run: `integration` green; log shows migration round trip, worker round trip and `ci_auth` passing | AC-01, AC-07, AC-13 |
+| B-24 | `backend-ci.yml` `images` job (build `api` and `worker` targets, no push) and dedicated secret-scanning step | B-23, B-21 | PR run: `images` green; all required backend jobs green | AC-05, AC-12 |
 | B-25 | README "Local development": prerequisites (existing PostgreSQL 15 + Redis, P-03 SQL, uv), env files, every `make` target, smoke journey, shared-service safety rules | B-17, B-19 | A second engineer follows the README on a clean clone up to `make worker-smoke` OK (evidence log) | AC-04 |
 
 **Gate G5:** backend CI fully green; conformance proven (incl. the AC-03 drills); images build; README reproducible. ACs: AC-01, AC-02 (backend), AC-03, AC-05, AC-12, AC-13.
