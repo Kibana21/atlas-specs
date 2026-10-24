@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED** (2026-10-24). CP1 tasks S-01…S-12 complete; contract release `contract-v0.1.0` published. CP2 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gate G1 PASSED**, **Gate G2 PASSED** (2026-10-24). CP1 (S-01…S-12) and CP2 (B-01…B-08, B-27, B-28) complete; CP3 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -125,3 +125,57 @@ Process note: during tagging, a shell variable-expansion error made one pre-tag 
 | E-06 | `breaking` tagged path | **Closed** — verified in CI run 40066596786 |
 | E-07 | While reading CI logs, a helper script's default redirect handling forwarded the existing GitHub OAuth credential (unprinted) to GitHub's Actions log-storage host over HTTPS on three requests, which rejected it (401). Fixed: logs are now fetched via the signed URL without credentials | Disclosed; owner may rotate the credential |
 | E-08 | `main` has no branch protection/ruleset (P-07 pending); merges rely on the documented workflow rules | Risk until P-07 |
+
+---
+
+## 8. Checkpoint 2 — backend foundation (atlas-backend)
+
+**Authorization:** owner, 2026-10-24 — B-01…B-08, read-only diagnostics against the shared services (no active auth probe), backend static/unit/contract/security CI moved into CP2 (spec v0.2.3, amendments A4–A6; PR [atlas-specs#3](https://github.com/Kibana21/atlas-specs/pull/3), merge `74503e9`).
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-backend#1](https://github.com/Kibana21/atlas-backend/pull/1): 11 commits, 66 files, file list equal to the reviewed local diff, mergeable `clean` |
+| Merge commit | **`a040129607068e1e32ba47530f3774dcdba11443`** (merge commit, head-SHA guard) |
+| CI on PR head `3543492` | `static`, `unit`, `contract`, `security`: all success |
+| CI on `main` | [backend-ci run 40068675645](https://github.com/Kibana21/atlas-backend/actions/runs/40068675645): 4/4 success. Logs: Ruff "All checks passed", mypy "no issues found in 53 source files", **106 passed, coverage 95.68 %**, contract "conforms" with the single declared pending operation, pip-audit "No known vulnerabilities found" |
+| Local (clean clone of the committed branch) | `make check` 106 passed, 95.68 %; `make security` clean; `make contract` conforms |
+| Contract conformance | Pinned `contract-v0.1.0` (`bfe4a09`) minus `getHealthReady` (→ B-09). Drills: removed route → `MISSING_OPERATION`; undeclared route → `UNEXPECTED_OPERATION`; bogus pending entry → `PENDING_LIST_INVALID` |
+| `make api` smoke | 127.0.0.1:8100 → `200 {"status":"ok"}`, echoed `X-Correlation-ID`, security headers; `/docs` only in local. Port 8000 is used by another local project (left untouched); `API_PORT` is configurable |
+| `make doctor` (read-only, live) | PG major 15 PASS; Atlas roles, `atlas_test`, schema `atlas` missing → FAIL with P-03 remediation; loopback auth `trust` → WARN (read from `pg_hba_file_rules`, no probe); runtime-role login not attempted; Redis 7.4.9 DBs 10/11 reachable, 0 keys |
+| Shared services after CP2 | PG: 0 Atlas roles, `atlas_db` ACL default, no extra schemas, no `atlas_test`; Redis DB1 = 3 keys (unchanged), DB10/11 = 0 |
+
+### 8.1 Gate G2 evaluation
+
+| G2 criterion | Result |
+|---|---|
+| `make check` green with coverage ≥ 85 % | ✔ 106 tests, 95.68 % (local and CI) |
+| Backend CI `static`/`unit`/`contract`/`security` green on PR and `main` | ✔ |
+| `make contract` exact except the declared pending `getHealthReady` | ✔ incl. drills |
+| Live endpoint: envelope errors and correlation headers | ✔ unit tests + live smoke |
+| Doctor runs read-only against shared services | ✔ allowlist enforced in code and tests; live run changed nothing |
+| AC-08/10/12/13 (backend unit level), AC-07 guards, AC-04 doctor | ✔ |
+
+**Verdict: Gate G2 — PASS.**
+
+### 8.2 CP2 deviations and findings
+
+| ID | Item | Status |
+|---|---|---|
+| E-09 | Dev dependency `httpx` replaced by `httpx2` (Starlette 1.7's test client imports it; declared in `starlette[full]`; same author, `pydantic` org) | Implementation detail; no runtime dependency |
+| E-10 | Unknown routes **and unsupported methods** return 404 `NOT_FOUND` (anti-enumeration) instead of inventing a 405 code outside the append-only catalog | Implementation detail; a `METHOD_NOT_ALLOWED` code would be a future contract change |
+| E-11 | Logging redaction also masks secret-like `key=value` pairs inside text (tracebacks stay useful) | Strengthening of FR-25 |
+| E-12 | Unhandled-error middleware placed inside the correlation/security middleware so 500s keep the request's correlation ID and headers (found by a failing test) | Design detail |
+| E-13 | CI found two defects hidden locally by the untracked working tree (`.env.test.example` ignored by `.env.*`; scanner matching its own source); fixed and verified from a clean clone | Process: clean-clone verification now precedes every push |
+| E-14 | Local port 8000 is occupied by another project; Atlas API port configurable (`make api API_PORT=8100`) | Environment note; frontend base URL must follow (CP6) |
+| E-15 | `pending` operation `getHealthReady` | Must be implemented in B-09 and the list emptied by G5 (B-18) |
+
+### 8.3 E-07 credential rotation — recommended owner procedure (not performed)
+
+The credential is an **OAuth token** (`gho_…`) held by the macOS keychain for git over HTTPS, with scopes `repo`, `workflow`, `read:user`, `user:email`.
+
+1. GitHub → Settings → **Applications → Authorized OAuth Apps**. Identify the app that issued the git credential (typically "Git Credential Manager" or "GitHub CLI"), then **Revoke**. This invalidates its tokens.
+2. Remove the cached entry locally: Keychain Access → search `github.com` → delete the internet password used by git. Equivalent: `printf "protocol=https\nhost=github.com\n\n" | git credential-osxkeychain erase`.
+3. Run `git fetch` in any Atlas repository and complete the browser sign-in that git's helper opens. A new token is stored.
+4. Verify: `git ls-remote origin` works. CI is unaffected (Mode A uses no secrets).
+
+Optionally review GitHub → Settings → **Security log** for unexpected `oauth_access` events.
