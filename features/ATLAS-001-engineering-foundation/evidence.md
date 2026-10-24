@@ -1,6 +1,6 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED** (2026-10-24). CP1 (S-01…S-12), CP2 (B-01…B-08, B-27, B-28) and CP3 (B-09…B-12) complete; CP4 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Status:** **Gate G1 PASSED**, **Gate G2 PASSED**, **Gate G3 PASSED**, **Gate G4 PASSED** (2026-10-24). CP1 (S-01…S-12), CP2 (B-01…B-08, B-27, B-28), CP3 (B-09…B-12) and CP4 (B-13…B-17) complete; CP5 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
 **Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
@@ -18,6 +18,7 @@
 | DEC-084 `pg_hba` hardening | Approved in principle; **not applied** (CP3 authorization excluded `pg_hba.conf` changes) |
 | P-07 rulesets (`ci-access.md` §6) | **Applied 2026-10-24** to `atlas-specs` and `atlas-backend` (§9.4); `atlas-frontend` waits for its CI (CP6/CP7) |
 | G2 / CP3 | G2 accepted and CP3 authorized by the owner (2026-10-24) |
+| G3 / CP4 | G3 accepted and CP4 authorized by the owner (2026-10-24), including completion of `getHealthReady` and emptying the pending list |
 
 ## 2. Branch, commits and CI
 
@@ -270,4 +271,62 @@ Configured with the existing credential (repository admin). No bypass actors. Th
 | E-18 | The CP2 hygiene rule "no `services:` / `localhost:5432` in workflows" is narrowed, not removed. A job may reach `localhost:5432` only if it declares its own digest-pinned scram `postgres:15` service. `localhost:6379` is still forbidden | Strengthened check |
 | E-19 | Clean-clone verification caught a scanner hit (`…:secret@…` in a new unit-test URL). Replaced with the approved placeholder before pushing | Process working as intended (E-13) |
 | E-20 | The CI bootstrap superuser password is a fixed value scoped to the ephemeral, job-local container. The four Atlas role passwords are random per run and masked (FR-39) | Accepted CI detail |
-| E-15 | Updated: `getHealthReady` partly implemented (database). Completes in B-13; list emptied by G5 (B-18) | Open, on plan |
+| E-15 | Updated: `getHealthReady` partly implemented (database). Completes in B-13; list emptied by G5 (B-18) | **Closed in CP4** (§10.4, E-21) |
+
+## 10. Checkpoint 4 — Redis and Taskiq worker foundation (atlas-backend)
+
+**Authorization:** owner, 2026-10-24.
+
+- G3 accepted; CP4 (B-13…B-17) authorized.
+- Also authorized: completing `getHealthReady` and removing it from the pending list once exact conformance is verified.
+- Excluded: outbox, durable jobs, advanced orchestration, CP5, `atlas-frontend`, PostgreSQL changes, DEC-084.
+
+### 10.1 Architecture as built
+
+| Part | Design |
+|---|---|
+| Redis client (`atlas.persistence.redis`) | **Allocation:** `AtlasRedis` is bound to the URL's DB (10 local, 11 test); any other DB is refused before connecting.<br>**Keys and commands:** keys must start with the `atlas:` prefix. Allowed: `PING`, `SET` with TTL, `GET`, `TTL`, exact-key `DEL`, bounded prefix `SCAN`, `DBSIZE`.<br>**Failures:** 1 s timeouts; errors carry no connection details |
+| Broker (`atlas.workers.broker`) | **Queue:** `AtlasListQueueBroker` (taskiq-redis `ListQueueBroker`) on the single queue `<prefix>taskiq:queue`; no result backend.<br>**Registration:** explicit (`configure`).<br>**Listening:** bounded `BRPOP` (1 s, below the 5 s socket timeout); transient Redis errors are logged and retried by the listener, not the task |
+| Middleware | Task allowlist; any `queue_name` override is refused; producer stamps a `correlation_id` label, the worker binds it to logs; one `task_failed` report (exception type only); **no automatic task retries** (DEC-046 → BL-201) |
+| Task | `atlas.diagnostics.ping(marker_id, correlation_id)`. Typed `PingPayload`, validated by the producer and again by the worker. Writes `<prefix>ping:<marker_id>` = correlation ID with a 60 s TTL. Idempotent. Invalid input raises `InvalidTaskPayload` (field names only) |
+| Processes | **Producer** (API, scripts, tests) only enqueues.<br>**Worker:** `make worker` = `taskiq worker atlas.workers.entrypoint:broker --workers 1 --shutdown-timeout 10 --wait-tasks-timeout 10`.<br>**Startup:** configures logging and stdlib redaction, then checks Redis is reachable.<br>**Shutdown:** SIGTERM / Ctrl+C is graceful (exit 0).<br>Only the entry-point module builds a broker at import; building connects nothing and runs nothing |
+| Readiness | `/health/ready`: PostgreSQL and Redis concurrently, 1 s each. 503 `DEPENDENCY_UNAVAILABLE` with `failed_check` (first failing, in order). No host, port, URL or credential in the body |
+
+### 10.2 Results
+
+| Item | Evidence |
+|---|---|
+| Pull request | [atlas-backend#4](https://github.com/Kibana21/atlas-backend/pull/4): 5 commits, 34 files (+1846/−74), file list equal to the reviewed local diff, mergeable `clean`. Merged under the `protect-main` ruleset |
+| Merge commit | **`450eb47b0919e9f75acaeabda3c19b524c51ad96`** |
+| CI on PR head `529030f` and on `main` | [backend-ci run 40076619731](https://github.com/Kibana21/atlas-backend/actions/runs/40076619731): `static`, `unit`, `contract`, `security`, `integration`: **5/5 success** on both |
+| `integration` log (`main`) | Isolated `postgres:15.19` + `redis:7.4.9` services. Bootstrap drift check OK. `0001_baseline (head)`. **35 passed, 0 skipped** (incl. 8 `ci_auth` and the worker round trip). `db 11: 0 keys match 'atlas:test:*'`. Passwords masked |
+| Local (fresh clone) | `make check`: **156 passed, coverage 94.56 %**. `make contract`: `pending: none - full contract compared`, conforms. `make security`: pip-audit clean, 21 tests. `make integration`: **27 passed**, 8 `ci_auth` skipped by design |
+| CI rehearsal | Disposable `postgres:15.19` + `redis:7.4.9` (loopback-only random ports, removed afterwards): 35/35; 0 keys left in DB 10/11 |
+| B-17 smoke (local, DB 10) | `make worker` + `make worker-smoke` twice, after 8 s and 7 s idle: `OK … marker TTL 60 s`. `redis_keys.py --db 10 --pattern 'atlas:local:*'` → 0. DB 1 `dbsize` 3 before and after. Worker log: 0 restarts; graceful `worker_stopped` on SIGTERM |
+| Shared services after CP4 | **PG:** 19 databases; 0 non-Atlas ACL or role-setting changes; Atlas DBs hold only `atlas.alembic_version`; no Atlas sessions.<br>**Redis:** DB 1 = 3 keys (unchanged), DB 10 = 0, DB 11 = 0; uptime ≈ 55 days (no restart); no configuration change, flush or foreign-key access.<br>No Atlas processes left running |
+
+### 10.3 Gate G4 evaluation
+
+| G4 criterion | Result |
+|---|---|
+| Worker round trip proven | ✔ A real worker subprocess consumed the run queue. The marker carried the producer's correlation ID (TTL ≤ 60 s). Local, CI, and the live DB 10 smoke |
+| No keys remain outside expectations | ✔ Exact-key tracker and session guard: no run-prefix keys left. `DBSIZE` of DB 1, DB 10 and DB 11 unchanged in every run. The CI job checks 0 Atlas test keys |
+| No forbidden commands | ✔ `test_redis_safety.py` over `src/`, `tests/`, `scripts/`, with fixture files proving each pattern is detected |
+| Other Redis DBs unchanged | ✔ DB 1 = 3 keys before and after every local run. Its keys are never listed or read |
+| AC-05 (Redis part) | ✔ 200 `{database: ok, redis: ok}`. 503 naming `redis` for a closed port (no host, port or URL in the body) |
+| AC-10 (worker part) | ✔ Correlation ID in `task_enqueued`, `task_started`, `diagnostics_ping`, `task_succeeded` |
+| AC-11 | ✔ DB/prefix isolation, factory rejects DB 1, queue override refused, exact-key cleanup |
+| Contract conformance | ✔ Full `contract-v0.1.0` (pinned `bfe4a09`) with an empty pending list. The re-add drill fails with `UNEXPECTED_OPERATION` |
+
+**Verdict: Gate G4 — PASS.**
+
+### 10.4 CP4 deviations and findings
+
+| ID | Item | Status |
+|---|---|---|
+| E-21 | The B-18 step "empty `contract-pending.yaml`" was done in CP4, as authorized. The remaining B-18 parts (re-add test in CI, drills B-19, response contract tests B-20) stay in CP5. A unit test asserts the list stays empty | Sequencing, owner-authorized |
+| E-22 | **Upstream defect:** taskiq-redis `ListQueueBroker.listen()` blocks in `BRPOP` forever and handles only connection errors. With redis-py 8's default 5 s socket read timeout, an idle worker crashed and was restarted every ~5 s (found in the B-17 smoke). Fixed by `AtlasListQueueBroker` (1 s bounded `BRPOP`, transient errors logged and retried by the listener) | Fixed; unit and integration regression tests |
+| E-23 | **Log leak found and fixed:** taskiq's receiver logs tracebacks through stdlib logging, bypassing structlog redaction. A pydantic validation traceback echoed task arguments. Fixed in two places: stdlib records get the same redaction (`RedactingFilter`), and task payload errors name fields only, with no chained cause | Fixed; tests assert argument values never reach the worker log |
+| E-24 | FR-33's "keys outside the run prefix in DB 11 unchanged" is checked by key **count** (`DBSIZE`), not by listing key names. This follows the CP4 instruction not to scan unrelated keys; DB 1 and DB 10 are guarded the same way | Safer method; equivalent for the test's purposes |
+| E-25 | "Safe retries" means idempotent tasks plus a listener that reconnects after transient Redis errors. Task-level retries/backoff stay deferred (DEC-046 → BL-201); a failed task is reported once and not re-executed | Within approved scope |
+| E-26 | `make worker` runs one worker process (`--workers 1`) to stay within the shared server's footprint; scaling options are later work | Implementation detail |
