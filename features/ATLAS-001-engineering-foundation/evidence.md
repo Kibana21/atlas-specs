@@ -1,7 +1,7 @@
 # ATLAS-001 — Evidence Record
 
-**Status:** Interim — **Gate G1 not complete.** CP1 tasks S-01…S-11 done and verified; S-12 (release tag `contract-v0.1.0`) **awaiting owner approval P-09**. ATLAS-001 **not Accepted**.
-**Baseline:** spec/plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24), CP1 authorized only.
+**Status:** **Gate G1 PASSED** (2026-10-24). CP1 tasks S-01…S-12 complete; contract release `contract-v0.1.0` published. CP2 **not started** (awaiting owner authorization). ATLAS-001 **not Accepted** (G7).
+**Baseline:** spec v0.2.2 (controlled amendment of v0.2.1) with plan/tasks/acceptance v0.2.1 — Approved for Implementation (owner, 2026-10-24); CP1 authorized.
 
 ## 1. Approvals and decisions in force
 
@@ -12,8 +12,9 @@
 | P-03 PostgreSQL four-role SQL | Approved as design; **execution not authorized** |
 | P-05 pinned images / PyPI / local venvs / temporary containers | Confirmed |
 | P-06 / DEC-085 repository visibility | **PUBLIC** (owner decision); CI Mode A |
-| P-08 change workflow | Confirmed — feature branches only; owner opens and merges PRs |
-| P-09 contract release `0.1.0` | **Pending** |
+| P-08 change workflow | Confirmed, then **superseded by the owner's standard workflow (2026-10-24):** Claude creates the feature branch and PR, waits for required checks, reviews the diff, merges when all gates pass, and confirms `main` CI. Never force-push shared branches, bypass protection, or merge failing checks |
+| P-09 contract release `0.1.0` | **Approved conditionally** (owner, 2026-10-24); all conditions verified (§6) → tag created |
+| Amendments A1/A2/A3 (E-01/E-03/E-04) | Approved (A1, A2) / accepted provisionally (A3); spec v0.2.2 |
 | DEC-084 `pg_hba` hardening | Approved in principle; not applied (re-verify before CP3) |
 
 ## 2. Branch, commits and CI
@@ -81,12 +82,36 @@ Before the push, the full branch diff against `main` (2,996 added lines) and all
 | Node.js | not modified (still the pre-existing local version) |
 | Temporary containers | none remaining; only the three digest-pinned validation images are kept |
 
-## 6. Proposed contract release (S-12) — not created
+## 6. Contract release (S-12) — completed
 
-- **Release:** `contract-v0.1.0` (contract `info.version` 0.1.0).
-- **Release commit:** the `main` commit produced when the owner merges this branch. Its SHA is known only after the merge. The content fingerprint to verify is the **git tree hash** of the branch head (recorded in the G1 report); the merged commit must have the identical tree before tagging.
-- **Pre-tag checks (after merge, before tag):** `make check` on the merged `main` commit; specs-ci green on that commit; tree hash equal to the reviewed branch head.
-- **Not done:** no tag created or pushed. Requires explicit P-09 approval.
+| Step | Evidence |
+|---|---|
+| Release candidate | branch `atlas-001/cp1-specs-foundation` head `5a5b555e01d155d68101395abc66a700cda3e234`, tree `97800c469d91ffa72f672e657d0782d4ea71f10c`; specs-ci [run 40066176722](https://github.com/Kibana21/atlas-specs/actions/runs/40066176722) green (6/6) |
+| Pull request | [PR #1](https://github.com/Kibana21/atlas-specs/pull/1) — mergeable `clean`, 14 commits, 71 files (+6116/−819), file list identical to the local diff, no `brd/`/`ux/`/`technical/` files, only removals the two `.gitkeep` placeholders |
+| Merge | merge commit **`bfe4a09e5d7d260afe15576b4fb9fd7530949370`** (parents `ba67ce2`, `5a5b555`), merged by Claude per the owner's workflow with a SHA guard on the head |
+| Tree verification | merged `main` tree = `97800c469d91ffa72f672e657d0782d4ea71f10c` = approved candidate ✔ |
+| `make check` on `bfe4a09` | all 7 gates pass (70 tool tests; 111 contrast pairs; 393 requirements) |
+| `main` CI | [run 40066501022](https://github.com/Kibana21/atlas-specs/actions/runs/40066501022) — 6/6 success; `tools` log: `collected 70 items … 70 passed` |
+| **Release tag** | **`contract-v0.1.0`**: annotated tag object `c70743d9dfa49cea6e68c84e05aa887aa6da0ec8` → commit **`bfe4a09e5d7d260afe15576b4fb9fd7530949370`**; `info.version` 0.1.0; on GitHub (`refs/tags/contract-v0.1.0^{}` = `bfe4a09`). No pre-existing tag; never moved |
+| Release-mode `specs.lock` | in a fresh clone from GitHub: pin `bfe4a09` + `--release` → OK; untagged `5a5b555` + `--release` → `LOCK_NOT_RELEASE`; tag name as pin → `LOCK_TAG_NAME`; wrong version → `LOCK_VERSION_MISMATCH` |
+| Tagged breaking comparison in CI | tag-triggered [run 40066596786](https://github.com/Kibana21/atlas-specs/actions/runs/40066596786) 6/6 success; `breaking` job log: `breaking: comparing against contract-v0.1.0` → `OK: no unacknowledged breaking changes` (the pre-tag `main` run logged the skip notice, confirming the switch) |
+
+Process note: during tagging, a shell variable-expansion error made one pre-tag check (`info.version`) fail to run while the tag was already created **locally**; nothing was pushed. All pre-tag checks were then re-run and passed before the push.
+
+## 6a. Gate G1 evaluation
+
+| G1 criterion (tasks.md) | Result |
+|---|---|
+| `make check` and specs CI green on the tagged SHA | ✔ `make check` on `bfe4a09`; CI runs 40066501022 and 40066596786 green |
+| Conformance self-tests prove missing **and** unexpected operations are detected | ✔ `test_missing_operation_detected`, `test_unexpected_operation_detected`, `test_unexpected_method_on_existing_path_detected` pass locally and in CI |
+| Token contrast check passes | ✔ 111/111 pairs (tightest text 4.50:1, E-04 accepted provisionally; tightest non-text 3.05:1) |
+| Baselines unchanged | ✔ no `brd/`, `ux/`, `technical/` changes in PR #1 |
+| AC-01 (specs part) | ✔ independent `make check` incl. fresh clone without Node; specs-ci green |
+| AC-02 (specs part) | ✔ release tag on an approved `main` commit; release-mode lock validation |
+| AC-03 (specs part) | ✔ 23 conformance cases + 6 schema-consistency cases; breaking job fails unannounced breaking changes (local drill) and compares against the release tag in CI |
+| AC-14 (token values) | ✔ 95 proposed tokens, AR-01…AR-10, reduced motion, light-only |
+
+**Verdict: Gate G1 — PASS.**
 
 ## 7. Deviations and open items for G1
 
@@ -97,4 +122,6 @@ Before the push, the full branch diff against `main` (2,996 added lines) and all
 | E-03 | Relationship colour and sizing tokens added per the owner's CP1 instruction §10 (spec §7.1 did not list them) | **Approved** (owner, 2026-10-24); spec amendment A2 (v0.2.2) |
 | E-04 | `api` text on its own tint passes at exactly 4.50:1 (zero margin) | **Accepted provisionally** (owner, 2026-10-24); recorded under DEC-065 and spec §7.1 (A3); reassess at final palette approval |
 | E-05 | Whitespace-only lint fixes in non-baseline documents (incl. approved ATLAS-001 docs); `git diff -w --ignore-blank-lines` shows only a code-fence language, one heading level and backticks around a literal | Formatting only |
-| E-06 | `breaking` tagged path proven only locally (no release tag exists on GitHub yet) | Re-verified in CI after `contract-v0.1.0` exists |
+| E-06 | `breaking` tagged path | **Closed** — verified in CI run 40066596786 |
+| E-07 | While reading CI logs, a helper script's default redirect handling forwarded the existing GitHub OAuth credential (unprinted) to GitHub's Actions log-storage host over HTTPS on three requests, which rejected it (401). Fixed: logs are now fetched via the signed URL without credentials | Disclosed; owner may rotate the credential |
+| E-08 | `main` has no branch protection/ruleset (P-07 pending); merges rely on the documented workflow rules | Risk until P-07 |
