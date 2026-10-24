@@ -2,27 +2,56 @@
 
 Source of truth for Atlas requirements, UX, technical architecture, ADRs, and **cross-repo contracts**. It holds specifications and portable fixtures only. It must never contain executable backend/frontend source, secrets, real architecture exports, runtime data, or generated build artifacts (tech §17.3).
 
-Independent Git repo (`origin` = github.com/Kibana21/atlas-specs). See `../CLAUDE.md` for the workspace and product invariants.
+Independent Git repo (`origin` = github.com/Kibana21/atlas-specs, **public**). It is the **authority** for the other two repos. This file is self-sufficient. A workspace-level file may exist locally, but it is not versioned.
 
 ## Current contents
 
 ```text
-brd/Atlas_Enterprise_Architecture_BRD_v2_2.md                    # product requirements (1400 lines)
-ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md              # screen/interaction spec
-technical/Atlas_Technical_Architecture_System_Design_v1_1.md     # stack, model, API, repos, phases
-phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md   # readiness assessment + implementation order (proposed)
-phase0/requirement-traceability-matrix.md            # RTM (human-readable)
-phase0/requirements-registry.csv                     # RTM (machine-readable; intended requirement-ID authority)
-phase0/prioritized-backlog.md                        # BL-0xx…BL-5xx ranked backlog
-features/ATLAS-NNN-<slug>/{spec,plan,tasks,acceptance}.md  # work-item specs; ATLAS-001 = engineering foundation (draft)
-adr/README.md                    # empty; ADRs go here
-decisions/decision-register.md   # all decisions: DEC-NNN, Confirmed/Proposed/Open
-decisions/open-decisions.md      # pointer to the register
-contracts/openapi/  contracts/schemas/        # empty (.gitkeep)
-acceptance/scenarios/  acceptance/test-data/  # empty (.gitkeep)
+brd/  ux/  technical/          # BRD v2.2, UX v1.1, Technical v1.1 baselines (never edit silently)
+phase0/                        # blueprint, RTM (.md + requirements-registry.csv), backlog
+features/ATLAS-NNN-<slug>/     # spec, plan, tasks, acceptance, readiness, evidence (+ reviews, proposals)
+decisions/decision-register.md # DEC-NNN: Confirmed / Proposed / Open / Provisional
+decisions/baseline-deviations.md  # TD-DEV-NNN: approved deviations from the baselines
+contracts/                     # conventions.md, style-guide.md, compatibility.md (pinning + release rules)
+contracts/openapi/atlas-api.yaml  # authoritative API (released contract-v0.1.0)
+contracts/schemas/  contracts/examples/  # JSON Schemas + valid/invalid examples
+design/tokens.json  design/tokens.md     # design tokens + contrast pairs (frontend generates from these)
+tools/                         # uv project: specs-lock, conformance, token, registry checkers + tests
+adr/  acceptance/              # ADRs (none yet), acceptance scenarios
+Makefile  .github/workflows/specs-ci.yml
 ```
 
-No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
+ATLAS-001 (engineering foundation) is approved for implementation. Status is in `features/ATLAS-001-engineering-foundation/evidence.md`. It is **not Accepted** until its final gate (G7) passes.
+
+## Commands
+
+`make check` runs everything CI runs: `docs-lint` (markdownlint, container), `contract` (Redocly lint, container), `schemas`, `tools` (pytest), `tokens`, `registry` and `breaking` (oasdiff against the latest `contract-v*` tag). Container images are digest-pinned in `tools/images.lock`, and GitHub Actions are pinned by SHA. Required CI checks: `docs-lint, contract, tools, tokens, registry, breaking`.
+
+## Workflow and approval boundaries
+
+- Claude runs the whole workflow.
+  1. Feature branch per approved task.
+  2. Run `make check` from a fresh clone of the committed branch.
+  3. Push, then open a PR to `main`.
+  4. Wait until every required check reports success.
+  5. Review the diff against the acceptance criteria.
+  6. Merge with a merge commit and a head-SHA guard.
+  7. Confirm `main` CI is green and record evidence.
+- Never force-push, push to `main`, bypass branch protection, or merge failing or missing checks.
+- Owner approval is required for:
+  - material architecture or product changes;
+  - destructive actions or shared-infrastructure changes;
+  - privileged access or credentials;
+  - significant cost or scope changes;
+  - unresolved spec conflicts;
+  - moving to the next checkpoint or gate;
+  - **contract releases**.
+- `contract-vX.Y.Z` tags are created only for an owner-approved release, on the merged `main` commit, with `info.version == X.Y.Z` (`contracts/compatibility.md` §3). Consumers pin a full 40-hex SHA in `specs.lock`.
+- **Public repo:**
+  - Never commit secrets, tokens, credentials, confidential company or customer data, internal infrastructure topology, or local-machine details (home paths, usernames).
+  - Review the staged diff before every push.
+- **Credentials:** never print credentials, and never forward `Authorization` headers to redirected storage or third-party hosts.
+- **Evidence:** never claim checks passed without the actual run, never weaken a check to pass, and record runs in the feature's `evidence.md`.
 
 ## Document authority and how they relate
 
@@ -36,7 +65,15 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 - **Requirement IDs are stable.** Never renumber or reuse an ID. Add new IDs in the existing family style and keep IDs unique across documents (a planned CI check).
 - Bump the document version and add a change-log/revision entry when changing a baseline. Keep the filename version suffix (`_v2_2`, `_v1_1`) in sync. If you rename a file, update `README.md`, the cross-references inside the other documents, and §17.3 of the tech design.
 - Keep "proposed" language. Don't turn a target into a commitment unless the user says it was approved.
-- Never add PR/telemetry scope (see invariants). If asked to, flag that it reopens an explicit exclusion (BRD E20).
+- Never add excluded product scope:
+  - PR impact analysis or GitHub PR integration;
+  - live telemetry or monitoring;
+  - distributed tracing;
+  - live health dashboards;
+  - inferred runtime traffic.
+
+  If asked to, flag that it reopens an explicit exclusion (BRD E20). Ordinary Git PRs for developing Atlas are fine.
+- Never silently modify the BRD, UX or Technical baselines. An approved deviation goes in `decisions/baseline-deviations.md`. A conflict between specs: stop and report it.
 - Use sanitized, synthetic data only in examples and fixtures.
 
 ## ADRs and decisions
@@ -47,11 +84,11 @@ No CI, linters, `atlas-api.yaml`, or `compatibility.md` exist yet.
 - `DEC-` IDs exist because `ADR-01…05` is a BRD *requirement* family and tech §22 uses `ADR-001…014`. Refer to tech backlog epics as `TE01–TE09` (BRD already uses E01–E20).
 - When requirement mappings or decision statuses change, update `phase0/requirements-registry.csv` and the RTM markdown together. Every requirement must map to at least one `BL-` item and every `DEC-`/`BL-` reference must exist.
 
-## Contracts (when created)
+## Contracts
 
-- `contracts/openapi/atlas-api.yaml` is the authoritative reviewed API. Base `/api/v1`, cursor pagination, opaque UUID IDs, and the error envelope `{error:{code,message,correlation_id,details,recoverable}}` (tech §6).
-- JSON Schemas for graph, import/export (architecture-as-code), and connector payloads go under `contracts/schemas/`. Valid/invalid example payloads go next to them.
-- Every contract change states its breaking/non-breaking classification and updates examples and affected acceptance scenarios. Consumers pin a commit SHA in `specs.lock`, so a merge here does not deploy anything.
+- `contracts/openapi/atlas-api.yaml` is the authoritative reviewed API (follow `contracts/conventions.md` and `style-guide.md`). Base `/api/v1`, cursor pagination, opaque UUID IDs, and the error envelope `{error:{code,message,correlation_id,details,recoverable}}` (tech §6).
+- JSON Schemas go under `contracts/schemas/` (`<name>.v<N>.json`). Valid/invalid example payloads go under `contracts/examples/`.
+- Every contract change states its breaking/non-breaking classification (`compatibility.md`), bumps `info.version` (`X.Y.Z-dev.N` between releases), and updates examples and affected acceptance scenarios. A merge here deploys nothing: consumers move only when their `specs.lock` is updated.
 - Acceptance scenarios use Given/When/Then and reference requirement IDs. Golden test data stays small, deterministic, and sanitized. The seeded UX dataset is about 250 entities / 700 relationships (tech §4.4).
 
 ## Known inconsistencies to resolve (do not "fix" silently)
@@ -61,6 +98,6 @@ The full list with severity and resolution path is in the blueprint §3 (CF-01�
 - **Relationship types:** BRD INV-02 lists `CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPENDS_ON, PROTECTS`. Tech §3.3 uses `CONTAINS, SUPPORTS_CAPABILITY, EXPOSES_API, CONSUMES_API, PUBLISHES_TO, SUBSCRIBES_TO, STORES_IN, DEPLOYED_AS, CONNECTS_TO, OWNS, PRODUCES_DATA/CONSUMES_DATA, DECIDED_BY`.
 - **Roles:** BRD GOV-01/E17 (Viewer, Developer, Editor, Domain Owner, Architect Reviewer, Security Reviewer, Connector Operator, Administrator) vs tech §9.1 (Reader, Contributor, Architect, Steward, Reviewer, Security Reviewer, Source Admin, Platform Admin).
 - **Phase numbering:** BRD §12 (phases 0–5), BRD E19 (releases 0–4), UX §14 (R0–R4), and tech §18 (phases 0–4) group features differently. For example, the Rule Engine is tech Phase 3 but BRD Phase 4.
-- **Folder layout vs tech §17.3:** the repo has `contracts/schemas/` (plan: `contracts/jsonschema/` + `contracts/examples/`), `acceptance/scenarios|test-data/` (plan: `journeys|golden-datasets/`), and an extra `decisions/`. `design/tokens.md` doesn't exist yet.
+- **Folder layout vs tech §17.3:** the repo has `contracts/schemas/` (plan: `contracts/jsonschema/` + `contracts/examples/`), `acceptance/scenarios|test-data/` (plan: `journeys|golden-datasets/`), and an extra `decisions/`.
 - **Stale references:** the UX header says "Companion to BRD V2.0". BRD Appendix C cites `Atlas_Bright_UX_Interaction_Requirements_v1.md`. The BRD has two sections numbered 5.23.
-- **Tokens:** UX §2.1 has Compute violet `#8C58D8`, which tech §5.3 omits.
+- **Tokens:** UX §2.1 has Compute violet `#8C58D8`, which tech §5.3 omits (see `design/tokens.md`).
