@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026). D2 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Content unchanged |
-| Register | DEC-037 (Proposed) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: (CP1 of ATLAS-002, 24 Oct 2026). D2 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Content unchanged |
+| Register | DEC-037 (**Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Backend lead; approval: Atlas owner |
 | Related | INV-01, MOD-01 ("existing IDs survive taxonomy upgrades"), MOD-04; tech §3.2; ADR-0001, ADR-0003, ADR-0016 |
 
@@ -59,7 +59,7 @@ Provider-native identifiers (Azure Resource IDs, Kubernetes UIDs, APIM IDs) are 
 - Nothing to migrate: no canonical data exists yet.
 - Changing the ID scheme later would touch every FK, so this is a one-way decision in practice. It is also fully compatible with option B values, which are also UUIDs, should a source ever need v4.
 
-## Requires owner approval
+## Approved by the owner (25 Oct 2026)
 
 1. UUIDv7, native `uuid`, application-generated, immutable, never reused.
 2. Fixtures carry explicit IDs; no name-derived canonical IDs.

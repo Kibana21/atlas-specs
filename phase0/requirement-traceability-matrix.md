@@ -1,6 +1,6 @@
 # Atlas — Requirement Traceability Matrix (Phase 0)
 
-**Status:** Proposed working baseline · **Date:** 24 October 2026 (readiness regenerated 24 Oct 2026 after register v0.6: DEC-050/056/058/070 Proposed) · **Generated from:** `brd/Atlas_Enterprise_Architecture_BRD_v2_2.md`, `ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md`; mapping per `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md` and `phase0/prioritized-backlog.md`.  
+**Status:** Proposed working baseline · **Date:** 24 October 2026 (readiness regenerated 24 Oct 2026 after register v0.6, and again 25 Oct 2026 after register v0.9: ATLAS-002 CP1 decisions Confirmed; no readiness change) · **Generated from:** `brd/Atlas_Enterprise_Architecture_BRD_v2_2.md`, `ux/Atlas_Bright_UX_Interaction_Requirements_v1_1.md`; mapping per `phase0/Atlas_Phase0_Engineering_Blueprint_v0_1.md` and `phase0/prioritized-backlog.md`.  
 **Machine-readable source:** `phase0/requirements-registry.csv` (same rows, full text, extra columns). Edit the CSV and this file together, or regenerate both.
 
 > Engineering phase, backlog mapping, module mapping, readiness and gaps are **blueprint proposals**, not approved scope. Requirement text is quoted from the baselines (truncated here; full text in CSV). UX-OD-01–12 are decisions and live in `decisions/decision-register.md`.

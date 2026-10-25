@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 5:** owner reviews of revisions 1–4 recorded; provider-neutral model added; compatibility and attribution checks passed after small amendments; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed 2026-10-24; accepted by the owner 2026-10-25). **CP1 complete: Gate G1 passed** (owner's final approval of D1–D19, 2026-10-25). CP2–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -87,3 +87,14 @@ CP2 starts only after the owner approves the decisions.
 - **Owner request (written, in the conversation, 25 Oct 2026):** verify that every change set can be attributed (initiator kind, namespaced actor ID, channel, action and affected IDs, server time and revision, reason, initiator vs approver, immutability), with no spoofing, service identities for connectors, stable IDs across renames, later maker-checker, and organization scope.
 - **Result:** gap in `change_set` (untyped `actor`, writer-supplied `created_at`) fixed in ADR-0008 §10 and ADR-0001 (columns, `actor_namespace` reference data, one trigger); everything else maps to the existing model (`decision-matrix.md` §10).
 - **Not done:** no login, RBAC, maker-checker, user management, audit UI, connector, role, migration or product code. Register and baselines unchanged.
+
+### 2.5 Gate G1: CP1 final approval (2026-10-25)
+
+- **Owner approval (written, in the conversation, 25 Oct 2026):** D1–D19 formally approved, including the provider-neutral canonical graph, environment modelling, evidence and trust model, immutable revisions, change-attribution amendments (PR #18) and the DEC-044 amendment to six roles. Authorized: CP1 governance finalization only.
+- **Recorded:**
+  - register v0.9: DEC-021, DEC-025, DEC-031, DEC-037, DEC-050, DEC-056, DEC-058, DEC-070 → Confirmed (A2.1); DEC-044 amended (design only); DEC-004 linked to ADR-0019; DEC-022 and DEC-034 stay Proposed;
+  - ADR-0001, 0003, 0008, 0015, 0016, 0017, 0018, 0019 → Accepted;
+  - `baseline-deviations.md` v0.2: TD-DEV-008 (BRD INV-02 vocabulary) and TD-DEV-009 (tech §3.1/§3.3 vocabulary and types); baselines not edited;
+  - RTM regenerated from the register: **no readiness change** (the Open set is unchanged); header note updated.
+- **Owner guidance for CP2/CP3 (recorded, not implemented):** keep actor namespace/kind integrity with PostgreSQL 15-compatible enforcement; derive attribution from trusted execution context, not payloads; keep database constraints to structural integrity and security; handle flexible architecture rules through domain validation and advisory findings; preserve imperfect source observations without corrupting canonical facts.
+- **Not done:** no CP2 work, migration, role, credential, infrastructure change or product code.

@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 3 (25 Oct 2026): provider-neutral columns and reference tables (ADR-0019); the exact DEC-044 amendment is in `features/ATLAS-002-canonical-graph-foundation/proposals/dec-044-amendment.md`. Revision 1 was 24 Oct 2026 |
-| Register | DEC-021 (Proposed); bounded traversal per DEC-022 (Proposed, benchmark pending); D17 proposes an amendment to DEC-044 (Confirmed: four roles) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 3 (25 Oct 2026): provider-neutral columns and reference tables (ADR-0019); the exact DEC-044 amendment is in `features/ATLAS-002-canonical-graph-foundation/proposals/dec-044-amendment.md`. Revision 1 was 24 Oct 2026 |
+| Register | DEC-021 (**Confirmed** 25 Oct 2026); bounded traversal per DEC-022 (still Proposed, benchmark pending); DEC-044 amended to six roles (**Confirmed** 25 Oct 2026, design only; nothing created) |
 | Owner (proposed) | Architecture + DBA; approval: Atlas owner |
 | Related | INV-01…07, MOD-01, MOD-03, MOD-04, HIST-01/02; tech §3.5, §4; ADR-0003, ADR-0008, ADR-0015…0018 |
 
@@ -191,7 +191,7 @@ No feature from PostgreSQL 16 or later and no extension is required. Fuzzy searc
 - One Alembic migration per checkpoint (CP3), reversible on empty tables, with expand-migrate-contract for later changes.
 - Taxonomy seeds are versioned (ADR-0017).
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. Option A: typed relational graph, identity/version tables, JSONB attributes, PostgreSQL 15 only, **no extensions** and no graph database.
 2. The table set, keys and indexes above as the CP3 baseline (refinable without re-approval if keys, uniqueness and privilege rules stay intact).

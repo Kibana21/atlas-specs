@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. D13 and D14 approved by the owner (25 Oct 2026), to be confirmed with the other rows. Revision 2 aligns it with the revised ADR-0008 and ADR-0017 (assertion validity intervals, allowed evidence per relationship type, `READS_FROM`/`WRITES_TO`); the four dimensions and the conflict procedure are unchanged |
-| Register | DEC-056 (Open → Proposed); informs DEC-066 (Open, P1) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: D13 and D14 approved by the owner (25 Oct 2026), to be confirmed with the other rows. Revision 2 aligns it with the revised ADR-0008 and ADR-0017 (assertion validity intervals, allowed evidence per relationship type, `READS_FROM`/`WRITES_TO`); the four dimensions and the conflict procedure are unchanged |
+| Register | DEC-056 (**Confirmed** 25 Oct 2026); informs DEC-066 (Open, P1) |
 | Owner (proposed) | Enterprise Architecture + UX; approval: Atlas owner |
 | Related | INV-03, INV-04, INV-06, DEP-04, PASS-07, E06, UX-PASS-011, RULE-04; tech §3.4, §7.3; ADR-0003, ADR-0008, ADR-0017 |
 
@@ -163,7 +163,7 @@ ADR-0017 §4.1 lists which evidence kinds each relationship type accepts. An ass
 - New evidence kinds or trust states are a contract MINOR change plus a trust-function version.
 - Stored states are recomputable, so a new function version is applied in one change set.
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. The four dimensions and their exact value lists (no runtime or traffic evidence kind).
 2. Trust state stored per fact version but always recomputable from evidence; no collapse; summaries labeled.

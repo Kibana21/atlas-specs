@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (ATLAS-002 CP1 revision 3, 25 Oct 2026). Not approved; no code depends on it |
-| Register | Implements DEC-004 (Confirmed: "Azure-first … technology-neutral underlying model"); shapes DEC-050, DEC-070 (Proposed) and DEC-025 (Proposed) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: (ATLAS-002 CP1 revision 3, 25 Oct 2026). Not approved; no code depends on it |
+| Register | Implements DEC-004 (Confirmed: "Azure-first … technology-neutral underlying model"); shapes DEC-050, DEC-070 and DEC-025 (all **Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Enterprise Architecture + Cloud Platform; approval: Atlas owner |
 | Related | BRD Document control ("technology-neutral underlying model"), INV-01, INV-05, MOD-01, MOD-04, SDK family; UX §5 ("do not force Azure hierarchy onto on-prem systems"); tech §1, §3.1, §3.2; ADR-0001, ADR-0003, ADR-0008, ADR-0016, ADR-0017, ADR-0018 |
 
@@ -244,7 +244,7 @@ Example: Huawei Cloud, once a pilot needs it.
 - A new provider or namespace is a MINOR taxonomy version plus reference-data seed.
 - Replacing `azure.generic_resource` (revision 2) with `infra.resource` happens before any data exists, so it costs nothing now.
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. Option A: categories, provider-specific types only where needed, eight provider-neutral `infra.*` types, rules by category.
 2. The provider list and that providers are reference data, not entities.

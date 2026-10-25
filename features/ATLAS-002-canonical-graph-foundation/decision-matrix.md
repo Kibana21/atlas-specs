@@ -1,6 +1,6 @@
 # ATLAS-002 CP1 — Decision matrix (for final owner confirmation)
 
-**Version:** revision 5 (attribution check) · **Date:** 25 October 2026 · **Status:** every row is still **Proposed** in the register. The owner reviewed revision 1 (verdicts in §1) and accepted revision 2's direction, then asked for a provider-agnostic review (§2). Register rows move to Confirmed, and the ADRs to Accepted, only when the owner gives final CP1 approval (Gate G1). No canonical-graph code, table, migration, role, privilege or connector exists.
+**Version:** revision 5 (final) · **Date:** 25 October 2026 · **Status:** **Approved.** The owner formally approved D1–D19 on 25 Oct 2026 (CP1 final approval, written in the conversation), including the provider-neutral model, environment modelling, the evidence and trust model, immutable revisions, the change-attribution amendments (PR #18) and the DEC-044 amendment to six roles. Register v0.9: the decisions are Confirmed and ADRs 0001, 0003, 0008 and 0015–0019 Accepted. Gate G1 passed. No canonical-graph code, table, migration, role, privilege or connector exists; CP2 is not yet authorized.
 
 ## 1. Owner reviews
 
@@ -60,29 +60,29 @@ No conflict was found with the UX baseline.
 
 ## 5. Final decision matrix (D1–D18, plus D19)
 
-"Register" is the current status; nothing moves until final approval.
+"Register" is the status after final approval (register v0.9).
 
 | # | Decision (register) | Final recommendation | Owner so far | Changed in rev 3 | Register | ADR |
 |---|---|---|---|---|---|---|
-| D1 | Tenancy (DEC-058) | One database; `org_id` leading every key, composite FKs; one default organization; **every provider's accounts** (Azure tenants, AWS organizations and accounts, GCP organizations and projects, OCI tenancies…) are entities inside an organization, never organization IDs; RLS evaluated in ATLAS-003 | Approved | Wording (all providers) | Proposed | 0016 |
-| D2 | Canonical ID (DEC-037) | UUIDv7, native `uuid`, application-generated, immutable; fixtures carry explicit IDs | Approved | — | Proposed | 0015 |
-| D3 | Matching precedence (DEC-025) | Provider ID → approved alias → organization key, identical for every provider; similarity only creates review candidates; ambiguity → no link plus a case | Approved | Provider-neutral wording | Proposed | 0003 |
-| D4 | External identity (DEC-025) | Original + normalized keys for **every** namespace; provider-qualified namespace registry with embedded uniqueness scopes; case folded only where documented (Azure `arm-1`); identity-change and collision rules generalized | Directionally accepted | **Yes** | Proposed | 0003 |
-| D5 | Merge and split (DEC-025) | Reversible change sets; tombstones keep IDs; bindings closed, never deleted | Approved | — | Proposed | 0003 |
-| D6 | Taxonomy basis (DEC-050) | Tech §3.3 canonical, BRD aliases; deviations C-01/C-02; taxonomy carries providers, categories, namespaces and mappings as versioned reference data | Directionally accepted | **Yes** | Proposed | 0017, 0019 |
-| D7 | v1 types (DEC-050, DEC-070) | 38 types: 12 logical (incl. approved `core.system`, `core.component`), Azure MVP set (16), Kubernetes (2, any provider), 8 provider-neutral `infra.*`; environment scopes; re-typing with kept IDs | `core.system`/`core.component` approved | **Yes** | Proposed | 0017, 0019 |
-| D8 | Data access (DEC-050) | Separate `READS_FROM`, `WRITES_TO`; `STORES_IN` = direction not established | Directionally accepted | Targets by category | Proposed | 0017 |
-| D9 | `DEPENDS_ON` (DEC-050) | Curated only; human or documentation evidence; rationale; paths never converted | Approved | — | Proposed | 0017 |
-| D10 | `PROTECTS` (DEC-050) | Reserved until security-control types exist | Approved | — | Proposed | 0017 |
-| D11 | Containment (DEC-050) | `CONTAINS` hierarchical (one parent, acyclic, families never mixed, physical within one provider); `MEMBER_OF` many-to-many, acyclic by construction | Separation kept by owner | Within-provider rule | Proposed | 0017 |
-| D12 | Unknown input (DEC-050) | Neutral type of the mapped category, else `infra.resource` with stated limits; non-matrix relationships rejected, never stored or downgraded; absence = coverage unknown | Directionally accepted | **Yes** (fallback) | Proposed | 0017 |
-| D13 | Trust model (DEC-056) | Four dimensions; no runtime evidence kind; allowed evidence per relationship type; provider-neutral sources | Approved | Wording | Proposed | 0018 |
-| D14 | Conflicts (DEC-056) | Keep every assertion; prior approved value; `conflicted` + case; resolution closes losing assertions | Approved | — | Proposed | 0018 |
-| D15 | Revision model (DEC-031) | Atomic, commit-ordered publication; immutable versions with set-once close; pointer snapshots with graph hash; endpoint validity; revert as a new change set | Directionally accepted | — | Proposed | 0008 |
-| D16 | Store design (DEC-021) | Typed relational identity + version tables on PostgreSQL 15; provider-neutral reference tables; no extensions; no graph database | Approved | Reference tables, columns | Proposed | 0001 |
-| D17 | Database privileges (DEC-021; **amends DEC-044**) | `atlas_ingest` / `atlas_test_ingest`; `atlas_app` read-only; grant matrix; owner-run bootstrap; rollback | Acceptable in principle | Exact amendment written | Proposed (DEC-044 stays four roles until approved) | 0001; `proposals/dec-044-amendment.md` |
-| D18 | Bulk loading (DEC-021) | Validated `COPY` in one change set, as the ingestion role; Scale A data never on the shared server | Approved | — | Proposed | 0001 |
-| **D19** | **Provider-neutral model (implements DEC-004)** | Categories; provider-specific types only where needed; eight `infra.*` types; provider reference data; per-provider hierarchies; cross-provider rules; onboarding without table changes or a plugin runtime | New in rev 3 | **New** | n/a (DEC-004 Confirmed; annotated) | 0019 |
+| D1 | Tenancy (DEC-058) | One database; `org_id` leading every key, composite FKs; one default organization; **every provider's accounts** (Azure tenants, AWS organizations and accounts, GCP organizations and projects, OCI tenancies…) are entities inside an organization, never organization IDs; RLS evaluated in ATLAS-003 | Approved | Wording (all providers) | Confirmed | 0016 |
+| D2 | Canonical ID (DEC-037) | UUIDv7, native `uuid`, application-generated, immutable; fixtures carry explicit IDs | Approved | — | Confirmed | 0015 |
+| D3 | Matching precedence (DEC-025) | Provider ID → approved alias → organization key, identical for every provider; similarity only creates review candidates; ambiguity → no link plus a case | Approved | Provider-neutral wording | Confirmed | 0003 |
+| D4 | External identity (DEC-025) | Original + normalized keys for **every** namespace; provider-qualified namespace registry with embedded uniqueness scopes; case folded only where documented (Azure `arm-1`); identity-change and collision rules generalized | Directionally accepted | **Yes** | Confirmed | 0003 |
+| D5 | Merge and split (DEC-025) | Reversible change sets; tombstones keep IDs; bindings closed, never deleted | Approved | — | Confirmed | 0003 |
+| D6 | Taxonomy basis (DEC-050) | Tech §3.3 canonical, BRD aliases; deviations C-01/C-02; taxonomy carries providers, categories, namespaces and mappings as versioned reference data | Directionally accepted | **Yes** | Confirmed | 0017, 0019 |
+| D7 | v1 types (DEC-050, DEC-070) | 38 types: 12 logical (incl. approved `core.system`, `core.component`), Azure MVP set (16), Kubernetes (2, any provider), 8 provider-neutral `infra.*`; environment scopes; re-typing with kept IDs | `core.system`/`core.component` approved | **Yes** | Confirmed | 0017, 0019 |
+| D8 | Data access (DEC-050) | Separate `READS_FROM`, `WRITES_TO`; `STORES_IN` = direction not established | Directionally accepted | Targets by category | Confirmed | 0017 |
+| D9 | `DEPENDS_ON` (DEC-050) | Curated only; human or documentation evidence; rationale; paths never converted | Approved | — | Confirmed | 0017 |
+| D10 | `PROTECTS` (DEC-050) | Reserved until security-control types exist | Approved | — | Confirmed | 0017 |
+| D11 | Containment (DEC-050) | `CONTAINS` hierarchical (one parent, acyclic, families never mixed, physical within one provider); `MEMBER_OF` many-to-many, acyclic by construction | Separation kept by owner | Within-provider rule | Confirmed | 0017 |
+| D12 | Unknown input (DEC-050) | Neutral type of the mapped category, else `infra.resource` with stated limits; non-matrix relationships rejected, never stored or downgraded; absence = coverage unknown | Directionally accepted | **Yes** (fallback) | Confirmed | 0017 |
+| D13 | Trust model (DEC-056) | Four dimensions; no runtime evidence kind; allowed evidence per relationship type; provider-neutral sources | Approved | Wording | Confirmed | 0018 |
+| D14 | Conflicts (DEC-056) | Keep every assertion; prior approved value; `conflicted` + case; resolution closes losing assertions | Approved | — | Confirmed | 0018 |
+| D15 | Revision model (DEC-031) | Atomic, commit-ordered publication; immutable versions with set-once close; pointer snapshots with graph hash; endpoint validity; revert as a new change set | Directionally accepted | — | Confirmed | 0008 |
+| D16 | Store design (DEC-021) | Typed relational identity + version tables on PostgreSQL 15; provider-neutral reference tables; no extensions; no graph database | Approved | Reference tables, columns | Confirmed | 0001 |
+| D17 | Database privileges (DEC-021; **amends DEC-044**) | `atlas_ingest` / `atlas_test_ingest`; `atlas_app` read-only; grant matrix; owner-run bootstrap; rollback | Acceptable in principle | Exact amendment written | Confirmed; DEC-044 amended (six roles, design only) | 0001; `proposals/dec-044-amendment.md` |
+| D18 | Bulk loading (DEC-021) | Validated `COPY` in one change set, as the ingestion role; Scale A data never on the shared server | Approved | — | Confirmed | 0001 |
+| **D19** | **Provider-neutral model (implements DEC-004)** | Categories; provider-specific types only where needed; eight `infra.*` types; provider reference data; per-provider hierarchies; cross-provider rules; onboarding without table changes or a plugin runtime | New in rev 3 | **New** | n/a (DEC-004 Confirmed; ADR-0019 Accepted) | 0019 |
 
 ## 6. Remaining architecture trade-offs
 
