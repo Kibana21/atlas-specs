@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: D13 and D14 approved by the owner (25 Oct 2026), to be confirmed with the other rows. Revision 2 aligns it with the revised ADR-0008 and ADR-0017 (assertion validity intervals, allowed evidence per relationship type, `READS_FROM`/`WRITES_TO`); the four dimensions and the conflict procedure are unchanged |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). **Amended at Gate G2 closure** (owner, 25 Oct 2026): IaC is contract evidence (§1); `discovered` is claim-specific (§2); unresolved required values (conflict procedure). Drafting history: D13 and D14 approved by the owner (25 Oct 2026), to be confirmed with the other rows. Revision 2 aligns it with the revised ADR-0008 and ADR-0017 (assertion validity intervals, allowed evidence per relationship type, `READS_FROM`/`WRITES_TO`); the four dimensions and the conflict procedure are unchanged |
 | Register | DEC-056 (**Confirmed** 25 Oct 2026); informs DEC-066 (Open, P1) |
 | Owner (proposed) | Enterprise Architecture + UX; approval: Atlas owner |
 | Related | INV-03, INV-04, INV-06, DEP-04, PASS-07, E06, UX-PASS-011, RULE-04; tech §3.4, §7.3; ADR-0003, ADR-0008, ADR-0017 |
@@ -46,13 +46,14 @@ Each fact has **zero or more evidence assertions**. Zero assertions means there 
 
 | `evidence_kind` | Meaning | DEP-04 term |
 |---|---|---|
-| `provider_configuration` | Read from **any** provider's or platform's configuration or control plane (Azure, AWS, Google Cloud, OCI, …; a private-cloud platform; an on-premises CMDB or IaC state) by an approved source | configuration-derived |
-| `contract` | Derived from a machine-readable artifact (OpenAPI, AsyncAPI, IaC manifest) | contract-derived |
+| `provider_configuration` | Read from **any** provider's or platform's configuration or control plane (Azure, AWS, Google Cloud, OCI, …; a private-cloud platform; an on-premises CMDB) by an approved source. Infrastructure-as-code is **not** this kind (see `contract`) | configuration-derived |
+| `contract` | Derived from a machine-readable artifact: OpenAPI, AsyncAPI, and infrastructure-as-code templates, plans and state files (declared evidence) | contract-derived |
 | `documentation` | Documented architecture: documents, diagrams, imported drawings, ADRs | (documented) |
 | `human_assertion` | Stated by an identified person (steward, owner) through Atlas or a reviewed import | manually verified, once verified (dimension 3) |
 | `inferred` | Derived by a deterministic, versioned rule from other facts; records rule ID and version and the input fact IDs | inferred |
 
 - **There is deliberately no "observed traffic" or "runtime" kind.** Telemetry, traces and traffic analysis are excluded scope (BRD E20).
+- **Infrastructure-as-code** (amended at G2 closure). Templates, plans and state files are `contract` (declared) evidence, never observed live configuration. Their original subtype and source metadata are preserved unchanged in the assertion's evidence: `method` (for example `import:iac-template:v1`, `import:iac-plan:v1`, `import:iac-state:v1`), `source_ref` and `artifact_ref`. IaC evidence alone never proves a live deployment and never supports verifying a physical fact. Live provider discovery (`provider_configuration`) supports observed facts where it applies to the specific claim (`contracts/trust-function.md`, TF-A).
 - `documentation` and `contract` describe *intended* architecture. The UI legend and exports must say "documented" or "from contract", never "observed" or "live".
 - **Each assertion records:**
   - `source_ref` (source system or connector, or the actor for human assertions);
@@ -71,7 +72,7 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 
 | Result | When |
 |---|---|
-| `discovered` | Current `provider_configuration` evidence, no conflict |
+| `discovered` | Current `provider_configuration` evidence **applicable to the claim**, no conflict. Provider configuration never establishes a logical or business fact on its own: a logical entity, or a relationship between logical entities such as ownership, logical membership or business responsibility (amended at G2 closure; `contracts/trust-function.md` TF-A) |
 | `documented` | Only `documentation` or `contract` evidence |
 | `curated` | Accepted by a steward (`human_assertion` with approval) |
 | `inferred` | Only `inferred` evidence. Never upgrades itself: promotion needs a human assertion |
@@ -118,7 +119,7 @@ ADR-0017 §4.1 lists which evidence kinds each relationship type accepts. An ass
 1. **Stored:** every competing assertion is kept with its value and evidence.
 2. **Selected value:**
    - precedence rules (DEC-034) may pick one;
-   - when they can't, the fact's selected value stays the **prior approved value**, or none if there was none;
+   - when they can't, the fact's selected value stays the **prior approved value**, or none if there was none. A **required** field with no prior approved value is **unresolved**: it is absent from the stored attributes, both source values and their evidence are kept as assertions, and the fact is `conflicted`. The required-field rule treats an unresolved field as unresolved, not missing. No source is chosen and no value is invented (amended at G2 closure);
    - the fact becomes `conflicted` and a `reconciliation_case` is opened.
 3. **Surfaced:** APIs return the trust state and, to authorized callers, the competing assertions. The UI shows a distinct conflicted marker (icon plus text).
 4. **Resolved:**

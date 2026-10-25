@@ -381,9 +381,9 @@ class Claim:
 
     def applicable_kinds(self) -> frozenset[str]:
         """TF-A: evidence kinds that can establish this claim's existence."""
-        if self.fact_kind == "relationship":
-            return frozenset(self.allowed_kinds or ())
-        return EVIDENCE_KINDS if self.physical else EVIDENCE_KINDS - {"provider_configuration"}
+        kinds = frozenset(self.allowed_kinds or ()) if self.fact_kind == "relationship" else EVIDENCE_KINDS
+        # provider configuration never establishes a logical or business fact on its own (G2 closure decision 2)
+        return kinds if self.physical else kinds - {"provider_configuration"}
 
 
 def _ts(value: str) -> float:

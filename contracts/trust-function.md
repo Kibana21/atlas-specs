@@ -1,6 +1,6 @@
 # Trust function v1 (`trust-1`)
 
-**Status:** Proposed for CP3. It implements owner decision U-3 (Gate G2, 25 Oct 2026). The exact rules are confirmed when CP3 is authorized. **Reference:** `tools/canonical_model.py` (`trust_v1`). **Truth table:** `acceptance/test-data/trust-function-v1/cases.json` (30 cases). **Built on:** ADR-0018 (dimensions 2 and 3, the conflict procedure) and the taxonomy's allowed evidence kinds (ADR-0017 §4.1, taxonomy 1.1.0).
+**Status:** **Approved for CP3** (owner, G2 closure, 25 Oct 2026). It implements owner decision U-3 and the G2-closure decisions below. **Reference:** `tools/canonical_model.py` (`trust_v1`). **Truth table:** `acceptance/test-data/trust-function-v1/cases.json` (36 cases). **Built on:** ADR-0018 (dimensions 2 and 3, the conflict procedure) and the taxonomy's allowed evidence kinds (ADR-0017 §4.1, taxonomy 1.1.0).
 
 The function is pure and deterministic. It is never decided by an LLM (invariant 7). Its inputs are:
 
@@ -37,7 +37,7 @@ The function is pure and deterministic. It is never decided by an LLM (invariant
 | Claim | Physical? | Applicable evidence kinds (TF-A) |
 |---|---|---|
 | Entity | Physical iff its type is physical | Physical: all five kinds. Logical: all except `provider_configuration`: a logical application, service or capability is never "discovered" from provider configuration, names or tags |
-| Relationship | Physical iff at least one endpoint is physical | Exactly the taxonomy's `allowed_evidence_kinds` for the type. In 1.1.0 no active type accepts `inferred` |
+| Relationship | Physical iff at least one endpoint is physical | The taxonomy's `allowed_evidence_kinds` for the type, minus `provider_configuration` when both endpoints are logical. In 1.1.0 no active type accepts `inferred` |
 
 An assertion of a kind that is not applicable is kept, but it never establishes the fact.
 
@@ -90,9 +90,10 @@ Consequences:
 - **Time-driven changes:** verification expiry and evidence ageing are written by a recompute change set (system actor). Its schedule depends on DEC-072. Until it runs, a read must never present an expired verification as verified (ATLAS-003).
 - **Function changes:** a new function version is applied in one change set (ADR-0018).
 
-## Pending owner decisions identified while writing this
+## Owner decisions at G2 closure (25 Oct 2026)
 
-| # | Conflict | Effect now | Minimum correction proposed |
+| # | Point | Decision | Applied |
 |---|---|---|---|
-| C-1 | ADR-0018 §1 lists "IaC state" under `provider_configuration`. U-1 says IaC must not automatically prove live deployment. With the ADR as written, IaC state would make a deployment `discovered` and able to support verification | None: no fixture fact uses IaC state, and nothing is built yet | Classify every IaC artifact (manifest, plan, state) as `contract` in ADR-0018 §1. Owner approval needed: it changes an Accepted ADR |
-| C-2 | ADR-0018 §2 says `discovered` = "current `provider_configuration` evidence", for any claim. TF-A narrows this: provider configuration is not applicable to logical entities | None: no fixture fact is affected | Owner confirmation of TF-A as the claim-aware reading of ADR-0018 §2 |
+| C-1 | IaC state was listed under `provider_configuration` in ADR-0018 §1 | Approved: templates, plans and state files are `contract` (declared) evidence. Their subtype and source metadata are preserved in `method`, `source_ref` and `artifact_ref`. IaC alone never proves live deployment or supports verifying a physical fact | ADR-0018 §1 amended; TC-04, TC-05, TC-34 |
+| C-2 | `discovered` for any claim with provider configuration | Approved: evidence authority is claim-specific. Provider configuration never establishes a logical or business fact (ownership, logical membership, business responsibility) on its own | ADR-0018 §2 amended; TF-A now also excludes provider configuration from relationships between logical entities (previously only logical entities). Cases TC-09, TC-31, TC-32, TC-35, TC-36 |
+| I-6 | A required field whose sources disagree, with no prior approved value | Approved: keep both values and their evidence and choose no winner. The fact is `conflicted` and the field is **unresolved**, using the approved representation (ADR-0018: selected value none, so it is absent from the stored attributes). The required-field rule (D-01) accepts an unresolved field and rejects one that is simply missing | ADR-0018 conflict procedure amended; D-01; mutation `m_unresolved_without_conflict` |

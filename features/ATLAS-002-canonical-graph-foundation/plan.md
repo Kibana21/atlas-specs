@@ -29,4 +29,4 @@
 | Behaviour drift between the reference model and the backend | Backend tests assert the same expected as-of hashes, plans and findings as the fixture |
 | Per-organization write lock limits throughput | Benchmark in CP4; batching |
 | Local `trust` authentication (DEC-084) | Ingestion-role separation is enforced in CI; locally it prevents mistakes only |
-| Open items U-1…U-7 | Decided by the owner at G2 (`spec.md` §7). C-1, C-2 and I-6 await owner confirmation before A2-T24 |
+| Open items U-1…U-7 | Decided by the owner at G2 (`spec.md` §7). C-1, C-2 and I-6 approved at G2 closure |

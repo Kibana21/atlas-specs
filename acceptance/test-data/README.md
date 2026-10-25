@@ -85,7 +85,7 @@ Entity and relationship counts are unchanged. A few synthetic IDs differ from 1.
 
 ## `trust-function-v1/cases.json`: trust function truth table (ATLAS-002 G2)
 
-30 synthetic cases for trust function v1 (`contracts/trust-function.md`). Each case gives:
+36 synthetic cases for trust function v1 (`contracts/trust-function.md`). Each case gives:
 
 - the claim;
 - the current assertions;
@@ -104,6 +104,7 @@ Each case also gives the expected trust state, the deciding rule, the verificati
 - verification: expired, by a service actor, unsupported, later than the evaluation;
 - freshness: expired, and unassessed when no policy exists;
 - inferred evidence, ended validity, drafts;
-- refusal of precedence rules.
+- refusal of precedence rules;
+- the G2-closure decisions: IaC state is declared evidence; provider configuration never establishes logical membership, ownership or logical consumption on its own.
 
 The reference implementation passes every case (`tools/tests/test_canonical.py`). CP3's backend trust function must pass the same file.

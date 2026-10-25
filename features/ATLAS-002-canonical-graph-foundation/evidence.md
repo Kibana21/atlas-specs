@@ -190,3 +190,38 @@ Identified for the owner, not applied:
 | Trust function | 30 / 30 truth-table cases; every stored trust state equals the function at every revision |
 | Negative tests | 28 fixture mutations (6 new: stale recorded as documented, declared recorded as observed, logical entity from provider configuration only → D-12; verification on declared evidence only, verification by a service → D-19; a conflicting value stored → D-20) |
 | `make tools` | 169 passed (129 + 40 new) |
+
+## 5. Gate G2 closure (2026-10-25)
+
+**Owner decision (written, in the conversation, 25 Oct 2026):**
+
+- G2 closure approved, subject to recording three decisions:
+  1. IaC is contract (declared) evidence;
+  2. provider configuration never establishes logical or business facts on its own;
+  3. conflicting required values stay unresolved, with no winner chosen;
+- CP3 authorized up to the owner-controlled gate G3-R.
+
+### 5.1 PR #21 CI evidence
+
+| Item | Value |
+|---|---|
+| PR | atlas-specs #21, merged with a merge commit at `2b546892e12da927482a1442df6171400fbeb37f` |
+| PR head | `6ee5895603d8aa7d279f273618328e9e0321f955`: run [40173779787](https://github.com/Kibana21/atlas-specs/actions/runs/40173779787). All six required checks **success** |
+| Merge commit | `main` run [40173850480](https://github.com/Kibana21/atlas-specs/actions/runs/40173850480). All six **success**. `tools` log: `169 passed`; `canonical: 50 schema examples checked; HARD 0, DOMAIN 0, ADVISORY 45`; `fixture regenerates byte-identically` |
+
+### 5.2 Decisions recorded
+
+| Decision | Change |
+|---|---|
+| 1 (C-1) | ADR-0018 §1: IaC templates, plans and state files are `contract`. Subtype and source metadata are preserved in `method`, `source_ref` and `artifact_ref`. IaC never proves live deployment or supports verifying a physical fact |
+| 2 (C-2) | ADR-0018 §2: `discovered` is claim-specific. TF-A excludes provider configuration from logical entities and from relationships between logical entities. This closes a gap found while recording: `MEMBER_OF` accepts provider configuration in the taxonomy, so a logical membership backed only by a tag would otherwise have been `discovered` |
+| 3 (I-6) | ADR-0018 conflict procedure: an unresolved required field is absent from the stored attributes, both assertions are kept and the fact is `conflicted`. D-01 accepts an unresolved field and rejects a missing one |
+
+The trust function and truth table are approved for CP3: 36 cases, of which 6 (TC-31…TC-36) are new for decisions 1 and 2. No other Accepted ADR changed. The fixture is unchanged: no fixture fact relied on the closed gap.
+
+### 5.3 Results
+
+| Check | Result |
+|---|---|
+| `make tools` | 176 passed (169 + 6 truth-table cases + 1 mutation: an unresolved field without a conflict → D-01) |
+| Canonical | HARD 0, DOMAIN 0, ADVISORY 45; byte-identical regeneration |
