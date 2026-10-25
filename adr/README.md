@@ -21,4 +21,4 @@ ADRs live here as `ADR-NNNN-kebab-title.md`. Each one has a **Status** (Proposed
 | [ADR-0017](ADR-0017-taxonomy-and-relationship-vocabulary.md) | Canonical taxonomy and relationship vocabulary v1 | — | DEC-050, DEC-070 | Proposed |
 | [ADR-0018](ADR-0018-fact-provenance-trust-and-evidence.md) | Fact-level provenance, trust and evidence | — | DEC-056 | Proposed |
 
-Proposed ADRs were drafted for ATLAS-002 CP1. See `features/ATLAS-002-canonical-graph-foundation/decision-matrix.md` for the exact choices awaiting approval.
+Proposed ADRs were drafted for ATLAS-002 CP1 (revision 2 after the owner's review on 25 Oct 2026). See `features/ATLAS-002-canonical-graph-foundation/decision-matrix.md` for the exact choices awaiting approval.

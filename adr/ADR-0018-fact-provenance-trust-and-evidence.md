@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026) |
+| Status | **Proposed**. D13 and D14 approved by the owner (25 Oct 2026), to be confirmed with the other rows. Revision 2 aligns it with the revised ADR-0008 and ADR-0017 (assertion validity intervals, allowed evidence per relationship type, `READS_FROM`/`WRITES_TO`); the four dimensions and the conflict procedure are unchanged |
 | Register | DEC-056 (Open → Proposed); informs DEC-066 (Open, P1) |
 | Owner (proposed) | Enterprise Architecture + UX; approval: Atlas owner |
 | Related | INV-03, INV-04, INV-06, DEP-04, PASS-07, E06, UX-PASS-011, RULE-04; tech §3.4, §7.3; ADR-0003, ADR-0008, ADR-0017 |
@@ -34,7 +34,9 @@ The UX shows a "Verified" badge that is not a tech trust state. INV-03 requires 
 | Entity existence | "APIM instance X exists in subscription S" |
 | Attribute value (`field_path`) | "X.location = westeurope"; "app A.owner = team T" (as `OWNS`) |
 | Relationship existence | "service B `CONSUMES_API` api C" |
-| Relationship attribute | "B `STORES_IN` D, access_mode = write" |
+| Relationship attribute | "W `CONNECTS_TO` K, connectivity_kind = private_endpoint" |
+
+"Service B reads database D" and "service B writes database D" are **two** facts (`READS_FROM`, `WRITES_TO`), each with its own assertions, trust state, verification and history (ADR-0017 §5).
 
 Each fact has **zero or more evidence assertions**. Zero assertions means there is no fact: the information is *unknown*, not false.
 
@@ -96,6 +98,13 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 - This is how *unknown* is represented: as coverage, **never** as a drawn edge or an invented value (DEC-066, RULE-04 → `UNKNOWN`).
 - It maps PASS-07: unknown → `unknown_coverage`; missing → `not_documented`; verified → dimension 3; stale → dimension 2.
 
+## Allowed evidence per relationship type
+
+ADR-0017 §4.1 lists which evidence kinds each relationship type accepts. An assertion with a kind that is not allowed is rejected, in the service layer and by a database check on `fact_assertion`. In particular:
+
+- `DEPENDS_ON` accepts only `human_assertion` and `documentation`. A traversal result is never stored as a dependency, and its trust state can never be `discovered` (ADR-0017 §4.3).
+- `CONNECTS_TO` never accepts `inferred`.
+
 ## Conflicts: stored, surfaced, resolved (never collapsed)
 
 1. **Stored:** every competing assertion is kept with its value and evidence.
@@ -106,7 +115,7 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 3. **Surfaced:** APIs return the trust state and, to authorized callers, the competing assertions. The UI shows a distinct conflicted marker (icon plus text).
 4. **Resolved:**
    - a steward decision is a new `human_assertion` in a new change set (ADR-0008);
-   - the losing assertions stay, marked `superseded_by_decision`, and remain visible in history.
+   - the losing assertions are closed (`revision_to`) by that change set, which records the decision. Their rows and evidence are unchanged and remain visible in history (ADR-0008).
 5. **Existence conflicts** (one source sees it, another reports deletion):
    - "not seen" is not removal (INV-06);
    - a tombstone needs explicit provider deletion evidence or a steward decision;
@@ -129,10 +138,10 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 ## Impact on the database schema
 
 - `evidence`: append-only.
-- `fact_assertion`: links a fact (entity, relationship, attribute path) to evidence, with the asserted value.
+- `fact_assertion`: links a fact (entity, relationship, attribute path) to evidence, with the asserted value, the evidence kind and a validity interval `[revision_from, revision_to)`.
 - Per-version columns: `trust_state`, `verification_state`, `verified_by/at`, `expires_at`.
 - `completeness` derived per type rules, not stored as facts.
-- No UPDATE or DELETE on evidence rows.
+- No UPDATE or DELETE on evidence rows; assertions only get their `revision_to` set once.
 - See ADR-0001.
 
 ## Impact on APIs and authorization (future)
@@ -146,7 +155,7 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 - New evidence kinds or trust states are a contract MINOR change plus a trust-function version.
 - Stored states are recomputable, so a new function version is applied in one change set.
 
-## Requires owner approval
+## Requires owner confirmation
 
 1. The four dimensions and their exact value lists (no runtime or traffic evidence kind).
 2. Trust state stored per fact version but always recomputable from evidence; no collapse; summaries labeled.

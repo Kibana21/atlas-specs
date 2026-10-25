@@ -1,6 +1,6 @@
 # ATLAS-002 — Canonical Graph Foundation: Scope
 
-**Version:** 0.1 · **Date:** 24 October 2026 · **Status:** **Approved in principle** by the owner (24 Oct 2026). CP0 authorized and complete. CP1 authorized for **decision drafting only**. CP2–CP5 **not authorized**: the foundational decisions need owner approval first. ATLAS-002 is not Accepted until its final gate.
+**Version:** 0.1 · **Date:** 24 October 2026 · **Status:** **Approved in principle** by the owner (24 Oct 2026). CP0 authorized and complete. CP1 authorized for **decision drafting only**; the owner reviewed revision 1 on 25 Oct 2026 and revision 2 awaits confirmation. CP2–CP5 **not authorized**: the foundational decisions need owner approval first. ATLAS-002 is not Accepted until its final gate.
 
 ## Goal
 
@@ -25,7 +25,7 @@ A canonical, evidence-backed graph store that every later feature reads from. It
 | CP | Repository | Content | Gate | State |
 |---|---|---|---|---|
 | CP0 | backend + frontend | Fix A001-DEF-01 (E-48) with a regression test; move frontend `e2e/backend.ref` | G0: defect closed, CI green, E2E green | **Done** (`evidence.md` §1) |
-| CP1 | specs | Decision proposals as ADRs (Proposed), register rows set to Proposed, decision matrix | G1: owner approves the decisions; register rows become Confirmed | **Drafted, awaiting approval** |
+| CP1 | specs | Decision proposals as ADRs (Proposed), register rows set to Proposed, decision matrix | G1: owner approves the decisions; register rows become Confirmed | **Revision 2 (25 Oct 2026), awaiting owner confirmation** (`decision-matrix.md`) |
 | CP2 | specs | Taxonomy artifact, schemas, examples, golden fixture, validator; spec/plan/tasks/acceptance for CP3–CP5 | G2: CI validates schemas and fixture; owner approves the plan | Not authorized |
 | CP3 | backend | Migration `0002` per ADR-0001; taxonomy validation; privilege tests | G3: migrations round-trip; privileges; matrix rejects invalid input | Not authorized |
 | CP4 | backend | Deterministic fixture loader; integrity suite; pilot-size benchmark | G4: idempotent load with an equal graph hash; integrity green; benchmark recorded | Not authorized |

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026) |
+| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review: D3 and D5 approved, D4 approved with clarification (original and normalized keys, normalization, case, identity changes, collisions); revision 1 was 24 Oct 2026 |
 | Register | DEC-025 (Proposed); field-authority principles of DEC-034 (Proposed) |
 | Owner (proposed) | Data/Platform lead + Enterprise Architecture; approval: Atlas owner |
 | Related | INV-01, INV-04, INV-06, MOD-04; tech §3.2, §7.3 (ADR-003, ADR-012 in tech §22); ADR-0015, ADR-0016, ADR-0018 |
@@ -21,10 +21,11 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 ## Model
 
 1. **Canonical entity:** Atlas ID (UUIDv7, ADR-0015). It owns no provider key.
-2. **External identity:** `(org_id, namespace, normalized_key) → entity_id`, unique per organization. Each identity has:
+2. **External identity:** `(org_id, namespace, normalized_key) → entity_id`, unique per organization among current bindings. Each identity has:
+   - `original_key`: the identifier **exactly as the provider or source supplied it** (case, encoding and spelling preserved), for display, copying (DEV-05) and audit;
+   - `normalized_key`: the canonical comparison form, derived from `original_key` by the namespace's rule and its `normalization_version`;
    - a `match_method`: `provider_id`, `approved_alias`, `org_key` or `steward`;
-   - a `status`: `active`, `superseded` or `retired`;
-   - the change set that created it (ADR-0008).
+   - a validity interval `[revision_from, revision_to)` (ADR-0008). "Active" means `revision_to IS NULL`; a superseded or retired binding is a closed interval plus the reason recorded in its change set. Rows are never edited or deleted.
 3. **Alias:** a human-meaningful name for an entity, scoped by `(type_key, environment_id or none)` with status `proposed`, `approved` or `retired`. Only **approved** aliases resolve. A display name is *never* an alias automatically.
 4. **Organization key:** an organization-controlled key for manually modeled things (for example an application code `APP-0042`), stored as `namespace = org.key`.
 
@@ -32,23 +33,69 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 
 | Namespace | Key | Normalization |
 |---|---|---|
-| `azure.arm` | Azure Resource ID (`/subscriptions/{sub}/resourceGroups/{rg}/providers/{ns}/{type}/{name}[/…]`) | Trim; lowercase (ARM IDs are case-insensitive); collapse duplicate `/`; no trailing `/`; must start with `/subscriptions/` or `/providers/` |
+| `azure.arm` | Azure Resource ID (`/subscriptions/{sub}/resourceGroups/{rg}/providers/{ns}/{type}/{name}[/…]`) | See "Azure Resource IDs" below: validate, then lowercase; malformed IDs are rejected, never repaired |
 | `azure.tenant_id` | Entra tenant GUID | Lowercase canonical GUID |
 | `azure.subscription_id` | Subscription GUID | Lowercase canonical GUID (also embedded in ARM IDs) |
 | `k8s.uid` | `{cluster ARM ID}#{metadata.uid}` | ARM part as above; UID lowercase |
 | `apim.api` | `{APIM service ARM ID}#api:{apiId};rev={revision}` | ARM part as above |
-| `apim.operation` | `{apim.api key}#op:{operationId}` | As above |
+| `apim.operation` | `{apim.api key}#op:{operationId}` | **Reserved**: no v1 type uses it (ADR-0017 G-T3) |
 | `org.key` | Organization key | Trim, case-preserving, compared case-insensitively |
 | `source.<connector>` | A source-native stable key without a better namespace | Per connector (Phase 2) |
 
-**Azure Resource IDs are the preferred external identity for Azure resources** where available. They are exact, provider-issued and present in every ARM-based API. Limits we design for:
+## Azure Resource IDs (D4, revised)
 
-- **Moves and renames change the ARM ID:** resource group or subscription moves, and renames for some types.
-  - A *new* ARM ID never silently re-points an existing entity.
-  - If an independent stable key matches (for example `k8s.uid`, or a recorded provider GUID such as `resourceGuid` where the type exposes one), the move is linked automatically and recorded as a `superseded` identity.
-  - Otherwise it becomes a **match candidate** for a steward.
-- **Delete-and-recreate with the same ARM ID:** treated as the same entity unless a recorded stable secondary key differs. In that case it is a conflict case, not a merge.
-- **Tenant scope:** ARM IDs contain the subscription. The subscription's tenant is a modeled relationship (`azure.tenant` CONTAINS `azure.subscription`), not part of the key.
+**Azure Resource IDs are the preferred external identity for Azure resources** where available. They are exact, provider-issued and present in every ARM-based API.
+
+### Both forms are stored
+
+| Column | Content | Used for |
+|---|---|---|
+| `original_key` | The ARM ID exactly as received from the source (first sighting for this binding) | Display, copy-to-clipboard, links back to the provider, audit |
+| `normalized_key` | The canonical form below | Uniqueness, lookup, matching |
+| `normalization_version` | Version of the rule that produced `normalized_key` (starts at `arm-1`) | Re-normalization migrations |
+| `key_parts` | Parsed, normalized parts: `subscription_id`, `resource_group`, `provider_namespace`, `type_path` (for example `servers/databases`), `name_path` | Type-compatibility checks, containment evidence (ADR-0017 §3.1) |
+
+Later sightings with different casing or spelling of the **same** normalized key do not change `original_key`. They are recorded on their evidence rows (`artifact_ref`), so every variant is auditable.
+
+### Normalization rule `arm-1`
+
+1. **Validate first; reject, never repair.** The input must:
+   - start with `/subscriptions/{guid}`, or `/providers/` for tenant-level resources (for example management groups);
+   - have no empty segments (`//`), no query string or fragment, no whitespace inside, and no `.` or `..` segments;
+   - after `/providers/{namespace}`, alternate type and name segments (an even count);
+   - be at most 2 048 characters.
+
+   A malformed ID is rejected with a reason and reported. It is not cleaned up, because "repairing" an ID can turn it into another resource's ID.
+2. **Trim** surrounding whitespace and remove **one** trailing `/`.
+3. **Case:** lowercase the whole ID with Unicode-aware simple case folding. Azure Resource Manager treats resource IDs as case-insensitive, and sources really do return mixed casing for the same resource (for example `resourceGroups` vs `resourcegroups`).
+4. **GUID segments** (subscription) in lowercase canonical 8-4-4-4-12 form.
+5. **Percent-encoding:** kept exactly as received; never decoded. Two IDs that differ only in encoding are therefore different keys. If that happens for one resource, a steward links them (an exceptional case, reported).
+6. The `azure_type` system attribute (ADR-0017) is `provider_namespace/type_path`, also lowercase.
+
+Changing any of these steps is a new `normalization_version` with a re-normalization migration in one change set and a collision report, reviewed like a breaking change.
+
+### Identity changes
+
+| Event | Effect on the ARM ID | Behaviour |
+|---|---|---|
+| Casing differs between sources | None after normalization | Same entity; variants kept on evidence |
+| Tag, SKU or setting change | None | Same entity; a new version only if a modeled attribute changed |
+| Subscription moved to another Azure tenant | None (the tenant is not in the ID) | Same entity; its `CONTAINS` from the old tenant closes and one from the new tenant opens |
+| Resource moved to another resource group or subscription, or renamed (where the type allows) | **New ARM ID** | A new ID never silently re-points an existing entity. If an **independent stable key** matches (for example `k8s.uid`, or a recorded provider GUID such as `resourceGuid` where the type exposes one), the move is linked automatically: the old binding closes, the new one opens, both in one change set with the old ID kept in history. Otherwise: a `match_candidate` for a steward; until decided, the new ID is an unattached observation, and the old entity goes `stale` after the source's grace policy (never removed by absence, INV-06) |
+| Deleted and recreated with the same ARM ID | Same ID | Same entity, **unless** a recorded stable secondary key differs: then a conflict case, not a silent continuation |
+| Deleted, with provider deletion evidence | — | Tombstone (`record_state = removed`); the binding closes. A later reuse of the same ID by a new resource opens a case rather than reviving the tombstone automatically |
+
+### Collisions specific to ARM IDs
+
+| Situation | Behaviour |
+|---|---|
+| Two different `original_key`s normalize to the same key | One identity. If both arrive in one input for **different** entities (for example a fixture with two records), the whole input is rejected with both records named |
+| A normalized key is already bound to an entity of an **incompatible type** (`azure_type` disagrees with the entity's type) | No link; a case. Typical cause: a generic resource that should be re-typed (ADR-0017 §2.4) |
+| The ARM ID's parsed hierarchy contradicts a recorded `CONTAINS` (database ID naming another server) | The containment relationship is rejected; a case |
+| The same ARM ID appears in two organizations (future) | Allowed: uniqueness is per organization (ADR-0016) |
+| An `azure.subscription_id` identity and the subscription's `azure.arm` identity point to different entities | Rejected as ambiguous; a case |
+
+**Tenant scope:** ARM IDs contain the subscription. The subscription's tenant is a modeled relationship (`azure.tenant` `CONTAINS` `azure.subscription`), not part of the key.
 
 ## Matching precedence (automatic steps stop at the first unique hit)
 
@@ -73,7 +120,7 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 
 | Situation | Behaviour |
 |---|---|
-| Incoming key already bound to another *active* entity | Not a new entity: step 1 links to the bound entity. If types conflict, the match is rejected and a case is opened |
+| Incoming key already bound to an entity by a current (open) binding | Not a new entity: step 1 links to the bound entity. If types conflict, the match is rejected and a case is opened |
 | Two approved aliases would resolve the same scoped name to different entities | Prevented: partial unique index on approved aliases per `(org_id, scope, alias)` |
 | An alias equals another entity's organization key | Alias approval is refused with an explanation |
 | Suspected duplicates (same normalized name, parent and type) | `match_candidate` for review; never merged automatically |
@@ -83,7 +130,7 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 
 - **Merge (steward):**
   - the loser becomes a tombstone with `merged_into = survivor`, keeping its ID forever (ADR-0015);
-  - identities and aliases move to the survivor, the old bindings are recorded as `superseded`;
+  - identities and aliases move to the survivor: the old bindings close and new ones open in the same change set;
   - relationships are re-pointed by **new** relationship versions in the same change set;
   - evidence is never rewritten.
 - **Split:** the reverse: a new entity receives selected identities and relationships, recorded in one change set.
@@ -106,9 +153,9 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 
 ## Impact on the database schema
 
-Tables `external_identity`, `entity_alias`, `match_candidate`, `reconciliation_case` (shell in ATLAS-002), and `entity.merged_into`:
+Tables `external_identity` (with `original_key`, `normalized_key`, `normalization_version`, `key_parts`), `entity_alias`, `match_candidate`, `reconciliation_case` (shell in ATLAS-002), and `entity_version.merged_into`:
 
-- unique `(org_id, namespace, normalized_key)` for active identities;
+- unique `(org_id, namespace, normalized_key)` for current bindings (`revision_to IS NULL`);
 - partial unique index for approved aliases;
 - index `(org_id, entity_id)` for reverse lookup.
 
@@ -125,9 +172,9 @@ See ADR-0001.
 - New namespaces are additive (a taxonomy minor version).
 - Changing a normalization rule needs a migration that re-normalizes keys inside a change set, plus a collision report. It is reviewed like a breaking change.
 
-## Requires owner approval
+## Requires owner confirmation
 
 1. Matching precedence: provider ID → approved alias → organization key; similarity never merges.
-2. Azure Resource ID as the preferred Azure identity, with the move/recreate rules above.
+2. Azure Resource ID as the preferred Azure identity: both original and normalized forms stored; normalization `arm-1` (validate, reject, lowercase, no decoding); the identity-change and collision tables above.
 3. Ambiguity, collision and type-conflict behaviour (no link, open a case).
 4. Merge and split as reversible, audited change sets; tombstones keep IDs.
