@@ -1,0 +1,124 @@
+{
+  "counts": {
+    "by_org": {
+      "default": {
+        "by_category": {
+          "api_endpoint": 8,
+          "api_gateway": 2,
+          "compute_host": 6,
+          "container_cluster": 7,
+          "container_namespace": 12,
+          "core.api": 8,
+          "core.api_operation": 12,
+          "core.application": 12,
+          "core.business_domain": 6,
+          "core.capability": 10,
+          "core.component": 6,
+          "core.dataset": 8,
+          "core.environment": 7,
+          "core.event_channel": 6,
+          "core.service": 22,
+          "core.system": 5,
+          "core.team": 8,
+          "data_store": 12,
+          "database_server": 3,
+          "generic": 4,
+          "messaging_broker": 2,
+          "messaging_channel": 6,
+          "network": 3,
+          "runtime_workload": 37,
+          "scope": 24,
+          "secret_store": 2,
+          "subnet": 4
+        },
+        "by_environment_scope": {
+          "DEV": 6,
+          "DR": 2,
+          "PERF-LAB": 1,
+          "PROD": 71,
+          "SIT": 7,
+          "UAT": 18,
+          "UAT-2": 2,
+          "shared": 8,
+          "unknown": 16
+        },
+        "by_provider": {
+          "alibaba": 5,
+          "aws": 14,
+          "azure": 88,
+          "gcp": 8,
+          "logical": 110,
+          "oci": 5,
+          "on_premises": 8,
+          "other": 2,
+          "private_cloud": 2
+        },
+        "by_relationship_type": {
+          "CONNECTS_TO": 44,
+          "CONSUMES_API": 53,
+          "CONTAINS": 173,
+          "DEPENDS_ON": 4,
+          "DEPLOYED_AS": 60,
+          "EXPOSES_API": 7,
+          "MEMBER_OF": 78,
+          "OWNS": 67,
+          "PUBLISHES_TO": 16,
+          "READS_FROM": 39,
+          "STORES_IN": 2,
+          "SUBSCRIBES_TO": 15,
+          "SUPPORTS_CAPABILITY": 23,
+          "WRITES_TO": 25
+        },
+        "cross_environment": 5,
+        "cross_provider": 7,
+        "entities_at_head": 242,
+        "head_revision": 8,
+        "relationships_at_head": 606,
+        "shared_endpoint": 66
+      },
+      "example-subsidiary": {
+        "by_category": {
+          "api_endpoint": 1,
+          "core.application": 1,
+          "core.environment": 1,
+          "core.service": 1,
+          "core.team": 1,
+          "runtime_workload": 1,
+          "scope": 4
+        },
+        "by_environment_scope": {
+          "PROD": 4,
+          "unknown": 1
+        },
+        "by_provider": {
+          "aws": 2,
+          "azure": 4,
+          "logical": 4
+        },
+        "by_relationship_type": {
+          "CONSUMES_API": 1,
+          "CONTAINS": 5,
+          "DEPLOYED_AS": 1,
+          "OWNS": 1
+        },
+        "cross_environment": 0,
+        "cross_provider": 1,
+        "entities_at_head": 10,
+        "head_revision": 1,
+        "relationships_at_head": 8,
+        "shared_endpoint": 0
+      }
+    },
+    "change_sets": 9,
+    "entities": 252,
+    "organizations": 2,
+    "relationships": 617
+  },
+  "fixture": "canonical-golden-v1",
+  "fixture_version": "1.0.0",
+  "generator": "tools/generate_golden.py",
+  "taxonomy_versions": [
+    "1.0.0",
+    "1.1.0-test.1"
+  ]
+}

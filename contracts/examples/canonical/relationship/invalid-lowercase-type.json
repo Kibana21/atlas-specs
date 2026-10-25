@@ -1,0 +1,9 @@
+{
+  "created_revision": 1,
+  "discriminator": "",
+  "from_id": "01a0c450-6c18-7c94-b3ed-6912471c3592",
+  "id": "01a0c450-6c1d-73f8-8555-7aa9bcf443dd",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "rel_type": "reads_from",
+  "to_id": "01a0c450-6c1b-77b4-bba7-bbcf86b946ae"
+}

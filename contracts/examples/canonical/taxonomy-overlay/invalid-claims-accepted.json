@@ -1,0 +1,15 @@
+{
+  "add_native_type_mappings": {
+    "gcp": [
+      {
+        "category": "data_store",
+        "native_type": "bigquery.googleapis.com/Dataset"
+      }
+    ]
+  },
+  "extends": "1.0.0",
+  "note": "SYNTHETIC, TEST ONLY. Not an approved taxonomy version. Exists so the fixture can show taxonomy-version-aware history: a native type unmapped in 1.0.0 becomes mapped, and the entity is re-typed with its ID kept (ADR-0017 \u00a72.4).",
+  "overlay_format": "atlas.taxonomy-overlay.v1",
+  "status": "accepted",
+  "taxonomy_version": "1.1.0-test.1"
+}

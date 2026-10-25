@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:relationship-version:v1",
+  "title": "Relationship version",
+  "description": "One immutable state of a relationship (ADR-0008).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "relationship_id",
+    "revision_from",
+    "revision_to",
+    "record_state",
+    "lifecycle",
+    "environment_id",
+    "cross_environment",
+    "shared_endpoint",
+    "cross_provider",
+    "attributes",
+    "trust_state",
+    "verification_state",
+    "verified_by",
+    "verified_at",
+    "expires_at",
+    "taxonomy_version"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "relationship_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "revision_from": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    },
+    "revision_to": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "record_state": {
+      "type": "string",
+      "enum": [
+        "present",
+        "removed"
+      ]
+    },
+    "lifecycle": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/lifecycle"
+    },
+    "environment_id": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cross_environment": {
+      "type": "boolean"
+    },
+    "shared_endpoint": {
+      "type": "boolean"
+    },
+    "cross_provider": {
+      "type": "boolean"
+    },
+    "attributes": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/attributes"
+    },
+    "trust_state": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/trust_state"
+    },
+    "verification_state": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/verification_state"
+    },
+    "verified_by": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/actor_ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verified_at": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "taxonomy_version": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/verification"
+    }
+  ]
+}

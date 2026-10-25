@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:relationship:v1",
+  "title": "Relationship identity row",
+  "description": "Immutable: type and endpoints never change; one record per (org, rel_type, from, to, discriminator) (ADR-0001, ADR-0017 §4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "id",
+    "rel_type",
+    "from_id",
+    "to_id",
+    "discriminator",
+    "created_revision"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "rel_type": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/rel_type"
+    },
+    "from_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "to_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "discriminator": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Empty unless the relationship type defines one"
+    },
+    "created_revision": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    }
+  }
+}

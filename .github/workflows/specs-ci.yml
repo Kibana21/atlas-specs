@@ -65,6 +65,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: tools/uv.lock
       - run: make tools
+      - run: make canonical
 
   tokens:
     runs-on: ubuntu-24.04

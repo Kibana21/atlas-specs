@@ -1,0 +1,26 @@
+{
+  "attributes": {
+    "location": "westeurope"
+  },
+  "category": "scope",
+  "container_id": "01a0c450-6f3c-7911-90d1-7b1226b19502",
+  "display_name": "rg-platform-nonprod",
+  "entity_id": "01a0c450-6f49-7629-ba62-a3e18a6507ed",
+  "environment_id": null,
+  "environment_scope": "shared",
+  "expires_at": null,
+  "lifecycle": "active",
+  "merged_into": null,
+  "native_type": "microsoft.resources/resourcegroups",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "provider": "azure",
+  "record_state": "present",
+  "revision_from": 1,
+  "revision_to": null,
+  "taxonomy_version": "1.0.0",
+  "trust_state": "discovered",
+  "type_key": "azure.resource_group",
+  "verification_state": "unverified",
+  "verified_at": null,
+  "verified_by": null
+}

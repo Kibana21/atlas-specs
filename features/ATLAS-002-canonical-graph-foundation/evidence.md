@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed 2026-10-24; accepted by the owner 2026-10-25). **CP1 complete: Gate G1 passed** (owner's final approval of D1–D19, 2026-10-25). CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed 2026-10-24; accepted by the owner 2026-10-25). **CP1 complete: Gate G1 passed** (2026-10-25). **CP2 delivered** (authorized 2026-10-25), awaiting owner review at Gate G2. CP3–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -98,3 +98,48 @@ CP2 starts only after the owner approves the decisions.
   - RTM regenerated from the register: **no readiness change** (the Open set is unchanged); header note updated.
 - **Owner guidance for CP2/CP3 (recorded, not implemented):** keep actor namespace/kind integrity with PostgreSQL 15-compatible enforcement; derive attribution from trusted execution context, not payloads; keep database constraints to structural integrity and security; handle flexible architecture rules through domain validation and advisory findings; preserve imperfect source observations without corrupting canonical facts.
 - **Not done:** no CP2 work, migration, role, credential, infrastructure change or product code.
+
+## 3. CP2 — Canonical graph contracts and golden fixture
+
+**Authorization (owner, written, in the conversation, 25 Oct 2026):** CP2 only, on the Accepted ADRs and Confirmed decisions at atlas-specs `4ffe1a9`; atlas-specs only; no tables, roles, credentials, migrations, APIs, connectors or UI; ATLAS-001 tags and `contract-v0.1.0` untouched.
+
+### 3.1 Artifacts
+
+| Artifact | Version | Content |
+|---|---|---|
+| `contracts/taxonomy/atlas-taxonomy.v1.json` | taxonomy **1.0.0** | 38 entity types (12 logical, 16 Azure, 2 Kubernetes, 8 `infra.*`), 15 categories, 11 providers, 18 relationship types (14 active, 4 reserved), provider scope rules, seed native-type mappings, 16 identity namespaces, 3 actor namespaces, enumerations |
+| `contracts/schemas/canonical/*.v1.json` | 16 schemas, JSON Schema **2020-12**, `$id` `urn:atlas:schema:canonical:<name>:v1` | common, organization, entity, entity-version, relationship, relationship-version, external-identity, evidence, fact-assertion, actor, change-set, graph-snapshot, import-batch, taxonomy, taxonomy-overlay, fixture-manifest |
+| `contracts/examples/canonical/` | — | 50 examples (23 valid, 27 invalid) for 15 schemas |
+| `contracts/canonical-validation-rules.md` | rules v1 | 16 HARD rules + 10 taxonomy self-checks, 18 DOMAIN, 11 ADVISORY; enforcement points; interpretations I-1…I-5 |
+| `acceptance/test-data/canonical-golden-v1/` | fixture **1.0.0** | 252 entities, 617 relationships, 2 organizations, 9 change sets; 255 entity versions, 622 relationship versions, 186 identities, 28 evidence, 880 assertions, 4 snapshots; import batch and report; expected as-of and findings; synthetic overlay `1.1.0-test.1` |
+| `tools/canonical_model.py`, `canonical_rules.py`, `check_canonical.py`, `generate_golden.py`, `tests/test_canonical.py` | — | Reference model, rules, validator (`make canonical`), deterministic generator (`make golden`), 59 tests |
+| `spec.md`, `plan.md`, `tasks.md`, `acceptance.md` | 0.1 Proposed | CP3–CP5 requirements, sequence, tasks, criteria; gate **G3-R** (owner-run role bootstrap); open items U-1…U-7 |
+
+### 3.2 Fixture coverage
+
+- **By provider (organization `default`, head):** logical 110, Azure 88, AWS 14, Google Cloud 8, on-premises 8, Alibaba Cloud 5, OCI 5, private cloud 2, other 2.
+- **By environment:** PROD 71, UAT 18, SIT 7, DEV 6, DR 2, UAT-2 2, PERF-LAB 1, shared 8, unknown 16.
+- **By category:** runtime workload 37, scope 24, container namespace 12, data store 12, API endpoint 8, container cluster 7, compute host 6, messaging channel 6, generic 4, and others (full list in `manifest.json`).
+- **Relationship flags:** cross-environment 5 (each evidenced), cross-provider 7, shared endpoint 66.
+- **Second organization:** 10 entities and 8 relationships, reusing names, `APP-0101`, the Azure tenant GUID and an AWS account key: no collision.
+- **Revisions R1–R8** cover creation, modification, ownership change, retirement, revert, provider-specific re-typing, taxonomy-aware migration, service and system attribution, a no-op replay, and historical reconstruction. Mapping: `acceptance/test-data/README.md`.
+
+### 3.3 Results (local and fresh clone)
+
+| Check | Result |
+|---|---|
+| Canonical schemas against the 2020-12 metaschema | 16 / 16 valid |
+| Examples | 50 checked: every valid accepted, every invalid rejected |
+| Taxonomy self-checks T-01…T-10 | 0 findings |
+| Golden fixture | HARD 0, DOMAIN 0, ADVISORY 44 (A-01 8, A-02 5, A-04 4, A-05 8, A-06 2, A-07 3, A-09 1, A-11 11, A-12 2), equal to `expected-findings.json` |
+| Import | Planned against r1 = exactly r2's facts (14 entities, 8 relationships, 14 containments); 1 rejected and reported (`READS_FROM` an `infra.resource`, D-04); replay at r2 and at head: no change |
+| Snapshots and as-of | 4 snapshot hashes and 9 expected as-of results reproduced; r3 and r5 hashes are equal (revert) |
+| Determinism | Regenerated fixture byte-identical |
+| Negative tests | 22 fixture mutations, each detected by its rule (H-01, H-03, H-05…H-10, H-14, D-03, D-04 ×3, D-05, D-08, D-10, D-12…D-14, D-16); plus actor kind (H-11), snapshot and manifest tampering (H-15), a changed batch (not a no-op), name-only matching (D-18), 4 anti-spoofing payload cases, normalization (12 cases), taxonomy membership cycle (T-09), overlay base mismatch |
+| `make check` | All gates passed; `tools` 129 tests (70 existing + 59 new) |
+
+### 3.4 Observations for the owner (no architecture changed)
+
+- **U-1:** `CONTAINS` and `DEPLOYED_AS` don't accept `contract` evidence (ADR-0017 §4.1). The generator's self-check caught this for OpenAPI operations and Google Cloud IaC; the fixture uses documentation evidence for those facts.
+- **U-2:** ADR-0019 §3 requires `native_type` on every physical entity, while ADR-0017 §2.2 exempts `azure.tenant`. CP2 follows the explicit exemption; the proposed minimum correction is one line in ADR-0019 §3.
+- **U-3…U-7:** see `spec.md` §7.

@@ -1,6 +1,6 @@
 # atlas-specs
 
-Source of truth for Atlas requirements, UX, technical architecture, ADRs, and **cross-repo contracts**. It holds specifications and portable fixtures only. It must never contain executable backend/frontend source, secrets, real architecture exports, runtime data, or generated build artifacts (tech §17.3).
+Source of truth for Atlas requirements, UX, technical architecture, ADRs, and **cross-repo contracts**. It holds specifications and portable fixtures only. It must never contain executable backend/frontend source, secrets, real architecture exports, runtime data, or generated build artifacts (tech §17.3). The generated golden fixture is test data, regenerated and verified byte-for-byte by CI.
 
 Independent Git repo (`origin` = github.com/Kibana21/atlas-specs, **public**). It is the **authority** for the other two repos. This file is self-sufficient. A workspace-level file may exist locally, but it is not versioned.
 
@@ -14,18 +14,21 @@ decisions/decision-register.md # DEC-NNN: Confirmed / Proposed / Open / Provisio
 decisions/baseline-deviations.md  # TD-DEV-NNN: approved deviations from the baselines
 contracts/                     # conventions.md, style-guide.md, compatibility.md (pinning + release rules)
 contracts/openapi/atlas-api.yaml  # authoritative API (released contract-v0.1.0)
-contracts/schemas/  contracts/examples/  # JSON Schemas + valid/invalid examples
+contracts/schemas/  contracts/examples/  # JSON Schemas + valid/invalid examples (canonical graph: */canonical/)
+contracts/taxonomy/            # versioned canonical taxonomy and provider registries (ATLAS-002)
+contracts/canonical-validation-rules.md  # HARD / DOMAIN / ADVISORY rule catalog
+acceptance/test-data/canonical-golden-v1/  # deterministic synthetic golden fixture (generated: make golden)
 design/tokens.json  design/tokens.md     # design tokens + contrast pairs (frontend generates from these)
-tools/                         # uv project: specs-lock, conformance, token, registry checkers + tests
-adr/  acceptance/              # ADRs (none yet), acceptance scenarios
+tools/                         # uv project: specs-lock, conformance, token, registry, canonical checkers + fixture generator + tests
+adr/  acceptance/              # ADRs (see adr/README.md), acceptance scenarios and test data
 Makefile  .github/workflows/specs-ci.yml
 ```
 
-ATLAS-001 (engineering foundation) is approved for implementation. Status is in `features/ATLAS-001-engineering-foundation/evidence.md`. It is **not Accepted** until its final gate (G7) passes.
+ATLAS-001 (engineering foundation) is **Accepted** (v0.1.0, 24 Oct 2026). ATLAS-002 (canonical graph foundation) status is in `features/ATLAS-002-canonical-graph-foundation/evidence.md`.
 
 ## Commands
 
-`make check` runs everything CI runs: `docs-lint` (markdownlint, container), `contract` (Redocly lint, container), `schemas`, `tools` (pytest), `tokens`, `registry` and `breaking` (oasdiff against the latest `contract-v*` tag). Container images are digest-pinned in `tools/images.lock`, and GitHub Actions are pinned by SHA. Required CI checks: `docs-lint, contract, tools, tokens, registry, breaking`.
+`make check` runs everything CI runs: `docs-lint` (markdownlint, container), `contract` (Redocly lint, container), `schemas`, `tools` (pytest), `canonical` (canonical contracts and golden fixture), `tokens`, `registry` and `breaking` (oasdiff against the latest `contract-v*` tag). Container images are digest-pinned in `tools/images.lock`, and GitHub Actions are pinned by SHA. Required CI checks: `docs-lint, contract, tools, tokens, registry, breaking`.
 
 ## Workflow and approval boundaries
 

@@ -1,0 +1,72 @@
+{
+  "batch_format": "atlas.import-batch.v1",
+  "change_reference": "CHG-SYN-0002",
+  "channel": "import",
+  "created_at": "2026-10-01T00:00:00Z",
+  "entities": [
+    {
+      "attributes": {
+        "scope_kind": "organization"
+      },
+      "display_name": "example-aws-org",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba20-7de3-958a-6dd9e3bfad73",
+      "identities": [
+        {
+          "namespace": "source.aws-org",
+          "original_key": "o-exmp0001"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::Organization",
+      "provider": "aws",
+      "ref": "aws-org",
+      "type_key": "infra.scope"
+    },
+    {
+      "attributes": {
+        "scope_kind": "organizational_unit"
+      },
+      "display_name": "claims",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba21-7fca-922c-946b526d5601",
+      "identities": [
+        {
+          "namespace": "source.aws-org",
+          "original_key": "ou-exmp-claims"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::OrganizationalUnit",
+      "parent": {
+        "ref": "aws-org"
+      },
+      "provider": "aws",
+      "ref": "aws-ou",
+      "type_key": "infra.scope"
+    }
+  ],
+  "evidence": [
+    {
+      "artifact_hash": "sha256:ea3e528c06343304e379451a5024b48b404654f2e5eea6647049f38fd35b6ccf",
+      "artifact_ref": "synthetic://aws/config/inventory-2026-10-01.json",
+      "confidence": 1.0,
+      "kind": "provider_configuration",
+      "method": "export:aws-config:v1",
+      "observed_at": "2026-10-01T06:00:00Z",
+      "ref": "aws-config",
+      "source_ref": "aws-config (synthetic export)"
+    }
+  ],
+  "org_key": "default",
+  "reason": "AWS inventory import (synthetic)",
+  "relationships": [],
+  "source_ref": "aws-config (synthetic export)",
+  "taxonomy_version": "1.0.0"
+}

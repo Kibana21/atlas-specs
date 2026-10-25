@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:common:v1",
+  "title": "Canonical common definitions",
+  "description": "Shared definitions for the canonical graph contracts (ATLAS-002 CP2; ADR-0001, ADR-0008, ADR-0015).",
+  "$defs": {
+    "uuid7": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "UUIDv7, lowercase canonical form (ADR-0015)"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Per-organization revision number (ADR-0008)"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,6})?Z$",
+      "description": "UTC, RFC 3339"
+    },
+    "type_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*\\.[a-z][a-z0-9_]*$"
+    },
+    "rel_type": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*[A-Z]$"
+    },
+    "taxonomy_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9_*-]+)*$"
+    },
+    "attribute_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "not": {
+        "pattern": "(password|passwd|secret|token|connection_?string|private_?key|access_?key|credential)"
+      },
+      "description": "snake_case; names that suggest secrets are rejected (security invariant H-13)"
+    },
+    "attributes": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/attribute_name"
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean",
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "string",
+      "enum": [
+        "active",
+        "deprecated",
+        "retired"
+      ]
+    },
+    "trust_state": {
+      "type": "string",
+      "enum": [
+        "discovered",
+        "documented",
+        "curated",
+        "inferred",
+        "proposed",
+        "stale",
+        "conflicted"
+      ]
+    },
+    "verification_state": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "verified"
+      ]
+    },
+    "evidence_kind": {
+      "type": "string",
+      "enum": [
+        "provider_configuration",
+        "contract",
+        "documentation",
+        "human_assertion",
+        "inferred"
+      ]
+    },
+    "actor_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "properties": {
+        "namespace": {
+          "$ref": "#/$defs/namespace"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "verification": {
+      "description": "Verification dimension (ADR-0018): verified needs who and when",
+      "if": {
+        "properties": {
+          "verification_state": {
+            "const": "verified"
+          }
+        },
+        "required": [
+          "verification_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "verified_by": {
+            "$ref": "#/$defs/actor_ref"
+          },
+          "verified_at": {
+            "$ref": "#/$defs/timestamp"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "verified_by": {
+            "type": "null"
+          },
+          "verified_at": {
+            "type": "null"
+          },
+          "expires_at": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  }
+}

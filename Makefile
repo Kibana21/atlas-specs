@@ -15,10 +15,10 @@ UV := uv run --quiet --locked --project tools
 CONTAINER := docker run --rm --network none
 SCHEMAS := error health-live health-ready build-info
 
-.PHONY: check docs-lint contract schemas tools tokens registry breaking
+.PHONY: check docs-lint contract schemas tools canonical golden tokens registry breaking
 
 ## check: run every specs CI gate locally
-check: docs-lint contract schemas tools tokens registry breaking
+check: docs-lint contract schemas tools canonical tokens registry breaking
 	@echo "make check: all atlas-specs gates passed"
 
 ## docs-lint: markdownlint on non-baseline documents (brd/, ux/, technical/ excluded)
@@ -48,6 +48,14 @@ schemas:
 ## tools: self-tests of every tool (lock, conformance, tokens, registry); uses Docker for oasdiff
 tools:
 	$(UV) pytest tools/tests
+
+## canonical: canonical graph schemas, taxonomy, golden fixture rules and determinism (ATLAS-002 CP2)
+canonical:
+	$(UV) python tools/check_canonical.py
+
+## golden: regenerate the canonical golden fixture (deterministic; commit the result)
+golden:
+	$(UV) python tools/generate_golden.py
 
 ## tokens: WCAG contrast and completeness of design/tokens.json
 tokens:

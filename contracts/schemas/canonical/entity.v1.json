@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:entity:v1",
+  "title": "Entity identity row",
+  "description": "Immutable identity row; type, state and attributes live on versions (ADR-0008 §2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "id",
+    "created_revision"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "created_revision": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    }
+  }
+}

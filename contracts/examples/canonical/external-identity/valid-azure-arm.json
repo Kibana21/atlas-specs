@@ -1,0 +1,19 @@
+{
+  "entity_id": "01a0c450-6f49-7629-ba62-a3e18a6507ed",
+  "id": "01a0c450-6f4b-7dba-9c4a-78e18a2c27e2",
+  "key_parts": {
+    "name_path": null,
+    "provider_namespace": null,
+    "resource_group": "rg-platform-nonprod",
+    "subscription_id": "00000000-0000-4000-8000-00000000a001",
+    "type_path": null
+  },
+  "match_method": "provider_id",
+  "namespace": "azure.arm",
+  "normalization_version": "arm-1",
+  "normalized_key": "/subscriptions/00000000-0000-4000-8000-00000000a001/resourcegroups/rg-platform-nonprod",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "original_key": "/subscriptions/00000000-0000-4000-8000-00000000a001/resourceGroups/rg-platform-nonprod",
+  "revision_from": 1,
+  "revision_to": null
+}

@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:import-batch:v1",
+  "title": "Import batch (loader input)",
+  "description": "Input to the deterministic loader (ADR-0008 §8). Carries facts and evidence only: never an actor, revision, server timestamp or database role (ADR-0008 §10, anti-spoofing). Explicit entity IDs are allowed for fixture and test loads only (ADR-0015).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "batch_format",
+    "org_key",
+    "source_ref",
+    "channel",
+    "taxonomy_version",
+    "reason",
+    "evidence",
+    "entities",
+    "relationships"
+  ],
+  "properties": {
+    "batch_format": {
+      "const": "atlas.import-batch.v1"
+    },
+    "org_key": {
+      "type": "string"
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "fixture_cli",
+        "import",
+        "connector"
+      ]
+    },
+    "taxonomy_version": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "change_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "kind",
+          "source_ref",
+          "artifact_ref",
+          "artifact_hash",
+          "method",
+          "confidence",
+          "observed_at"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/evidence_kind"
+          },
+          "source_ref": {
+            "type": "string"
+          },
+          "artifact_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "artifact_hash": {
+            "anyOf": [
+              {
+                "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/sha256"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "observed_at": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "type_key",
+          "display_name",
+          "identities",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
+          },
+          "id": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+          },
+          "type_key": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/type_key"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "lifecycle": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/lifecycle"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "native_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "environment_scope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "single",
+                  "shared",
+                  "unknown"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "environment": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ref"
+                ],
+                "properties": {
+                  "ref": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]*$"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "identity"
+                ],
+                "properties": {
+                  "identity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "namespace",
+                      "original_key"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+                      },
+                      "original_key": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "org_key"
+                ],
+                "properties": {
+                  "org_key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "parent": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ref"
+                ],
+                "properties": {
+                  "ref": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]*$"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "identity"
+                ],
+                "properties": {
+                  "identity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "namespace",
+                      "original_key"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+                      },
+                      "original_key": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "org_key"
+                ],
+                "properties": {
+                  "org_key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "attributes": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/attributes"
+          },
+          "identities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "namespace",
+                "original_key"
+              ],
+              "properties": {
+                "namespace": {
+                  "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+                },
+                "original_key": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rel_type",
+          "from",
+          "to",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "id": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+          },
+          "rel_type": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/rel_type"
+          },
+          "from": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ref"
+                ],
+                "properties": {
+                  "ref": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]*$"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "identity"
+                ],
+                "properties": {
+                  "identity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "namespace",
+                      "original_key"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+                      },
+                      "original_key": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "org_key"
+                ],
+                "properties": {
+                  "org_key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "to": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ref"
+                ],
+                "properties": {
+                  "ref": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9._-]*$"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "identity"
+                ],
+                "properties": {
+                  "identity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "namespace",
+                      "original_key"
+                    ],
+                    "properties": {
+                      "namespace": {
+                        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+                      },
+                      "original_key": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "org_key"
+                ],
+                "properties": {
+                  "org_key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "attributes": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/attributes"
+          },
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "not": {
+    "anyOf": [
+      {
+        "required": [
+          "actor"
+        ]
+      },
+      {
+        "required": [
+          "revision"
+        ]
+      },
+      {
+        "required": [
+          "created_at"
+        ]
+      },
+      {
+        "required": [
+          "db_role"
+        ]
+      },
+      {
+        "required": [
+          "actor_key"
+        ]
+      },
+      {
+        "required": [
+          "actor_namespace"
+        ]
+      }
+    ]
+  }
+}

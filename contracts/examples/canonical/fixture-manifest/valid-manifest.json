@@ -1,0 +1,216 @@
+{
+  "counts": {
+    "by_org": {
+      "default": {
+        "by_category": {
+          "api_endpoint": 8,
+          "api_gateway": 2,
+          "compute_host": 6,
+          "container_cluster": 7,
+          "container_namespace": 12,
+          "core.api": 8,
+          "core.api_operation": 12,
+          "core.application": 12,
+          "core.business_domain": 6,
+          "core.capability": 10,
+          "core.component": 6,
+          "core.dataset": 8,
+          "core.environment": 7,
+          "core.event_channel": 6,
+          "core.service": 22,
+          "core.system": 5,
+          "core.team": 8,
+          "data_store": 12,
+          "database_server": 3,
+          "generic": 4,
+          "messaging_broker": 2,
+          "messaging_channel": 6,
+          "network": 3,
+          "runtime_workload": 37,
+          "scope": 24,
+          "secret_store": 2,
+          "subnet": 4
+        },
+        "by_environment_scope": {
+          "DEV": 6,
+          "DR": 2,
+          "PERF-LAB": 1,
+          "PROD": 71,
+          "SIT": 7,
+          "UAT": 18,
+          "UAT-2": 2,
+          "shared": 8,
+          "unknown": 16
+        },
+        "by_provider": {
+          "alibaba": 5,
+          "aws": 14,
+          "azure": 88,
+          "gcp": 8,
+          "logical": 110,
+          "oci": 5,
+          "on_premises": 8,
+          "other": 2,
+          "private_cloud": 2
+        },
+        "by_relationship_type": {
+          "CONNECTS_TO": 44,
+          "CONSUMES_API": 53,
+          "CONTAINS": 173,
+          "DEPENDS_ON": 4,
+          "DEPLOYED_AS": 60,
+          "EXPOSES_API": 7,
+          "MEMBER_OF": 78,
+          "OWNS": 67,
+          "PUBLISHES_TO": 16,
+          "READS_FROM": 39,
+          "STORES_IN": 2,
+          "SUBSCRIBES_TO": 15,
+          "SUPPORTS_CAPABILITY": 23,
+          "WRITES_TO": 25
+        },
+        "cross_environment": 5,
+        "cross_provider": 7,
+        "entities_at_head": 242,
+        "head_revision": 8,
+        "relationships_at_head": 606,
+        "shared_endpoint": 66
+      },
+      "example-subsidiary": {
+        "by_category": {
+          "api_endpoint": 1,
+          "core.application": 1,
+          "core.environment": 1,
+          "core.service": 1,
+          "core.team": 1,
+          "runtime_workload": 1,
+          "scope": 4
+        },
+        "by_environment_scope": {
+          "PROD": 4,
+          "unknown": 1
+        },
+        "by_provider": {
+          "aws": 2,
+          "azure": 4,
+          "logical": 4
+        },
+        "by_relationship_type": {
+          "CONSUMES_API": 1,
+          "CONTAINS": 5,
+          "DEPLOYED_AS": 1,
+          "OWNS": 1
+        },
+        "cross_environment": 0,
+        "cross_provider": 1,
+        "entities_at_head": 10,
+        "head_revision": 1,
+        "relationships_at_head": 8,
+        "shared_endpoint": 0
+      }
+    },
+    "change_sets": 9,
+    "entities": 252,
+    "organizations": 2,
+    "relationships": 617
+  },
+  "files": [
+    {
+      "path": "organizations.json",
+      "records": 2,
+      "schema": "urn:atlas:schema:canonical:organization:v1",
+      "sha256": "sha256:ef5563b623ce24264a543436293b16cc27bda4c363a7610f7276539e89f07f3d"
+    },
+    {
+      "path": "change_sets.json",
+      "records": 9,
+      "schema": "urn:atlas:schema:canonical:change-set:v1",
+      "sha256": "sha256:74b26480abb884e61ebeb93765578cbff473646c92ef6da23ad7df9551fa5bb2"
+    },
+    {
+      "path": "entities.json",
+      "records": 252,
+      "schema": "urn:atlas:schema:canonical:entity:v1",
+      "sha256": "sha256:120feac411f95b256c2a6543e29bcb7e3ef904b8f07b6021c0a4a9deb2dce1b0"
+    },
+    {
+      "path": "entity_versions.json",
+      "records": 255,
+      "schema": "urn:atlas:schema:canonical:entity-version:v1",
+      "sha256": "sha256:e8a223a9d04f483f9a66d151f8ee8846f9d5fecbbd2a2ed544fb67bcf1993bc1"
+    },
+    {
+      "path": "relationships.json",
+      "records": 617,
+      "schema": "urn:atlas:schema:canonical:relationship:v1",
+      "sha256": "sha256:4f04160ec6adca3e3eaa9ccb3018eded6b2ed6d6dfe8443944c06f768b825a53"
+    },
+    {
+      "path": "relationship_versions.json",
+      "records": 622,
+      "schema": "urn:atlas:schema:canonical:relationship-version:v1",
+      "sha256": "sha256:b0eff02508cc3d716dbe4730e20c32ed8808e5a5b30c31fda0cf956b0d05d5c5"
+    },
+    {
+      "path": "external_identities.json",
+      "records": 186,
+      "schema": "urn:atlas:schema:canonical:external-identity:v1",
+      "sha256": "sha256:569fee6734cb1a9fb47810ded54dd292c5a81d3ec3a9f0ec959cf95b5634ea45"
+    },
+    {
+      "path": "evidence.json",
+      "records": 28,
+      "schema": "urn:atlas:schema:canonical:evidence:v1",
+      "sha256": "sha256:089d5ee7202eedf048ff8165dd00a75008aa08fe808239d5bfba1b4f1e71df72"
+    },
+    {
+      "path": "fact_assertions.json",
+      "records": 880,
+      "schema": "urn:atlas:schema:canonical:fact-assertion:v1",
+      "sha256": "sha256:62918d2273285ee57794eaa10da2a03d4a5d5aaa06e33b0a5ccdf3b2e352824e"
+    },
+    {
+      "path": "graph_snapshots.json",
+      "records": 4,
+      "schema": "urn:atlas:schema:canonical:graph-snapshot:v1",
+      "sha256": "sha256:deeef8fe4a8142ecd3454ecacdbf6fbfad35279c213bef6d5b9bec623ac8cc5a"
+    },
+    {
+      "path": "taxonomy-overlay.1.1.0-test.1.json",
+      "records": 1,
+      "schema": "urn:atlas:schema:canonical:taxonomy-overlay:v1",
+      "sha256": "sha256:18a600ef20d377a9c6cd05723a9b7b614e3cec08a6ec93cddd45b567b2a305d0"
+    },
+    {
+      "path": "inputs/aws-inventory.r2.json",
+      "records": 1,
+      "schema": "urn:atlas:schema:canonical:import-batch:v1",
+      "sha256": "sha256:71f067d94ddedd58d3079739e2197deb15cba46cc3493a1ce281395f5dfff4b0"
+    },
+    {
+      "path": "inputs/aws-inventory.r2.expected-report.json",
+      "records": 1,
+      "schema": null,
+      "sha256": "sha256:28a3b8cacfd164e80159d5659d13a26a34ec61f5148ad5ce70d065c7dd632593"
+    },
+    {
+      "path": "expected-as-of.json",
+      "records": 9,
+      "schema": null,
+      "sha256": "sha256:5561920cbbdbeddcb4f0e68a4dbc099294373247aee65a38aa33b5f5d5be7ce4"
+    },
+    {
+      "path": "expected-findings.json",
+      "records": 1,
+      "schema": null,
+      "sha256": "sha256:c16de811b9e4ae5cd19fc628d0e89c425e8962a0dc03d21c94bde2bc09899b27"
+    }
+  ],
+  "fixture": "canonical-golden-v1",
+  "fixture_version": "1.0.0",
+  "generator": "tools/generate_golden.py",
+  "taxonomy_versions": [
+    "1.0.0",
+    "1.1.0-test.1"
+  ]
+}

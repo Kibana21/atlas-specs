@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:organization:v1",
+  "title": "Organization",
+  "description": "Isolation boundary for all Atlas data (ADR-0016). Never a provider account.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "key",
+    "display_name"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    }
+  }
+}

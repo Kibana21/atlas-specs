@@ -1,0 +1,549 @@
+{
+  "batch_format": "atlas.import-batch.v1",
+  "change_reference": "CHG-SYN-0002",
+  "channel": "import",
+  "entities": [
+    {
+      "attributes": {
+        "scope_kind": "organization"
+      },
+      "display_name": "example-aws-org",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba20-7de3-958a-6dd9e3bfad73",
+      "identities": [
+        {
+          "namespace": "source.aws-org",
+          "original_key": "o-exmp0001"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::Organization",
+      "provider": "aws",
+      "ref": "aws-org",
+      "type_key": "infra.scope"
+    },
+    {
+      "attributes": {
+        "scope_kind": "organizational_unit"
+      },
+      "display_name": "claims",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba21-7fca-922c-946b526d5601",
+      "identities": [
+        {
+          "namespace": "source.aws-org",
+          "original_key": "ou-exmp-claims"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::OrganizationalUnit",
+      "parent": {
+        "ref": "aws-org"
+      },
+      "provider": "aws",
+      "ref": "aws-ou",
+      "type_key": "infra.scope"
+    },
+    {
+      "attributes": {
+        "scope_kind": "account"
+      },
+      "display_name": "rating-prod",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba22-7b3b-8016-566b21f7a156",
+      "identities": [
+        {
+          "namespace": "aws.account",
+          "original_key": "aws:111111111111"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::Account",
+      "parent": {
+        "ref": "aws-ou"
+      },
+      "provider": "aws",
+      "ref": "aws-acct-prod",
+      "type_key": "infra.scope"
+    },
+    {
+      "attributes": {
+        "scope_kind": "account"
+      },
+      "display_name": "rating-nonprod",
+      "environment_scope": "unknown",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba23-7021-a4f5-d58054a3509b",
+      "identities": [
+        {
+          "namespace": "aws.account",
+          "original_key": "aws:222222222222"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Organizations::Account",
+      "parent": {
+        "ref": "aws-ou"
+      },
+      "provider": "aws",
+      "ref": "aws-acct-uat",
+      "type_key": "infra.scope"
+    },
+    {
+      "attributes": {
+        "cluster_kind": "ecs",
+        "location": "eu-west-1"
+      },
+      "display_name": "rating-ecs-prod",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba24-7377-aa19-fe4be6b9502c",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:ecs:eu-west-1:111111111111:cluster/rating-ecs-prod"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ECS::Cluster",
+      "parent": {
+        "ref": "aws-acct-prod"
+      },
+      "provider": "aws",
+      "ref": "ecs-prod",
+      "type_key": "infra.cluster"
+    },
+    {
+      "attributes": {
+        "workload_kind": "container_service"
+      },
+      "display_name": "rating-api-svc",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba25-734a-a22e-ddc26f3b6544",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:ecs:eu-west-1:111111111111:service/rating-ecs-prod/rating-api-svc"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ECS::Service",
+      "parent": {
+        "ref": "ecs-prod"
+      },
+      "provider": "aws",
+      "ref": "rating-svc-prod",
+      "type_key": "infra.workload"
+    },
+    {
+      "attributes": {},
+      "display_name": "rating-api",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba26-70c8-bd9d-96530fca64ba",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:apigateway:eu-west-1::/restapis/ratingprodexmp"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ApiGateway::RestApi",
+      "parent": {
+        "ref": "aws-acct-prod"
+      },
+      "provider": "aws",
+      "ref": "rating-api-prod",
+      "type_key": "infra.api_endpoint"
+    },
+    {
+      "attributes": {
+        "cluster_kind": "ecs",
+        "location": "eu-west-1"
+      },
+      "display_name": "rating-ecs-uat",
+      "environment": {
+        "org_key": "ENV-UAT"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba27-7cf7-bdb6-e6785ec47a12",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:ecs:eu-west-1:222222222222:cluster/rating-ecs-uat"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ECS::Cluster",
+      "parent": {
+        "ref": "aws-acct-uat"
+      },
+      "provider": "aws",
+      "ref": "ecs-uat",
+      "type_key": "infra.cluster"
+    },
+    {
+      "attributes": {
+        "workload_kind": "container_service"
+      },
+      "display_name": "rating-api-svc",
+      "environment": {
+        "org_key": "ENV-UAT"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba28-7060-baac-24ce8888d491",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:ecs:eu-west-1:222222222222:service/rating-ecs-uat/rating-api-svc"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ECS::Service",
+      "parent": {
+        "ref": "ecs-uat"
+      },
+      "provider": "aws",
+      "ref": "rating-svc-uat",
+      "type_key": "infra.workload"
+    },
+    {
+      "attributes": {},
+      "display_name": "rating-api",
+      "environment": {
+        "org_key": "ENV-UAT"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba29-7517-96d9-e6e1848704f6",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:apigateway:eu-west-1::/restapis/ratinguatexmp"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ApiGateway::RestApi",
+      "parent": {
+        "ref": "aws-acct-uat"
+      },
+      "provider": "aws",
+      "ref": "rating-api-uat",
+      "type_key": "infra.api_endpoint"
+    },
+    {
+      "attributes": {
+        "workload_kind": "container_service"
+      },
+      "display_name": "quote-events-consumer",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba2a-7215-a276-e203882640b7",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:ecs:eu-west-1:111111111111:service/rating-ecs-prod/quote-events-consumer"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::ECS::Service",
+      "parent": {
+        "ref": "ecs-prod"
+      },
+      "provider": "aws",
+      "ref": "quote-consumer",
+      "type_key": "infra.workload"
+    },
+    {
+      "attributes": {
+        "workload_kind": "function"
+      },
+      "display_name": "rate-refresh-fn",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba2b-7e7a-a165-bce0ff40c0b5",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:lambda:eu-west-1:111111111111:function:rate-refresh-fn"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::Lambda::Function",
+      "parent": {
+        "ref": "aws-acct-prod"
+      },
+      "provider": "aws",
+      "ref": "refresh-fn",
+      "type_key": "infra.workload"
+    },
+    {
+      "attributes": {},
+      "display_name": "rating-tables",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba2c-717b-a7ce-5fdf4c9e679a",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:dynamodb:eu-west-1:111111111111:table/rating-tables"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::DynamoDB::Table",
+      "parent": {
+        "ref": "aws-acct-prod"
+      },
+      "provider": "aws",
+      "ref": "rating-tables",
+      "type_key": "infra.resource"
+    },
+    {
+      "attributes": {},
+      "display_name": "rating-cdn",
+      "environment": {
+        "org_key": "ENV-PROD"
+      },
+      "environment_scope": "single",
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "id": "01a0c450-ba2d-7c07-bd97-8e9903472af7",
+      "identities": [
+        {
+          "namespace": "aws.arn",
+          "original_key": "arn:aws:cloudfront::111111111111:distribution/EXMP0001"
+        }
+      ],
+      "lifecycle": "active",
+      "native_type": "AWS::CloudFront::Distribution",
+      "parent": {
+        "ref": "aws-acct-prod"
+      },
+      "provider": "aws",
+      "ref": "cdn",
+      "type_key": "infra.resource"
+    }
+  ],
+  "evidence": [
+    {
+      "artifact_hash": "sha256:ea3e528c06343304e379451a5024b48b404654f2e5eea6647049f38fd35b6ccf",
+      "artifact_ref": "synthetic://aws/config/inventory-2026-10-01.json",
+      "confidence": 1.0,
+      "kind": "provider_configuration",
+      "method": "export:aws-config:v1",
+      "observed_at": "2026-10-01T06:00:00Z",
+      "ref": "aws-config",
+      "source_ref": "aws-config (synthetic export)"
+    }
+  ],
+  "org_key": "default",
+  "reason": "AWS inventory import (synthetic)",
+  "relationships": [
+    {
+      "attributes": {
+        "deployment_role": "primary"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "org_key": "API-RATING"
+      },
+      "id": "01a0c450-be08-7744-9e29-fe0455116c22",
+      "ref": "deploy-rating-api-prod",
+      "rel_type": "DEPLOYED_AS",
+      "to": {
+        "ref": "rating-api-prod"
+      }
+    },
+    {
+      "attributes": {
+        "deployment_role": "primary"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "org_key": "API-RATING"
+      },
+      "id": "01a0c450-be09-795d-9bdb-ddc119e219db",
+      "ref": "deploy-rating-api-uat",
+      "rel_type": "DEPLOYED_AS",
+      "to": {
+        "ref": "rating-api-uat"
+      }
+    },
+    {
+      "attributes": {
+        "connectivity_kind": "gateway_backend"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "rating-api-prod"
+      },
+      "id": "01a0c450-be0a-7654-9809-e3ea9be8ff76",
+      "ref": "gw-prod",
+      "rel_type": "CONNECTS_TO",
+      "to": {
+        "ref": "rating-svc-prod"
+      }
+    },
+    {
+      "attributes": {
+        "connectivity_kind": "gateway_backend"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "rating-api-uat"
+      },
+      "id": "01a0c450-be0b-7975-8955-57abcc0ffc01",
+      "ref": "gw-uat",
+      "rel_type": "CONNECTS_TO",
+      "to": {
+        "ref": "rating-svc-uat"
+      }
+    },
+    {
+      "attributes": {
+        "subscription_name": "quote-consumer-sub"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "quote-consumer"
+      },
+      "id": "01a0c450-be0c-7205-af09-fd8cde3cd5cc",
+      "ref": "consumer-sub",
+      "rel_type": "SUBSCRIBES_TO",
+      "to": {
+        "identity": {
+          "namespace": "gcp.resource_name",
+          "original_key": "//pubsub.googleapis.com/projects/claims-events-prod/topics/document-indexed"
+        }
+      }
+    },
+    {
+      "attributes": {},
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "refresh-fn"
+      },
+      "id": "01a0c450-be0d-7737-992a-44655e0e0e56",
+      "ref": "fn-calls-api",
+      "rel_type": "CONSUMES_API",
+      "to": {
+        "ref": "rating-api-prod"
+      }
+    },
+    {
+      "attributes": {
+        "connectivity_kind": "configured_endpoint"
+      },
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "refresh-fn"
+      },
+      "id": "01a0c450-be0e-701d-a752-1eaf3c3cb595",
+      "ref": "fn-to-cdn",
+      "rel_type": "CONNECTS_TO",
+      "to": {
+        "ref": "cdn"
+      }
+    },
+    {
+      "attributes": {},
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "ref": "rating-svc-prod"
+      },
+      "id": "01a0c450-be0f-73bb-8956-aeb41e73cc97",
+      "ref": "svc-reads-tables",
+      "rel_type": "READS_FROM",
+      "to": {
+        "ref": "rating-tables"
+      }
+    },
+    {
+      "attributes": {},
+      "evidence_refs": [
+        "aws-config"
+      ],
+      "from": {
+        "identity": {
+          "namespace": "k8s.uid",
+          "original_key": "azure.arm:/subscriptions/00000000-0000-4000-8000-00000000a001/resourceGroups/rg-platform-nonprod/providers/Microsoft.ContainerService/managedClusters/aks-nonprod#01a0c450-931e-72cb-b6fb-2fb935dbae69"
+        }
+      },
+      "id": "01a0c450-be10-7712-bf27-e6678ed25236",
+      "ref": "azure-uat-bff-calls-aws",
+      "rel_type": "CONSUMES_API",
+      "to": {
+        "ref": "rating-api-prod"
+      }
+    }
+  ],
+  "source_ref": "aws-config (synthetic export)",
+  "taxonomy_version": "1.0.0"
+}

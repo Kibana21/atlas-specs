@@ -1,0 +1,12 @@
+{
+  "entity_id": "01a0c450-6c02-7b8e-8d45-e4d9f0d1ad1c",
+  "id": "01a0c450-6c05-7f5c-9717-ca6338b939a0",
+  "key_parts": {},
+  "match_method": "org_key",
+  "namespace": "org.key",
+  "normalization_version": "org-key-1",
+  "normalized_key": "env-dev",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "revision_from": 1,
+  "revision_to": null
+}
