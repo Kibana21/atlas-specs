@@ -313,6 +313,12 @@ def m_conflicted_value_stored(ds: Dataset) -> None:
     entity_named(ds, "vm-batch-prod")["attributes"]["location"] = "westeurope"   # picks a winner no approved rule chose
 
 
+def m_unresolved_without_conflict(ds: Dataset) -> None:
+    vm = entity_named(ds, "vm-batch-prod")
+    ds.tables["fact_assertions"] = [a for a in ds.tables["fact_assertions"]   # one source only: no longer unresolved
+                                    if not (a["fact_id"] == vm["entity_id"] and a["asserted_value"] == "northeurope")]
+
+
 def m_logical_from_provider_only(ds: Dataset) -> None:
     app = entity_named(ds, "Claims Portal", "core.application")
     prov = next(e for e in ds.tables["evidence"] if e["org_id"] == app["org_id"] and e["kind"] == "provider_configuration")
@@ -350,7 +356,7 @@ def m_secret_attribute(ds: Dataset) -> None:
     (m_cross_provider_containment, "D-04"), (m_wrong_flag, "D-08"), (m_retype_by_import, "D-10"), (m_human_import, "D-13"),
     (m_trust_without_evidence, "D-12"), (m_environment_not_env, "D-03"), (m_scope_nesting, "D-16"), (m_revert_mismatch, "D-14"),
     (m_stale_recorded_as_documented, "D-12"), (m_declared_as_observed, "D-12"), (m_logical_from_provider_only, "D-12"),
-    (m_verified_declared_only, "D-19"), (m_verified_by_service, "D-19"), (m_conflicted_value_stored, "D-20"),
+    (m_verified_declared_only, "D-19"), (m_verified_by_service, "D-19"), (m_conflicted_value_stored, "D-20"), (m_unresolved_without_conflict, "D-01"),
 ])
 def test_negative_mutation_is_detected(mutate: Callable[[Dataset], None], rule: str) -> None:
     ds, taxes = dataset()

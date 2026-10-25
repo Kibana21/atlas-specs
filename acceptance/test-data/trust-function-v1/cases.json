@@ -1440,11 +1440,280 @@
         "verification": null
       },
       "title": "Precedence rules are not approved (DEC-034): the function refuses a policy that defines any"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-31",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "MEMBER_OF"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "G2 decision 2: logical membership from provider configuration only (e.g. a tag): not applicable, no publishable fact"
+    },
+    {
+      "expected": {
+        "rule": "TF-5",
+        "trust_state": "curated",
+        "verification_state": "unverified"
+      },
+      "id": "TC-32",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "human_assertion",
+            "field_path": null,
+            "method": "steward:review",
+            "observed_at": "2026-10-03T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "MEMBER_OF"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "G2 decision 2: logical membership asserted by a steward, also seen in a tag: curated; the provider assertion is kept but never establishes it"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-33",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "MEMBER_OF"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Shared resource MEMBER_OF an environment from provider configuration (physical endpoint): discovered"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_reasons": [
+          "no current evidence of ['human_assertion', 'provider_configuration']"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-34",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:iac-state:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "IaC state file (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "DEPLOYED_AS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "G2 decision 1: an IaC state file is declared evidence: documented, and cannot support verifying a deployment"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-35",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "OWNS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "G2 decision 2: ownership is never established by provider configuration"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "unverified"
+      },
+      "id": "TC-36",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2026-09-01T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "CONSUMES_API"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "G2 decision 2: logical API consumption seen only in provider configuration plus a document: documented"
     }
   ],
   "description": "Truth table for trust function v1 (contracts/trust-function.md). Synthetic. Inputs are a claim, the fact's current assertions with their evidence's method, observed_at and valid_to, the recorded verification, the trust policy, the evaluation time and the prior approved values. The reference implementation and the CP3 backend must both pass every case.",
   "format": "atlas.trust-function-cases.v1",
   "function": "trust-1",
-  "status": "proposed",
+  "status": "approved",
   "taxonomy_version": "1.1.0"
 }

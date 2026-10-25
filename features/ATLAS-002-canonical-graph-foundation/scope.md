@@ -1,6 +1,6 @@
 # ATLAS-002 — Canonical Graph Foundation: Scope
 
-**Version:** 0.1 · **Date:** 24 October 2026 · **Status:** **Approved in principle** by the owner (24 Oct 2026). CP0 authorized and complete. CP1 **complete** (G1 passed 25 Oct 2026: D1–D19 approved). CP2 authorized (25 Oct 2026) and delivered; CP3–CP5 **not authorized**: each needs the owner's explicit authorization. ATLAS-002 is not Accepted until its final gate.
+**Version:** 0.1 · **Date:** 24 October 2026 · **Status:** **Approved in principle** by the owner (24 Oct 2026). CP0 authorized and complete. CP1 **complete** (G1 passed 25 Oct 2026: D1–D19 approved). CP2 **complete** (G2 passed 25 Oct 2026). CP3 **authorized** (25 Oct 2026), up to the owner-controlled role gate G3-R. CP4–CP5 **not authorized**: each needs the owner's explicit authorization. ATLAS-002 is not Accepted until its final gate.
 
 ## Goal
 
@@ -26,8 +26,8 @@ A canonical, evidence-backed graph store that every later feature reads from. It
 |---|---|---|---|---|
 | CP0 | backend + frontend | Fix A001-DEF-01 (E-48) with a regression test; move frontend `e2e/backend.ref` | G0: defect closed, CI green, E2E green | **Done** (`evidence.md` §1) |
 | CP1 | specs | Decision proposals as ADRs (Proposed), register rows set to Proposed, decision matrix | G1: owner approves the decisions; register rows become Confirmed | **Done: G1 passed** (owner's final approval of D1–D19, 25 Oct 2026; `decision-matrix.md`, `evidence.md` §2.5) |
-| CP2 | specs | Taxonomy artifact, schemas, examples, golden fixture, validator; spec/plan/tasks/acceptance for CP3–CP5 | G2: CI validates schemas and fixture; owner approves the plan | Delivered; owner decisions at G2 applied (`evidence.md` §3, §4); **G2 closure awaiting owner confirmation** |
-| CP3 | backend | Migration `0002` per ADR-0001; taxonomy validation; privilege tests | G3: migrations round-trip; privileges; matrix rejects invalid input | Not authorized |
+| CP2 | specs | Taxonomy artifact, schemas, examples, golden fixture, validator; spec/plan/tasks/acceptance for CP3–CP5 | G2: CI validates schemas and fixture; owner approves the plan | **Done: G2 passed** (owner, 25 Oct 2026; `evidence.md` §3–§5) |
+| CP3 | backend | Migration `0002` per ADR-0001; taxonomy validation; privilege tests | G3: migrations round-trip; privileges; matrix rejects invalid input | **Authorized** 25 Oct 2026; G3-R (owner runs the role script) precedes any local run of migration `0002` |
 | CP4 | backend | Deterministic fixture loader; integrity suite; pilot-size benchmark | G4: idempotent load with an equal graph hash; integrity green; benchmark recorded | Not authorized |
 | CP5 | all | Evidence, release tags, owner sign-off | G5: acceptance | Not authorized |
 
