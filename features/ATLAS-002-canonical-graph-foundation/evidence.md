@@ -287,3 +287,17 @@ Follow `proposals/g3r-runbook.md` at the merged commit. Run the setup script, th
 3. merges PR #9.
 
 Migration `0002` on `atlas_db` needs a separate approval.
+
+### 6.6 G3-R read-only preflight and CP4 follow-ups (owner request, 25 Oct 2026)
+
+Read-only review of the scripts at `91755a4` and of the local server, using catalog `SELECT`s in sessions with `default_transaction_read_only=on`. Nothing was executed or changed.
+
+- Every setup guard holds:
+  - server 15.12;
+  - exactly the four ATLAS-001 roles, with no special attributes, limits 3/10 and no memberships;
+  - `atlas_db`/`atlas_test` owned by their migrators;
+  - PUBLIC has no CONNECT or TEMP on either database;
+  - schema `atlas` owned by the migrator in both databases, each at `0001_baseline`.
+- Server logging: `log_statement=none`, no `pg_stat_statements`, `log_min_error_statement=error`. A `CREATE ROLE … PASSWORD` statement is therefore logged only if that statement fails, and the guards make that unlikely.
+- Runbook correction: `make doctor` does not check database ownership; the script guards do.
+- Follow-ups recorded as A2-T25…T27 and AC-CP4-05/06: benchmark the full-organization load during publication; implement and verify reverts; validate trust recomputation when evidence changes.
