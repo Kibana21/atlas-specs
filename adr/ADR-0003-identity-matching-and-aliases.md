@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review: D3 and D5 approved, D4 approved with clarification (original and normalized keys, normalization, case, identity changes, collisions); revision 1 was 24 Oct 2026 |
+| Status | **Proposed**. Revision 3 (25 Oct 2026): provider-qualified namespace registry (ADR-0019). Revision 2 (25 Oct 2026) after the owner's CP1 review: D3 and D5 approved, D4 approved with clarification (original and normalized keys, normalization, case, identity changes, collisions); revision 1 was 24 Oct 2026 |
 | Register | DEC-025 (Proposed); field-authority principles of DEC-034 (Proposed) |
 | Owner (proposed) | Data/Platform lead + Enterprise Architecture; approval: Atlas owner |
 | Related | INV-01, INV-04, INV-06, MOD-04; tech §3.2, §7.3 (ADR-003, ADR-012 in tech §22); ADR-0015, ADR-0016, ADR-0018 |
@@ -29,18 +29,40 @@ In ATLAS-002 the decision governs the schema and the fixture loader. Connector-d
 3. **Alias:** a human-meaningful name for an entity, scoped by `(type_key, environment_id or none)` with status `proposed`, `approved` or `retired`. Only **approved** aliases resolve. A display name is *never* an alias automatically.
 4. **Organization key:** an organization-controlled key for manually modeled things (for example an application code `APP-0042`), stored as `namespace = org.key`.
 
-### Namespaces and normalization (v1)
+### Provider-qualified namespaces (revision 3: provider-neutral)
 
-| Namespace | Key | Normalization |
-|---|---|---|
-| `azure.arm` | Azure Resource ID (`/subscriptions/{sub}/resourceGroups/{rg}/providers/{ns}/{type}/{name}[/…]`) | See "Azure Resource IDs" below: validate, then lowercase; malformed IDs are rejected, never repaired |
-| `azure.tenant_id` | Entra tenant GUID | Lowercase canonical GUID |
-| `azure.subscription_id` | Subscription GUID | Lowercase canonical GUID (also embedded in ARM IDs) |
-| `k8s.uid` | `{cluster ARM ID}#{metadata.uid}` | ARM part as above; UID lowercase |
-| `apim.api` | `{APIM service ARM ID}#api:{apiId};rev={revision}` | ARM part as above |
-| `apim.operation` | `{apim.api key}#op:{operationId}` | **Reserved**: no v1 type uses it (ADR-0017 G-T3) |
-| `org.key` | Organization key | Trim, case-preserving, compared case-insensitively |
-| `source.<connector>` | A source-native stable key without a better namespace | Per connector (Phase 2) |
+Every external identifier belongs to exactly one **namespace**, registered as reference data with the taxonomy (ADR-0019). A namespace states:
+
+- its **provider** (or `org`, `source`);
+- its **format** and validation (malformed keys are rejected, never repaired);
+- its **normalization rule** and version;
+- its **case rule**: case is folded **only** where the provider documents identifiers as case-insensitive (Azure Resource Manager). Everywhere else case is preserved, because folding could merge two different resources;
+- its **uniqueness scope**: the provider scope within which the key is unique (partition, account, region, project, realm). The normalized key must **embed** that scope, so uniqueness is always the same constraint, `(org_id, namespace, normalized_key)`, for every provider;
+- which types may carry it.
+
+**Principles:** identities never come from display names; one entity may have several identities (for example an Azure subscription's GUID and its ARM ID); a namespace is never shared between providers; a provider can have several namespaces.
+
+| Namespace | Provider | Key (normalized form) | Uniqueness scope embedded | Case | v1 |
+|---|---|---|---|---|---|
+| `azure.arm` | Azure | Azure Resource ID (rule `arm-1`, below) | Subscription (or tenant-level path) | **Folded** (documented case-insensitive) | Implemented |
+| `azure.tenant_id`, `azure.subscription_id` | Azure | GUID, canonical lowercase form | Global | GUID form | Implemented |
+| `apim.api` | Azure | `{APIM service azure.arm key}#api:{apiId};rev={revision}` | APIM service | ARM part folded; rest preserved | Implemented |
+| `apim.operation` | Azure | `{apim.api key}#op:{operationId}` | API | — | **Reserved** (ADR-0017 G-T3) |
+| `aws.arn` | AWS | ARN: `arn:{partition}:{service}:{region}:{account}:{resource}` (region and account may be empty for global services) | Partition, account, region | Preserved | Implemented (validation only) |
+| `aws.account` | AWS | `{partition}:{12-digit account ID}` | Partition | Digits | Implemented |
+| `gcp.resource_name` | Google Cloud | Full resource name: `//{service}.googleapis.com/{relative resource name}` | Embedded project, folder or organization path | Preserved | Implemented (validation only) |
+| `alibaba.arn` | Alibaba Cloud | `acs:{service}:{region}:{account}:{resource}` | Account, region | Preserved | Implemented (validation only) |
+| `oci.ocid` | OCI | OCID: `ocid1.{resource type}.{realm}.{region or empty}.{unique ID}` | Realm (globally unique) | Preserved | Implemented (validation only) |
+| `huawei.resource` | Huawei Cloud | Composite `{account or project ID}:{region}:{service}:{resource type}:{resource ID}` | Project, region | Preserved | Planned (format confirmed at onboarding) |
+| `tencent.qcs` | Tencent Cloud | Six-segment resource description `qcs::{service}:{region}:uin/{account}:{resource type}/{resource ID}` | Account, region | Preserved | Planned (format confirmed at onboarding) |
+| `ibm.crn` | IBM Cloud | Cloud Resource Name `crn:v1:…` | Account, location | Preserved | Planned (format confirmed at onboarding) |
+| `k8s.uid` | Cluster's provider | `{cluster namespace}:{cluster normalized key}#{metadata.uid}` | Cluster | UID lowercase | Implemented |
+| `org.key` | — | Organization key (for example `APP-0042`) | Atlas organization | Trimmed; case-preserving, compared case-insensitively | Implemented |
+| `source.<source_key>` | — | A stable key from a registered source without a provider namespace: on-premises CMDB, private-cloud platform, custom technology, import file | That source | Preserved | Implemented |
+
+- "Implemented (validation only)" means CP3 writes and tests a pure validator and normalizer, with golden examples, so synthetic fixtures for those providers can be loaded. It is **not** a connector; no provider API is called.
+- A "Planned" namespace is registered with its format confirmed against the provider's public documentation when that provider is onboarded. Until then, resources from that provider are keyed with `source.<source_key>`, and a later re-keying links them (a steward decision, or automatic when the source supplies both keys).
+- Adding a namespace is a taxonomy MINOR change plus one reviewed normalizer (ADR-0019 §Onboarding). A changed normalization rule is a new rule version with a re-normalization migration and a collision report.
 
 ## Azure Resource IDs (D4, revised)
 
@@ -70,7 +92,7 @@ Later sightings with different casing or spelling of the **same** normalized key
 3. **Case:** lowercase the whole ID with Unicode-aware simple case folding. Azure Resource Manager treats resource IDs as case-insensitive, and sources really do return mixed casing for the same resource (for example `resourceGroups` vs `resourcegroups`).
 4. **GUID segments** (subscription) in lowercase canonical 8-4-4-4-12 form.
 5. **Percent-encoding:** kept exactly as received; never decoded. Two IDs that differ only in encoding are therefore different keys. If that happens for one resource, a steward links them (an exceptional case, reported).
-6. The `azure_type` system attribute (ADR-0017) is `provider_namespace/type_path`, also lowercase.
+6. For Azure types, the `native_type` attribute (ADR-0017; formerly `azure_type`) is `provider_namespace/type_path`, also lowercase.
 
 Changing any of these steps is a new `normalization_version` with a re-normalization migration in one change set and a collision report, reviewed like a breaking change.
 
@@ -90,18 +112,30 @@ Changing any of these steps is a new `normalization_version` with a re-normaliza
 | Situation | Behaviour |
 |---|---|
 | Two different `original_key`s normalize to the same key | One identity. If both arrive in one input for **different** entities (for example a fixture with two records), the whole input is rejected with both records named |
-| A normalized key is already bound to an entity of an **incompatible type** (`azure_type` disagrees with the entity's type) | No link; a case. Typical cause: a generic resource that should be re-typed (ADR-0017 §2.4) |
+| A normalized key is already bound to an entity of an **incompatible type** (`native_type` disagrees with the entity's type) | No link; a case. Typical cause: a generic resource that should be re-typed (ADR-0017 §2.4) |
 | The ARM ID's parsed hierarchy contradicts a recorded `CONTAINS` (database ID naming another server) | The containment relationship is rejected; a case |
 | The same ARM ID appears in two organizations (future) | Allowed: uniqueness is per organization (ADR-0016) |
 | An `azure.subscription_id` identity and the subscription's `azure.arm` identity point to different entities | Rejected as ambiguous; a case |
 
 **Tenant scope:** ARM IDs contain the subscription. The subscription's tenant is a modeled relationship (`azure.tenant` `CONTAINS` `azure.subscription`), not part of the key.
 
-## Matching precedence (automatic steps stop at the first unique hit)
+## Other providers
+
+The Azure rules above are the template for every provider namespace:
+
+- **original and normalized keys** are both stored, for every namespace;
+- **an identifier change** (a move, rename or re-creation that changes the provider key) never silently re-points an entity. It is linked automatically only through an independent stable key in another namespace; otherwise it becomes a steward candidate;
+- **a key bound to an incompatible type** opens a case;
+- **provider hierarchy embedded in a key** (GCP resource names, OCIDs inside compartments, ARNs with accounts) is containment evidence, and a contradicting `CONTAINS` is rejected;
+- **two providers never share a namespace**, so an AWS and an Azure resource can't collide even with equal-looking keys.
+
+Provider-specific details (for example which resource types can move between accounts or compartments without a new identifier) are recorded per namespace when the provider is onboarded.
+
+## Matching precedence (automatic steps stop at the first unique hit; identical for every provider)
 
 | Step | Rule | Automatic? |
 |---|---|---|
-| 1 | Exact `provider_id` identity in the same namespace (ARM ID, tenant/subscription GUID, `k8s.uid`, APIM keys) | **Yes**: links to that entity |
+| 1 | Exact `provider_id` identity in the same namespace (ARM ID, ARN, GCP resource name, OCID, tenant/subscription GUID, `k8s.uid`, APIM keys, …) | **Yes**: links to that entity |
 | 2 | Exact **approved** alias in the same scope (type plus environment) | **Yes** |
 | 3 | Exact organization key (`org.key`) | **Yes** |
 | 4 | Anything else: normalized-name similarity, same parent and type, fuzzy/trigram, heuristics | **Never.** Produces `match_candidate` rows (score, reasons) for steward review only (Phase 2 generation; ATLAS-002 stores the structure) |

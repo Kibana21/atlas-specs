@@ -34,7 +34,7 @@ The UX shows a "Verified" badge that is not a tech trust state. INV-03 requires 
 | Entity existence | "APIM instance X exists in subscription S" |
 | Attribute value (`field_path`) | "X.location = westeurope"; "app A.owner = team T" (as `OWNS`) |
 | Relationship existence | "service B `CONSUMES_API` api C" |
-| Relationship attribute | "W `CONNECTS_TO` K, connectivity_kind = private_endpoint" |
+| Relationship attribute | "W `CONNECTS_TO` K, connectivity_kind = private_link" |
 
 "Service B reads database D" and "service B writes database D" are **two** facts (`READS_FROM`, `WRITES_TO`), each with its own assertions, trust state, verification and history (ADR-0017 §5).
 
@@ -46,7 +46,7 @@ Each fact has **zero or more evidence assertions**. Zero assertions means there 
 
 | `evidence_kind` | Meaning | DEP-04 term |
 |---|---|---|
-| `provider_configuration` | Read from a provider's configuration or control-plane API (ARM, APIM, AKS, Service Bus) by an approved connector | configuration-derived |
+| `provider_configuration` | Read from **any** provider's or platform's configuration or control plane (Azure, AWS, Google Cloud, OCI, …; a private-cloud platform; an on-premises CMDB or IaC state) by an approved source | configuration-derived |
 | `contract` | Derived from a machine-readable artifact (OpenAPI, AsyncAPI, IaC manifest) | contract-derived |
 | `documentation` | Documented architecture: documents, diagrams, imported drawings, ADRs | (documented) |
 | `human_assertion` | Stated by an identified person (steward, owner) through Atlas or a reviewed import | manually verified, once verified (dimension 3) |
@@ -97,6 +97,10 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 
 - This is how *unknown* is represented: as coverage, **never** as a drawn edge or an invented value (DEC-066, RULE-04 → `UNKNOWN`).
 - It maps PASS-07: unknown → `unknown_coverage`; missing → `not_documented`; verified → dimension 3; stale → dimension 2.
+
+## Provider neutrality (revision 3)
+
+Nothing in this model depends on a provider. Evidence records **the source that knows**, not the provider of the fact. A cross-provider relationship usually has evidence from one side only (for example an Azure setting naming an AWS endpoint). It is recorded as exactly that, `provider_configuration` from the Azure source, and is never upgraded to verified without a human verification (ADR-0019 §6).
 
 ## Allowed evidence per relationship type
 
