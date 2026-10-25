@@ -82,7 +82,7 @@ Consequences:
 - Declared evidence (IaC manifests, OpenAPI) can never alone support verifying a physical claim. A steward must first add a `human_assertion`, which is explicit, never silent.
 - Publishing a version stored as `verified` that fails TF-V is rejected (D-19).
 - When a later change makes a verified fact conflicted, the new version is written `unverified`.
-- An expired verification stays recorded on its version for history. Its trust state is `stale` and it is shown as expired.
+- An expired verification stays recorded on its version for history. Its trust state is `stale` and it is shown as expired. A recompute version carries the record forward unchanged; D-19 checks a verification only when it is recorded or changed.
 
 ## Storage and recomputation
 

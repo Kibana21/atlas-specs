@@ -60,7 +60,7 @@ Principles (owner guidance, 25 Oct 2026):
 | D-16 | `infra.scope` nesting follows the provider's `scope_kind` rules | ADR-0019 §4 |
 | D-17 | Import: identities resolving to different entities are ambiguous; no link (reported) | ADR-0003 |
 | D-18 | Import: no identity match and no explicit fixture ID; never matched by name (reported) | ADR-0003, ADR-0015 |
-| D-19 | A version stored as `verified` satisfies TF-V at its publication: a human verifier, not conflicted, stale or inferred, and current evidence that can support the claim (declared evidence alone never supports a physical claim) | ADR-0018 §3, decision U-3 |
+| D-19 | A version stored as `verified` satisfies TF-V at its publication: a human verifier, not conflicted, stale or inferred, and current evidence that can support the claim (declared evidence alone never supports a physical claim). Checked when the verification is recorded or changed; an unchanged record carried into a new version (for example a recomputation that turns an expired verification `stale`) is history (clarified in CP4) | ADR-0018 §3, decision U-3 |
 | D-20 | Every asserted field's stored value equals the trust function's selected value: the agreed value, or for an unresolved conflict the prior approved value or none | ADR-0018 (conflict procedure) |
 
 ## 4. ADVISORY findings
