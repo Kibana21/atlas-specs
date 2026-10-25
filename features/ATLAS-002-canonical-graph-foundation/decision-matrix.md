@@ -1,6 +1,6 @@
 # ATLAS-002 CP1 — Decision matrix (for final owner confirmation)
 
-**Version:** revision 3 · **Date:** 25 October 2026 · **Status:** every row is still **Proposed** in the register. The owner reviewed revision 1 (verdicts in §1) and accepted revision 2's direction, then asked for a provider-agnostic review (§2). Register rows move to Confirmed, and the ADRs to Accepted, only when the owner gives final CP1 approval (Gate G1). No canonical-graph code, table, migration, role, privilege or connector exists.
+**Version:** revision 4 (compatibility gate) · **Date:** 25 October 2026 · **Status:** every row is still **Proposed** in the register. The owner reviewed revision 1 (verdicts in §1) and accepted revision 2's direction, then asked for a provider-agnostic review (§2). Register rows move to Confirmed, and the ADRs to Accepted, only when the owner gives final CP1 approval (Gate G1). No canonical-graph code, table, migration, role, privilege or connector exists.
 
 ## 1. Owner reviews
 
@@ -106,6 +106,32 @@ Taxonomy MINOR (provider key, `scope_kind` rules, `native_type → category` map
 
 - **PostgreSQL 15 remains sufficient.** Everything uses B-tree and partial indexes, composite FKs, `NULLS NOT DISTINCT` (15), `jsonb`, recursive CTEs, PL/pgSQL triggers, column privileges and `COPY`. No extension and nothing from 16+ (ADR-0001 §PostgreSQL 15 remains sufficient).
 - **No additional infrastructure is needed:** no graph database, search engine, broker, object store, cache, new Redis usage or new service. The only proposed server-level change is the two ingestion roles, run by the owner after approval.
+
+## 9. Final compatibility gate (revision 4, 25 Oct 2026)
+
+Owner's focused check; no redesign. Two gaps found; both closed by taxonomy-only amendments to ADR-0017 §2.5 (no new type, relationship or table).
+
+| Scenario | Result | Supporting ADR | Amendment |
+|---|---|---|---|
+| A1 DEV, SIT, UAT, PROD, DR and organization-defined labels | **GAP → fixed** | ADR-0017 §2.2 row 12, §2.5 | `environment_kind` had no `sit`, `dr`, `preprod`; now a taxonomy vocabulary (MINOR-extensible); environments themselves are organization-named entities |
+| A2 One application, distinct deployments per environment | PASS | ADR-0017 §4.1 (`DEPLOYED_AS` many-to-many), §6.3 | — |
+| A3 One physical resource shared by environments, one identity | PASS | ADR-0017 §2.3 (`shared` + `MEMBER_OF`) | — |
+| A4 Evidenced cross-environment relationships | PASS | ADR-0017 §4.4; ADR-0019 S1 | — |
+| A5 PROD with standby deployments in a DR region | **GAP → fixed** | ADR-0017 §2.5 | Optional `deployment_role` on `DEPLOYED_AS` (primary, active_secondary, standby, unknown); region stays `location` |
+| A6 DR resources also serving production | PASS after A5 | ADR-0017 §2.5 | `active_secondary` plus its own evidenced relationships |
+| A7 Future environment comparisons on the same facts | PASS | ADR-0017 §2.5; ADR-0008 §6 | — |
+| A Environment membership ≠ physical containment | PASS | ADR-0017 §3 | — |
+| B1 Unknown service as `infra.resource` or a neutral type | PASS | ADR-0017 §2.2 rule for choosing a type, §7.2; ADR-0019 §3 | — |
+| B2 Native identity and source evidence kept | PASS | ADR-0003 namespace registry (`source.*` for unknown providers); ADR-0018 | — |
+| B3 Reclassified later with the same ID | PASS | ADR-0017 §2.4 (`type_key` on versions) | — |
+| B4 Historical revisions retained | PASS | ADR-0008 §2, §6 (`taxonomy_version` per version) | — |
+| B5 No invented relationships | PASS | ADR-0017 §7.2, §7.4 | — |
+| B6 Type-specific onboarding without core redesign | PASS | ADR-0019 §Onboarding | — |
+| C1 Physical containment provider-consistent | PASS | ADR-0017 §3.1 rule 5 | — |
+| C2 Logical membership across providers | PASS | ADR-0017 §3.2; ADR-0019 S5 | — |
+| C3 Cross-environment ≠ cross-provider | PASS | Separate computed flags: ADR-0017 §4.4, ADR-0019 §6 | — |
+| C4 Derived traversal never stored | PASS | ADR-0017 §4.3, §7.5; ADR-0019 S5 | — |
+| C5 Unknown generic resources not discarded | PASS | ADR-0017 §7.4 (stored as `infra.resource`; only non-matrix relationships are rejected and reported) | — |
 
 ## Not decided here (stay as they are)
 
