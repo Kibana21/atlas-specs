@@ -340,3 +340,17 @@ Recorded in: DEC-044 (register v0.10), ADR-0001 §Privileges (local single-user 
 | `make doctor` | PASS, except two WARNs: the single-user model with a SUPERUSER account, and loopback `trust` (DEC-084) |
 | Local database state | `atlas_test` at `0002_canonical_graph` (26 tables, only the default organization; tests cleaned up). **`atlas_db` still at `0001_baseline`**. Roles: the four ATLAS-001 roles and `atlas_db_user`, all unchanged |
 | CI, head `79fa25c`, run [40183920480](https://github.com/Kibana21/atlas-backend/actions/runs/40183920480) | All six checks **success**. Separated roles: 111 passed, then the rollback drill. Single-user leg: 46 passed, 65 skipped, identical to local |
+
+## 8. Gate G3 — CP3 accepted (owner, 25 Oct 2026)
+
+**Owner decision (written, in the conversation):** G3 approved, on the evidence below and the documented local single-user deviation. The approved local configuration uses `atlas_db_user` for database access; the separated-role model remains the default for non-local environments. CP4 authorized against `atlas_test` and isolated CI databases only.
+
+| Item | Value |
+|---|---|
+| Gate | **CP3 G3: PASS** |
+| Backend | atlas-backend PR #9, merged at `4689bf5005290db4f499bebeca645e893087b1e4` |
+| CI | PR head `45f0a93` run [40184412078](https://github.com/Kibana21/atlas-backend/actions/runs/40184412078); `main` run [40184561319](https://github.com/Kibana21/atlas-backend/actions/runs/40184561319). All six checks success |
+| Six-role CI integration (separated model) | 111 passed, then the G3-R rollback drill |
+| Local integration (`atlas_test`, single-user model) | 46 passed, 65 skipped (53 role-separation, 12 CI-only password checks); the CI single-user leg is identical |
+| Accepted exception | TD-DEV-010: local single-user model with the superuser `atlas_db_user` |
+| Development database | `atlas_db` remains at `0001_baseline`; migration `0002` there needs separate owner approval |
