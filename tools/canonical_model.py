@@ -22,6 +22,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -265,13 +266,21 @@ def valid_at(row: dict[str, Any], revision: int) -> bool:
     return row["revision_from"] <= revision and (row["revision_to"] is None or row["revision_to"] > revision)
 
 
+TRUST_POLICY_FILE = "trust-policy.json"
+NO_POLICY: dict[str, Any] = {"freshness": [], "precedence": []}
+
+
 @dataclass
 class Dataset:
     tables: dict[str, list[dict[str, Any]]]
+    policy: dict[str, Any] = field(default_factory=lambda: copy.deepcopy(NO_POLICY))   # trust policy (TF-F, TF-2)
 
     @classmethod
     def load(cls, directory: Path) -> Dataset:
-        return cls({t: json.loads((directory / f"{t}.json").read_text(encoding="utf-8")) for t in TABLES})
+        tables = {t: json.loads((directory / f"{t}.json").read_text(encoding="utf-8")) for t in TABLES}
+        policy_path = directory / TRUST_POLICY_FILE
+        policy = json.loads(policy_path.read_text(encoding="utf-8")) if policy_path.exists() else copy.deepcopy(NO_POLICY)
+        return cls(tables, policy)
 
     def org_ids(self) -> list[str]:
         return [o["id"] for o in self.tables["organizations"]]
@@ -333,21 +342,8 @@ def graph_hash(st: State) -> str:
 # --------------------------------------------------------------------------- derived values
 
 
-def trust_compatible(trust: str, kinds: set[str]) -> bool:
-    """D-12: the stored trust state must be possible given the fact's current evidence kinds (ADR-0018)."""
-    if trust == "discovered":
-        return "provider_configuration" in kinds
-    if trust == "documented":
-        return bool(kinds) and kinds <= {"documentation", "contract"}
-    if trust == "curated":
-        return "human_assertion" in kinds
-    if trust == "inferred":
-        return kinds == {"inferred"}
-    return bool(kinds) or trust in ("stale", "conflicted", "proposed")
-
-
 def default_trust(kinds: set[str]) -> str:
-    """Generator's choice for single-kind facts; mixed provider+human evidence is not used in the fixture (CP3 item)."""
+    """Generator's choice from the existence evidence kinds; tools check it against ``trust_v1``."""
     if "provider_configuration" in kinds:
         return "discovered"
     if "human_assertion" in kinds:
@@ -357,6 +353,115 @@ def default_trust(kinds: set[str]) -> str:
     if kinds == {"inferred"}:
         return "inferred"
     raise ValueError(f"no trust state for evidence kinds {sorted(kinds)}")
+
+
+# --------------------------------------------------------------------------- trust function v1 (contracts/trust-function.md)
+
+TRUST_FUNCTION_VERSION = "trust-1"
+EVIDENCE_KINDS = frozenset({"provider_configuration", "contract", "documentation", "human_assertion", "inferred"})
+HUMAN_ACTOR_NAMESPACES = frozenset({"oidc"})   # taxonomy actor_namespaces with actor_kind human (a test keeps them equal)
+# TF-V: existence evidence that can support a human verification, by claim class
+VERIFICATION_SUPPORT = {
+    "physical": frozenset({"provider_configuration", "human_assertion"}),
+    "logical": frozenset({"human_assertion", "documentation", "contract"}),
+}
+
+
+@dataclass(frozen=True)
+class Claim:
+    """What a fact claims, as far as trust is concerned.
+
+    ``physical``: a physical entity, or a relationship with at least one physical endpoint.
+    ``allowed_kinds``: for a relationship, the taxonomy's allowed evidence kinds for its type.
+    """
+
+    fact_kind: str
+    physical: bool
+    allowed_kinds: frozenset[str] | None = None
+
+    def applicable_kinds(self) -> frozenset[str]:
+        """TF-A: evidence kinds that can establish this claim's existence."""
+        if self.fact_kind == "relationship":
+            return frozenset(self.allowed_kinds or ())
+        return EVIDENCE_KINDS if self.physical else EVIDENCE_KINDS - {"provider_configuration"}
+
+
+def _ts(value: str) -> float:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+
+
+def freshness_of(assertion: dict[str, Any], policy: dict[str, Any], at: str) -> str:
+    """TF-F: ``fresh``, ``expired`` or ``unassessed`` (no freshness policy defined for the source)."""
+    rule = next((p for p in policy.get("freshness", []) if p["method"] == assertion["method"]), None)
+    if rule is None:
+        return "unassessed"
+    age_days = (_ts(at) - _ts(assertion["observed_at"])) / 86400
+    return "expired" if age_days > rule["stale_after_days"] else "fresh"
+
+
+def trust_v1(claim: Claim, assertions: list[dict[str, Any]], verification: dict[str, Any] | None, policy: dict[str, Any],
+             at: str, prior_values: dict[str, Any] | None = None, origin: str = "published") -> dict[str, Any]:
+    """Pure, deterministic trust function v1 (owner decision U-3, 25 Oct 2026).
+
+    ``assertions`` are the fact's current assertions at the evaluated revision, each with ``evidence_kind``,
+    ``field_path``, ``asserted_value``, ``method``, ``observed_at`` and ``valid_to`` (from its evidence).
+    ``at`` is the evaluation time (the publishing change set's time), never the wall clock.
+    Returns the trust state, the verification state it supports, the deciding rule and the selected values
+    of every asserted field.
+    """
+    if policy.get("precedence"):
+        raise ValueError("trust-1 accepts no precedence rules: DEC-034 values are not approved")
+    out: dict[str, Any] = {"function": TRUST_FUNCTION_VERSION, "selected": {}}
+    if origin == "draft":
+        return {**out, "trust_state": "proposed", "verification_state": "unverified", "rule": "TF-0"}
+    current = [a for a in assertions if not a.get("valid_to") or _ts(a["valid_to"]) > _ts(at)]
+    existence = [a for a in current if a["field_path"] is None and a["evidence_kind"] in claim.applicable_kinds()]
+    # TF-2: materially incompatible values for one field, unresolved (no approved precedence in v1)
+    values: dict[str, set[str]] = {}
+    for a in current:
+        if a["field_path"] is not None:
+            values.setdefault(a["field_path"], set()).add(canonical_json(a["asserted_value"]))
+    conflicts = sorted(p for p, vs in values.items() if len(vs) > 1)
+    for p, vs in values.items():
+        out["selected"][p] = (prior_values or {}).get(p) if p in conflicts else json.loads(next(iter(vs)))
+    out["conflicts"] = conflicts
+    if not existence:
+        return {**out, "trust_state": None, "verification_state": "unverified", "rule": "TF-1"}
+    usable = [a for a in existence if freshness_of(a, policy, at) != "expired"]
+    kinds = {a["evidence_kind"] for a in usable}
+    v = verification or {}
+    recorded = v.get("verification_state") == "verified"
+    expired = recorded and v.get("expires_at") is not None and _ts(v["expires_at"]) <= _ts(at)
+    if conflicts:
+        state, rule = "conflicted", "TF-2"
+    elif expired:
+        state, rule = "stale", "TF-3a"
+    elif not usable:
+        state, rule = "stale", "TF-3b"
+    elif "provider_configuration" in kinds:
+        state, rule = "discovered", "TF-4"
+    elif "human_assertion" in kinds:
+        state, rule = "curated", "TF-5"
+    elif kinds & {"documentation", "contract"}:
+        state, rule = "documented", "TF-6"
+    else:
+        state, rule = "inferred", "TF-7"
+    out.update(trust_state=state, rule=rule)
+    # TF-V: a recorded human verification counts only when the claim's evidence can support it
+    reasons = []
+    if recorded:
+        if (v.get("verified_by") or {}).get("namespace") not in HUMAN_ACTOR_NAMESPACES:
+            reasons.append("verified_by is not a human actor")
+        if not v.get("verified_at") or _ts(v["verified_at"]) > _ts(at):
+            reasons.append("verified_at missing or after the evaluation time")
+        if state not in ("discovered", "curated", "documented"):
+            reasons.append(f"trust state {state}")
+        support = VERIFICATION_SUPPORT["physical" if claim.physical else "logical"]
+        if not kinds & support:
+            reasons.append(f"no current evidence of {sorted(support)}")
+    out["verification_state"] = "verified" if recorded and not reasons else "unverified"
+    out["verification_reasons"] = reasons
+    return out
 
 
 def relationship_flags(frm: dict[str, Any], to: dict[str, Any]) -> dict[str, Any]:

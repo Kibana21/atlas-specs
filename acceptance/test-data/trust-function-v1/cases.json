@@ -1,0 +1,1450 @@
+{
+  "cases": [
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-01",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Physical resource read from provider configuration"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-02",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "human_assertion",
+            "field_path": null,
+            "method": "steward:review",
+            "observed_at": "2026-10-03T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Provider configuration plus a steward assertion with no disagreement: the label is discovered, both assertions kept"
+    },
+    {
+      "expected": {
+        "rule": "TF-5",
+        "trust_state": "curated",
+        "verification_state": "unverified"
+      },
+      "id": "TC-03",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "human_assertion",
+            "field_path": null,
+            "method": "steward:review",
+            "observed_at": "2026-10-03T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "On-premises resource known only from a steward assertion"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "unverified"
+      },
+      "id": "TC-04",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:iac:v1",
+            "observed_at": "2026-09-12T12:00:00Z",
+            "source_ref": "IaC manifest (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "CONTAINS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "U-1: IaC manifest declares physical containment: documented, never observed"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_reasons": [
+          "no current evidence of ['human_assertion', 'provider_configuration']"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-05",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:iac:v1",
+            "observed_at": "2026-09-12T12:00:00Z",
+            "source_ref": "IaC manifest (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "DEPLOYED_AS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "U-1: IaC manifest declares a deployment; a human verification is not supported by declared evidence alone"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-06",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:iac:v1",
+            "observed_at": "2026-09-12T12:00:00Z",
+            "source_ref": "IaC manifest (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "DEPLOYED_AS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "U-1: deployment observed in provider configuration and declared in IaC"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "verified"
+      },
+      "id": "TC-07",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:openapi:v1",
+            "observed_at": "2026-09-10T12:00:00Z",
+            "source_ref": "OpenAPI document (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "CONTAINS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "U-1: OpenAPI evidences an API's operation (logical containment); a steward verification is supported"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_reasons": [
+          "no current evidence of ['human_assertion', 'provider_configuration']"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-08",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "contract",
+            "field_path": null,
+            "method": "import:openapi:v1",
+            "observed_at": "2026-09-10T12:00:00Z",
+            "source_ref": "OpenAPI document (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "DEPLOYED_AS"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "OpenAPI never evidences a deployment of the API on infrastructure: verification not supported"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-09",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": false
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Logical entity with provider configuration only: not applicable to the claim, so no publishable fact"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-10",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "DEPENDS_ON"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Evidence kind not allowed for the relationship type (DEPENDS_ON from provider configuration)"
+    },
+    {
+      "expected": {
+        "conflicts": [
+          "attributes.location"
+        ],
+        "rule": "TF-2",
+        "selected": {
+          "attributes.location": null
+        },
+        "trust_state": "conflicted",
+        "verification_state": "unverified"
+      },
+      "id": "TC-11",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "westeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "northeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "import:cmdb:v1",
+            "observed_at": "2026-10-06T12:00:00Z",
+            "source_ref": "synthetic CMDB",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Two provider sources disagree on location, no prior value: conflicted, selected value none"
+    },
+    {
+      "expected": {
+        "conflicts": [
+          "attributes.location"
+        ],
+        "rule": "TF-2",
+        "selected": {
+          "attributes.location": "westeurope"
+        },
+        "trust_state": "conflicted",
+        "verification_state": "unverified"
+      },
+      "id": "TC-12",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "westeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "northeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "import:cmdb:v1",
+            "observed_at": "2026-10-06T12:00:00Z",
+            "source_ref": "synthetic CMDB",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {
+          "attributes.location": "westeurope"
+        },
+        "verification": null
+      },
+      "title": "Same disagreement with a prior approved value: the prior value stays selected"
+    },
+    {
+      "expected": {
+        "conflicts": [
+          "attributes.location"
+        ],
+        "rule": "TF-2",
+        "selected": {
+          "attributes.location": null
+        },
+        "trust_state": "conflicted",
+        "verification_state": "unverified"
+      },
+      "id": "TC-13",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "westeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "northeurope",
+            "evidence_kind": "documentation",
+            "field_path": "attributes.location",
+            "method": "import:document:v1",
+            "observed_at": "2026-09-01T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "No universal source ranking: provider configuration does not silently win over documentation"
+    },
+    {
+      "expected": {
+        "conflicts": [],
+        "rule": "TF-4",
+        "selected": {
+          "attributes.location": "westeurope"
+        },
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-14",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "westeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "westeurope",
+            "evidence_kind": "provider_configuration",
+            "field_path": "attributes.location",
+            "method": "import:cmdb:v1",
+            "observed_at": "2026-10-06T12:00:00Z",
+            "source_ref": "synthetic CMDB",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Two sources agree: no conflict, value selected"
+    },
+    {
+      "expected": {
+        "rule": "TF-2",
+        "trust_state": "conflicted",
+        "verification_reasons": [
+          "trust state conflicted"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-15",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "a",
+            "evidence_kind": "provider_configuration",
+            "field_path": "display_name",
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": "b",
+            "evidence_kind": "human_assertion",
+            "field_path": "display_name",
+            "method": "steward:review",
+            "observed_at": "2026-10-03T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "A conflicted fact cannot stay verified"
+    },
+    {
+      "expected": {
+        "rule": "TF-3a",
+        "trust_state": "stale",
+        "verification_reasons": [
+          "trust state stale"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-16",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2026-10-01T00:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "Verification expired: stale, no longer verified"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_reasons": [
+          "verified_by is not a human actor"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-17",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "import-worker",
+            "namespace": "atlas.service"
+          }
+        }
+      },
+      "title": "Verification by a service actor is not a human verification"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "verified"
+      },
+      "id": "TC-18",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "CONSUMES_API"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "Physical fact observed in provider configuration, verified by a steward, unexpired"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-19",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "import:cmdb:v1",
+            "observed_at": "2026-10-06T12:00:00Z",
+            "source_ref": "synthetic CMDB",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "CONNECTS_TO"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Evidence count never verifies: two provider sources, no human verification"
+    },
+    {
+      "expected": {
+        "rule": "TF-3b",
+        "trust_state": "stale",
+        "verification_state": "unverified"
+      },
+      "id": "TC-20",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2024-03-01T12:00:00Z",
+            "source_ref": "2024 document (synthetic)",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Only documentation, past its freshness policy: stale"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_state": "unverified"
+      },
+      "id": "TC-21",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2024-03-01T12:00:00Z",
+            "source_ref": "2024 document (synthetic)",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Expired documentation plus current provider configuration: discovered, the old assertion is kept"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "unverified"
+      },
+      "id": "TC-22",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:register:v1",
+            "observed_at": "2019-01-01T12:00:00Z",
+            "source_ref": "register without a freshness policy",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": false
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "No freshness policy defined for the source: never silently stale, never promoted"
+    },
+    {
+      "expected": {
+        "rule": "TF-7",
+        "trust_state": "inferred",
+        "verification_reasons": [
+          "trust state inferred",
+          "no current evidence of ['human_assertion', 'provider_configuration']"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-23",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "inferred",
+            "field_path": null,
+            "method": "rule:synthetic-rule:v1",
+            "observed_at": "2026-10-05T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "Inferred only (entity); a verification cannot rest on inference"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "unverified"
+      },
+      "id": "TC-24",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "inferred",
+            "field_path": null,
+            "method": "rule:synthetic-rule:v1",
+            "observed_at": "2026-10-05T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          },
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2026-09-01T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": false
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Inferred plus documentation: documented"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-30",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "inferred",
+            "field_path": null,
+            "method": "rule:synthetic-rule:v1",
+            "observed_at": "2026-10-05T08:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": true,
+          "rel_type": "CONSUMES_API"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "No active relationship type accepts inferred evidence in taxonomy 1.1.0"
+    },
+    {
+      "expected": {
+        "rule": "TF-1",
+        "trust_state": null,
+        "verification_state": "unverified"
+      },
+      "id": "TC-25",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": "2026-10-02T00:00:00Z"
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Evidence whose validity ended is not current"
+    },
+    {
+      "expected": {
+        "rule": "TF-0",
+        "trust_state": "proposed",
+        "verification_state": "unverified"
+      },
+      "id": "TC-26",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2026-09-01T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": false
+        },
+        "origin": "draft",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Draft origin: proposed, never part of the published graph"
+    },
+    {
+      "expected": {
+        "rule": "TF-6",
+        "trust_state": "documented",
+        "verification_state": "verified"
+      },
+      "id": "TC-27",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "documentation",
+            "field_path": null,
+            "method": "import:document:v1",
+            "observed_at": "2026-09-01T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "relationship",
+          "physical": false,
+          "rel_type": "SUPPORTS_CAPABILITY"
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-09-20T10:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "Logical capability support documented and verified by a steward"
+    },
+    {
+      "expected": {
+        "rule": "TF-4",
+        "trust_state": "discovered",
+        "verification_reasons": [
+          "verified_at missing or after the evaluation time"
+        ],
+        "verification_state": "unverified"
+      },
+      "id": "TC-28",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [
+            {
+              "method": "import:document:v1",
+              "stale_after_days": 365
+            }
+          ],
+          "precedence": []
+        },
+        "prior_values": {},
+        "verification": {
+          "expires_at": "2027-03-20T10:00:00Z",
+          "verification_state": "verified",
+          "verified_at": "2026-10-09T00:00:00Z",
+          "verified_by": {
+            "key": "https://login.example.invalid/synthetic|steward-0001",
+            "namespace": "oidc"
+          }
+        }
+      },
+      "title": "Verification time after the evaluation time is rejected"
+    },
+    {
+      "expected": {
+        "error": "trust-1 accepts no precedence rules"
+      },
+      "id": "TC-29",
+      "input": {
+        "assertions": [
+          {
+            "asserted_value": null,
+            "evidence_kind": "provider_configuration",
+            "field_path": null,
+            "method": "connector:synthetic-provider:v1",
+            "observed_at": "2026-10-07T12:00:00Z",
+            "source_ref": "synthetic source",
+            "valid_to": null
+          }
+        ],
+        "at": "2026-10-08T09:00:00Z",
+        "claim": {
+          "fact_kind": "entity",
+          "physical": true
+        },
+        "origin": "published",
+        "policy": {
+          "freshness": [],
+          "precedence": [
+            {
+              "field_path": "attributes.location",
+              "order": [
+                "x"
+              ]
+            }
+          ]
+        },
+        "prior_values": {},
+        "verification": null
+      },
+      "title": "Precedence rules are not approved (DEC-034): the function refuses a policy that defines any"
+    }
+  ],
+  "description": "Truth table for trust function v1 (contracts/trust-function.md). Synthetic. Inputs are a claim, the fact's current assertions with their evidence's method, observed_at and valid_to, the recorded verification, the trust policy, the evaluation time and the prior approved values. The reference implementation and the CP3 backend must both pass every case.",
+  "format": "atlas.trust-function-cases.v1",
+  "function": "trust-1",
+  "status": "proposed",
+  "taxonomy_version": "1.1.0"
+}

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: (ATLAS-002 CP1 revision 3, 25 Oct 2026). Not approved; no code depends on it |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). **Amended at Gate G2** (owner, 25 Oct 2026): §3 `native_type` wording for `azure.tenant` (U-2). Drafting history: (ATLAS-002 CP1 revision 3, 25 Oct 2026). Not approved; no code depends on it |
 | Register | Implements DEC-004 (Confirmed: "Azure-first … technology-neutral underlying model"); shapes DEC-050, DEC-070 and DEC-025 (all **Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Enterprise Architecture + Cloud Platform; approval: Atlas owner |
 | Related | BRD Document control ("technology-neutral underlying model"), INV-01, INV-05, MOD-01, MOD-04, SDK family; UX §5 ("do not force Azure hierarchy onto on-prem systems"); tech §1, §3.1, §3.2; ADR-0001, ADR-0003, ADR-0008, ADR-0016, ADR-0017, ADR-0018 |
@@ -79,7 +79,7 @@ Logical types are their own categories (`core.application`, `core.api`, …; ADR
 
 | Element | Rule |
 |---|---|
-| `native_type` | Required on every physical entity: the provider's own type string (for example `microsoft.sql/servers/databases`, `AWS::Lambda::Function`, `pubsub.googleapis.com/Topic`, `ACS::ECS::Instance`). For `azure.*` types it is fixed per type (formerly `azure_type`) |
+| `native_type` | Required on every physical entity except `azure.tenant`, which is not an ARM resource and has no ARM type (ADR-0017 §2.1; decision U-2, G2): the provider's own type string (for example `microsoft.sql/servers/databases`, `AWS::Lambda::Function`, `pubsub.googleapis.com/Topic`, `ACS::ECS::Instance`). For `azure.*` types it is fixed per type (formerly `azure_type`) |
 | Provider-specific type (`azure.*`, later `aws.*`, …) | Added **only** when rules, required attributes or identity need more precision than the neutral type gives. Azure gets them first because it is the first discovery target |
 | Neutral type (`infra.*`) | Used for every provider without a specific type. Chosen by the provider profile's `native_type → category` mapping; an unmapped native type becomes `infra.resource` |
 | Required attributes | Per type (ADR-0017 §2). Neutral types add `provider`, `native_type` and a category attribute where needed (`compute_kind`, `cluster_kind`, `workload_kind`, `channel_kind`, `store_kind`, `scope_kind`) |

@@ -2,7 +2,7 @@
 
 ## `canonical-golden-v1/`: canonical graph golden fixture (ATLAS-002 CP2)
 
-**Fixture version:** 1.0.0 · **Taxonomy:** 1.0.0, plus the synthetic, test-only overlay `1.1.0-test.1` · **Generator:** `tools/generate_golden.py` (`make golden`) · **Validator:** `tools/check_canonical.py` (`make canonical`, run in CI)
+**Fixture version:** 1.1.0 · **Taxonomy:** 1.1.0, plus the synthetic, test-only overlay `1.2.0-test.1` · **Trust function:** `trust-1` · **Generator:** `tools/generate_golden.py` (`make golden`) · **Validator:** `tools/check_canonical.py` (`make canonical`, run in CI)
 
 All names, keys, account numbers, GUIDs and artifacts are **synthetic**. The fixture is generated deterministically: regenerating it gives byte-identical files, and CI checks that. Every relationship is allowed by the taxonomy version its row names and carries evidence; nothing was added to reach a count.
 
@@ -15,7 +15,8 @@ All names, keys, account numbers, GUIDs and artifacts are **synthetic**. The fix
 | `inputs/aws-inventory.r2.expected-report.json` | Expected plan for first apply and replay, and the rejected items with reasons | — |
 | `expected-as-of.json` | Entity and relationship counts and graph hash at every revision of every organization | — |
 | `expected-findings.json` | Expected ADVISORY findings by rule; HARD and DOMAIN are zero | — |
-| `taxonomy-overlay.1.1.0-test.1.json` | Synthetic overlay: maps `bigquery.googleapis.com/Dataset` to `data_store` | `taxonomy-overlay` |
+| `taxonomy-overlay.1.2.0-test.1.json` | Synthetic overlay: maps `bigquery.googleapis.com/Dataset` to `data_store` | `taxonomy-overlay` |
+| `trust-policy.json` | Synthetic, test-only trust policy (ADR-0018: freshness values are fixed for fixtures): documents imported by `import:document:v1` are stale after 365 days; no precedence rule (DEC-034 Proposed, DEC-072 Open) | — |
 | `manifest.json` | File inventory, record counts, content hashes and coverage counts | `fixture-manifest` |
 
 The stored rows represent what the system records. `created_at` and `db_role` on change sets are representative values: in a database the server sets them (ADR-0008 §10), so database tests compare every other field.
@@ -48,7 +49,8 @@ By provider (`default`, at head): 110 logical, Azure 88, AWS 14, Google Cloud 8,
 | Physical containment and logical membership | 173 `CONTAINS` (resource and logical families, single parent) and 78 `MEMBER_OF` |
 | `READS_FROM` and `WRITES_TO` as separate facts | 39 and 25, plus `STORES_IN` where the direction isn't established |
 | Missing or incomplete ownership | A-01 findings (8) |
-| Different trust levels | `discovered`, `documented`, `curated`, `stale` (2024 document), `conflicted` (two sources disagree on a VM's location); `verified` facts with expiry |
+| Different trust levels | `discovered`, `documented`, `curated`, `stale` (2024 document: the MQ broker and its containment), `conflicted` (two sources disagree on a VM's location: both assertions kept, no location selected); `verified` facts with expiry. Every stored state equals trust function v1 at every revision (D-12) |
+| Declared and documented structure (U-1) | Google Cloud hierarchy and containment from IaC manifests; API operations contained in their APIs from the OpenAPI documents; all `documented`, none verified |
 | Two organizations with overlapping names and keys | `example-subsidiary` reuses names (`rg-claims-prod`, `Claims Portal`, `APP-0101`), the same Azure tenant GUID and the same AWS account key: separate entities, no collision |
 
 ### Revisions (organization `default`)
@@ -61,7 +63,7 @@ By provider (`default`, at head): 110 logical, Azure 88, AWS 14, Google Cloud 8,
 | 4 | `steward_edit`, human | Relationship retirement (a mistake) |
 | 5 | `revert` of 4, human | Reversion through a new revision; snapshot `after-revert`. Its graph hash equals revision 3's: the hash depends on facts, not history |
 | 6 | `steward_edit`, human | Provider-specific reclassification and re-parenting; a document-key identity closed; ARM identity linked |
-| 7 | `migration`, `migration`, system `taxonomy-migration` | Taxonomy-version-aware re-typing under `1.1.0-test.1` |
+| 7 | `migration`, `migration`, system `taxonomy-migration` | Taxonomy-version-aware re-typing under `1.2.0-test.1` |
 | 8 | `import`, service | A read that only became representable after R7; snapshot `head` |
 
 Historical reconstruction: `expected-as-of.json` gives the graph at every revision; the tests check, for example, that the retired read is absent only at revision 4.
@@ -71,3 +73,37 @@ Historical reconstruction: `expected-as-of.json` gives the graph at every revisi
 - CP3 loads the stored rows into `atlas_test` to test constraints, privileges and triggers, and re-runs the H-rules as SQL checks.
 - CP4's loader applies `inputs/` and must reproduce revision 2 exactly, with a no-op replay and the same rejection report. The as-of graph hashes in `expected-as-of.json` are the acceptance oracle.
 - Regenerate with `make golden` after changing the generator, and commit the result: CI fails if the committed files differ.
+
+### Changes in fixture 1.1.0 (Gate G2)
+
+- Base taxonomy 1.1.0; the test overlay renamed `1.2.0-test.1`, so it no longer collides with an approved version number.
+- Containment of the Google Cloud resources is evidenced by their IaC manifests, and containment of API operations by the OpenAPI documents. Fixture 1.0.0 had to use architecture documents, because taxonomy 1.0.0 did not accept contract evidence for `CONTAINS` (U-1).
+- The conflicted VM no longer stores the location of one of the two disagreeing sources. With no prior approved value, none is selected (ADR-0018; interpretation I-6).
+- The MQ broker's containment, evidenced only by the 2024 document, is `stale` like the broker itself (A-12 now reports 3).
+
+Entity and relationship counts are unchanged. A few synthetic IDs differ from 1.0.0, because IDs follow generation order (6 entities, 7 relationships, 1 evidence row and their dependent rows). Fixture IDs are stable only within a fixture version. Consumers compare by content and use the hashes shipped with the same version.
+
+## `trust-function-v1/cases.json`: trust function truth table (ATLAS-002 G2)
+
+30 synthetic cases for trust function v1 (`contracts/trust-function.md`). Each case gives:
+
+- the claim;
+- the current assertions;
+- the recorded verification;
+- the policy;
+- the evaluation time;
+- the prior values.
+
+Each case also gives the expected trust state, the deciding rule, the verification state and the selected values. Coverage:
+
+- single-kind and mixed evidence;
+- U-1 declared evidence (IaC, OpenAPI);
+- provider configuration that does not apply to a logical claim;
+- conflicts with and without a prior approved value, including provider configuration against documentation (no universal ranking);
+- agreement;
+- verification: expired, by a service actor, unsupported, later than the evaluation;
+- freshness: expired, and unassessed when no policy exists;
+- inferred evidence, ended validity, drafts;
+- refusal of precedence rules.
+
+The reference implementation passes every case (`tools/tests/test_canonical.py`). CP3's backend trust function must pass the same file.

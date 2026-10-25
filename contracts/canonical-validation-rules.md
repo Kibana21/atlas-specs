@@ -1,6 +1,6 @@
 # Canonical graph validation rules (v1)
 
-**Applies to:** `contracts/taxonomy/atlas-taxonomy.v1.json`, `contracts/schemas/canonical/*.v1.json`, canonical fixtures and, from CP3, the backend's canonical store · **Status:** ATLAS-002 CP2 deliverable, derived from the Accepted ADR-0001, 0003, 0008, 0015–0019 · **Reference implementation:** `tools/canonical_rules.py` (rule IDs below are the IDs it reports)
+**Applies to:** `contracts/taxonomy/atlas-taxonomy.v1.json`, `contracts/schemas/canonical/*.v1.json`, canonical fixtures and, from CP3, the backend's canonical store · **Status:** ATLAS-002 CP2 deliverable, derived from the Accepted ADR-0001, 0003, 0008, 0015–0019; updated at Gate G2 (25 Oct 2026) for owner decisions U-1…U-3 and taxonomy 1.1.0 · **Reference implementation:** `tools/canonical_rules.py` (rule IDs below are the IDs it reports)
 
 ## 1. Classes
 
@@ -42,24 +42,26 @@ Principles (owner guidance, 25 Oct 2026):
 
 | ID | Rule | Source |
 |---|---|---|
-| D-01 | The type exists in the taxonomy version the version row names; required attributes and enumeration values are valid | ADR-0017 §2 |
-| D-02 | Category, provider and native type agree with the type: logical types have none; physical types have a registered provider and a `native_type` (except `azure.tenant`, ADR-0017 §2.2); Azure types have their fixed native type; Kubernetes objects take their cluster's provider; `private_cloud`, `on_premises` and `other` need `platform` | ADR-0017, ADR-0019 §3 |
+| D-01 | The type exists in the taxonomy version the version row names; required attributes and enumeration values are valid. A required field whose current assertions are in unresolved conflict may be absent (I-6) | ADR-0017 §2, ADR-0018 |
+| D-02 | Category, provider and native type agree with the type: logical types have none; physical types have a registered provider and a `native_type` (except `azure.tenant`, which has no ARM type: ADR-0017 §2.1, ADR-0019 §3, decision U-2); Azure types have their fixed native type; Kubernetes objects take their cluster's provider; `private_cloud`, `on_premises` and `other` need `platform` | ADR-0017, ADR-0019 §3 |
 | D-03 | Environment scope: environment-neutral types have none; environment-scoped types have `single`, `shared` or `unknown`; `single` points to a `core.environment`; `shared` has at least one evidenced `MEMBER_OF` environment at every revision | ADR-0017 §2.3 |
 | D-04 | The relationship is allowed by the matrix of its taxonomy version (types or categories, attributes, discriminator values, `connectivity_kind` per pair); reserved types are rejected. On import, a rejected relationship is reported in the import report with its reasons, never stored or downgraded | ADR-0017 §4, §7.4 |
-| D-05 | Every existence assertion of a relationship uses an evidence kind allowed for its type | ADR-0017 §4.1, ADR-0018 |
+| D-05 | Every existence assertion of a relationship uses an evidence kind allowed for its type. From taxonomy 1.1.0, `contract` is allowed for `CONTAINS` and `DEPLOYED_AS` (decision U-1): such facts are `documented`, never observed | ADR-0017 §4.1, ADR-0018 |
 | D-06 | Containment matches the provider's native hierarchy where the key shows it (an Azure child's ARM ID lies inside its parent's) | ADR-0017 §3.1 |
 | D-07 | `MEMBER_OF` an environment only for entities with shared scope (part of D-04's pair check) | ADR-0017 §3.2 |
 | D-08 | `cross_environment`, `shared_endpoint`, `cross_provider` and the relationship's `environment_id` equal the values derived from the endpoints; cross-environment only where allowed | ADR-0017 §4.4, ADR-0019 §6 |
 | D-09 | `container_id` equals the current `CONTAINS` parent at every revision | ADR-0001 |
 | D-10 | Re-typing: automatic transitions (neutral → provider-specific with the same native type; generic → neutral by mapping) in any change set; any other only by a steward or migration change set, and a migration only applies automatic transitions | ADR-0017 §2.4 |
 | D-11 | `DEPENDS_ON` is never `discovered` | ADR-0017 §4.3 |
-| D-12 | Every present fact has existence evidence, and its trust state is compatible with that evidence (`discovered` needs provider configuration; `documented` only documentation or contract; `curated` a human assertion; `inferred` only inferred) | ADR-0018 |
+| D-12 | Every present fact has current evidence applicable to its claim, and its stored trust state equals trust function v1 (`contracts/trust-function.md`) at every revision where the version is current | ADR-0018, decision U-3 |
 | D-13 | Attribution fits the channel: `fixture_cli`, `import` and `connector` are service identities; steward edits, merges and splits are human; migrations are system or service identities and use the `migration` channel | ADR-0008 §10 |
 | D-14 | A revert leaves every fact touched by the reverted revision equal to its state before it | ADR-0008 §7 |
 | D-15 | An identity namespace is allowed for the entity's type | ADR-0017 §2.2, ADR-0003 |
 | D-16 | `infra.scope` nesting follows the provider's `scope_kind` rules | ADR-0019 §4 |
 | D-17 | Import: identities resolving to different entities are ambiguous; no link (reported) | ADR-0003 |
 | D-18 | Import: no identity match and no explicit fixture ID; never matched by name (reported) | ADR-0003, ADR-0015 |
+| D-19 | A version stored as `verified` satisfies TF-V at its publication: a human verifier, not conflicted, stale or inferred, and current evidence that can support the claim (declared evidence alone never supports a physical claim) | ADR-0018 §3, decision U-3 |
+| D-20 | Every asserted field's stored value equals the trust function's selected value: the agreed value, or for an unresolved conflict the prior approved value or none | ADR-0018 (conflict procedure) |
 
 ## 4. ADVISORY findings
 
@@ -78,12 +80,13 @@ Principles (owner guidance, 25 Oct 2026):
 | A-11 | Neutral type whose native type is not in the provider's mapping for that category |
 | A-12 | Stale or conflicted fact |
 
-## 5. Interpretations recorded in CP2 (no new architecture decisions)
+## 5. Interpretations (no new architecture decisions)
 
 | # | Point | Interpretation used | Why |
 |---|---|---|---|
-| I-1 | Relationship `environment_id` when both endpoints are single-scoped in **different** environments | `null`; the `cross_environment` flag and the endpoints carry the information | ADR-0017 §4.4 says the relationship takes "the environment of its single-scoped endpoint(s)"; with two different ones there is no single value |
+| I-1 | Relationship `environment_id` when both endpoints are single-scoped in **different** environments | `null`; the `cross_environment` flag and the endpoints' memberships carry the classification. **Accepted by the owner at G2** (U-4) | ADR-0017 §4.4 says the relationship takes "the environment of its single-scoped endpoint(s)"; with two different ones there is no single value |
 | I-2 | `native_type` of Kubernetes objects | The Kubernetes kind (`Namespace`, `Deployment`, …) | ADR-0019 §3 requires a native type; Kubernetes has no other provider type string |
-| I-3 | `native_type` of `azure.tenant` | Absent | ADR-0017 §2.2 explicitly exempts the tenant (see open item U-2) |
-| I-4 | Generator trust state for a single-kind fact | The matching state of D-12 | Mixed provider + human evidence is not used in the fixture (open item U-3) |
+| I-3 | `native_type` of `azure.tenant` | Absent. **Resolved at G2** (U-2): the exemption is retained and now stated in ADR-0017 §2.1 and §2.2 and ADR-0019 §3 | A tenant is not an ARM resource and has no ARM type. The taxonomy artifact already gives it no fixed native type |
+| I-4 | Trust state for mixed evidence | **Superseded at G2** (U-3) by trust function v1 | `contracts/trust-function.md`; truth table `acceptance/test-data/trust-function-v1/cases.json` |
 | I-5 | A re-type to a type that doesn't allow an existing identity namespace | The steward change set closes that binding (it stays in history) | ADR-0003: bindings close, never delete |
+| I-6 | A required attribute whose sources disagree, with no prior approved value | The fact is published `conflicted` with the attribute absent; both assertions are kept and A-12 reports it | ADR-0018: the selected value is "the prior approved value, or none if there was none"; invariant 3: unknown stays unknown, never an invented value. Owner confirmation requested |

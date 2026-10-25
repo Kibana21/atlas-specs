@@ -10,7 +10,7 @@
 | 2 | CP3 | local server | **Owner runs the script**; Claude verifies read-only | **G3-R** |
 | 3 | CP3 | atlas-backend | Pin specs (`specs.lock`); settings `ATLAS_INGEST_DATABASE_URL`, `ATLAS_DB_INGEST_ROLE`; CI bootstrap copy and checker | CI green |
 | 4 | CP3 | atlas-backend | Migration `0002` (tables, constraints, two triggers, grants), taxonomy seed and seed check | Round-trip on `atlas_test`; CI green |
-| 5 | CP3 | atlas-backend | Normalizers, `OrgScope` repository, domain validator, publishing procedure; load the golden fixture's rows in tests | **G3**: privileges, constraints, rejection of invalid input |
+| 5 | CP3 | atlas-backend | Normalizers, `OrgScope` repository, domain validator, trust function v1, publishing procedure; load the golden fixture's rows in tests | **G3**: privileges, constraints, rejection of invalid input |
 | 6 | CP4 | atlas-backend | Loader CLI (ingestion role) and import planner; replay no-op; revert | Fixture reproduces revision 2 and every as-of hash |
 | 7 | CP4 | atlas-backend | Integrity suite at every revision; pilot-size benchmark in CI | **G4** |
 | 8 | CP5 | all | Evidence, release proposal, owner acceptance | **G5** |
@@ -29,4 +29,4 @@
 | Behaviour drift between the reference model and the backend | Backend tests assert the same expected as-of hashes, plans and findings as the fixture |
 | Per-organization write lock limits throughput | Benchmark in CP4; batching |
 | Local `trust` authentication (DEC-084) | Ingestion-role separation is enforced in CI; locally it prevents mistakes only |
-| Open items U-1…U-7 | Raised before the code that depends on them (U-3 before the trust function) |
+| Open items U-1…U-7 | Decided by the owner at G2 (`spec.md` §7). C-1, C-2 and I-6 await owner confirmation before A2-T24 |

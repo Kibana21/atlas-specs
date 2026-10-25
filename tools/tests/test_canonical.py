@@ -11,7 +11,7 @@ from typing import Any, Callable
 import pytest
 
 from canonical_model import (
-    Dataset, NormalizationError, Taxonomy, as_of, normalize_identity, plan_batch, uuid7,
+    HUMAN_ACTOR_NAMESPACES, Claim, Dataset, NormalizationError, Taxonomy, as_of, normalize_identity, plan_batch, trust_v1, uuid7,
 )
 from canonical_rules import (
     fixture_findings, import_findings, manifest_findings, schema_findings, snapshot_findings, taxonomy_findings,
@@ -23,15 +23,15 @@ FIXTURE = DEFAULT_FIXTURE
 
 
 @lru_cache(maxsize=1)
-def _base() -> tuple[dict[str, Any], dict[str, Taxonomy]]:
+def _base() -> tuple[Dataset, dict[str, Taxonomy]]:
     ds = Dataset.load(FIXTURE)
     taxes, _ = load_taxonomies(FIXTURE)
-    return ds.tables, taxes
+    return ds, taxes
 
 
 def dataset() -> tuple[Dataset, dict[str, Taxonomy]]:
-    tables, taxes = _base()
-    return Dataset(copy.deepcopy(tables)), taxes
+    ds, taxes = _base()
+    return Dataset(copy.deepcopy(ds.tables), copy.deepcopy(ds.policy)), taxes
 
 
 def rules(ds: Dataset, taxes: dict[str, Taxonomy]) -> set[str]:
@@ -92,7 +92,7 @@ def test_revision_scenarios_present() -> None:
     assert len({v["entity_id"] for v in billing}) == 1
     assert {v["type_key"] for v in billing} == {"infra.data_store", "azure.sql_database"}
     bq = [v for v in ds.tables["entity_versions"] if v["display_name"] == "analytics-warehouse"]
-    assert [(v["type_key"], v["taxonomy_version"]) for v in bq] == [("infra.resource", "1.0.0"), ("infra.data_store", "1.1.0-test.1")]
+    assert [(v["type_key"], v["taxonomy_version"]) for v in bq] == [("infra.resource", TAX.version), ("infra.data_store", "1.2.0-test.1")]
 
 
 def test_historical_reconstruction_differs_by_revision() -> None:
@@ -241,7 +241,7 @@ def _add_rel(ds: Dataset, rel_type: str, frm: str, to: str, attrs: dict[str, Any
         "org_id": fv["org_id"], "relationship_id": rid, "revision_from": 8, "revision_to": None, "record_state": "present", "lifecycle": "active",
         "environment_id": None, "cross_environment": False, "shared_endpoint": False, "cross_provider": False, "attributes": attrs,
         "trust_state": "documented", "verification_state": "unverified", "verified_by": None, "verified_at": None, "expires_at": None,
-        "taxonomy_version": "1.0.0"})
+        "taxonomy_version": TAX.version})
     ds.tables["fact_assertions"].append({"org_id": fv["org_id"], "id": uuid7(99_991, f"a{rid}"), "fact_kind": "relationship", "fact_id": rid,
                                          "field_path": None, "asserted_value": None, "evidence_id": ev["id"], "evidence_kind": ev["kind"],
                                          "revision_from": 8, "revision_to": None})
@@ -284,6 +284,44 @@ def m_trust_without_evidence(ds: Dataset) -> None:
     entity_named(ds, "Claims Portal", "core.application")["trust_state"] = "discovered"
 
 
+def _rel_version(ds: Dataset, rel_type: str, frm: str, to: str) -> dict[str, Any]:
+    f, t = entity_named(ds, frm)["entity_id"], entity_named(ds, to)["entity_id"]
+    r = by(ds, "relationships", rel_type=rel_type, from_id=f, to_id=t)
+    return next(v for v in ds.tables["relationship_versions"] if v["relationship_id"] == r["id"] and v["revision_to"] is None)
+
+
+def m_stale_recorded_as_documented(ds: Dataset) -> None:
+    entity_named(ds, "mq-legacy-01")["trust_state"] = "documented"     # its only evidence is past the fixture's freshness policy
+
+
+def m_declared_as_observed(ds: Dataset) -> None:
+    _rel_version(ds, "CONTAINS", "claims-events-prod", "document-indexed")["trust_state"] = "discovered"   # IaC only (U-1)
+
+
+def m_verified_declared_only(ds: Dataset) -> None:
+    _rel_version(ds, "CONTAINS", "claims-events-prod", "document-indexed").update(
+        verification_state="verified", verified_by={"namespace": "oidc", "key": "https://login.example.invalid/synthetic|steward-0001"},
+        verified_at="2026-09-20T10:00:00Z", expires_at=None)
+
+
+def m_verified_by_service(ds: Dataset) -> None:
+    v = next(v for v in ds.tables["relationship_versions"] if v["verification_state"] == "verified" and v["revision_to"] is None)
+    v["verified_by"] = {"namespace": "atlas.service", "key": "import-worker"}
+
+
+def m_conflicted_value_stored(ds: Dataset) -> None:
+    entity_named(ds, "vm-batch-prod")["attributes"]["location"] = "westeurope"   # picks a winner no approved rule chose
+
+
+def m_logical_from_provider_only(ds: Dataset) -> None:
+    app = entity_named(ds, "Claims Portal", "core.application")
+    prov = next(e for e in ds.tables["evidence"] if e["org_id"] == app["org_id"] and e["kind"] == "provider_configuration")
+    for a in ds.tables["fact_assertions"]:
+        if a["fact_id"] == app["entity_id"] and a["field_path"] is None:
+            a.update(evidence_id=prov["id"], evidence_kind="provider_configuration")
+    app["trust_state"] = "discovered"
+
+
 def m_environment_not_env(ds: Dataset) -> None:
     v = next(v for v in ds.tables["entity_versions"] if v["environment_scope"] == "single" and v["revision_to"] is None)
     v["environment_id"] = entity_named(ds, "Claims Portal", "core.application")["entity_id"]
@@ -311,6 +349,8 @@ def m_secret_attribute(ds: Dataset) -> None:
     (m_secret_attribute, "H-01"), (m_generic_read, "D-04"), (m_reserved, "D-04"), (m_depends_on_provider, "D-05"),
     (m_cross_provider_containment, "D-04"), (m_wrong_flag, "D-08"), (m_retype_by_import, "D-10"), (m_human_import, "D-13"),
     (m_trust_without_evidence, "D-12"), (m_environment_not_env, "D-03"), (m_scope_nesting, "D-16"), (m_revert_mismatch, "D-14"),
+    (m_stale_recorded_as_documented, "D-12"), (m_declared_as_observed, "D-12"), (m_logical_from_provider_only, "D-12"),
+    (m_verified_declared_only, "D-19"), (m_verified_by_service, "D-19"), (m_conflicted_value_stored, "D-20"),
 ])
 def test_negative_mutation_is_detected(mutate: Callable[[Dataset], None], rule: str) -> None:
     ds, taxes = dataset()
@@ -354,7 +394,7 @@ def test_changed_batch_is_not_a_noop() -> None:
     ds, taxes = dataset()
     batch = _batch()
     batch["entities"][-1]["display_name"] = "renamed-at-source"
-    plan = plan_batch(taxes["1.0.0"], batch, as_of(ds, ds.org_ids()[0], 8))
+    plan = plan_batch(taxes[TAX.version], batch, as_of(ds, ds.org_ids()[0], 8))
     assert len(plan.changed_entities) == 1 and not plan.new_entities
 
 
@@ -364,7 +404,7 @@ def test_name_alone_never_matches() -> None:
     item = batch["entities"][-1]
     item["identities"] = [{"namespace": "source.other", "original_key": "different-key"}]
     item.pop("id")
-    plan = plan_batch(taxes["1.0.0"], batch, as_of(ds, ds.org_ids()[0], 8))
+    plan = plan_batch(taxes[TAX.version], batch, as_of(ds, ds.org_ids()[0], 8))
     assert any(r["rule"] == "D-18" for r in plan.rejected), "same display name, no identity match: not linked"
 
 
@@ -402,3 +442,66 @@ def test_taxonomy_example_is_the_artifact() -> None:
     root = FIXTURE.parents[2]
     example = json.loads((root / "contracts/examples/canonical/taxonomy/valid-accepted-artifact.json").read_text())
     assert example == json.loads((root / "contracts/taxonomy/atlas-taxonomy.v1.json").read_text()), "regenerate the examples"
+
+
+# --------------------------------------------------------------------------- trust function v1 and evidence compatibility (G2)
+
+
+TRUST_CASES = json.loads((FIXTURE.parent / "trust-function-v1" / "cases.json").read_text(encoding="utf-8"))
+
+
+def _claim(c: dict[str, Any]) -> Claim:
+    if c["fact_kind"] == "relationship":
+        return Claim("relationship", c["physical"], frozenset(TAX.rels[c["rel_type"]]["allowed_evidence_kinds"]))
+    return Claim("entity", c["physical"])
+
+
+def test_trust_cases_target_the_artifact() -> None:
+    assert TRUST_CASES["taxonomy_version"] == TAX.version
+    ids = [c["id"] for c in TRUST_CASES["cases"]]
+    assert len(ids) == len(set(ids))
+
+
+@pytest.mark.parametrize("case", TRUST_CASES["cases"], ids=lambda c: c["id"])
+def test_trust_function_v1_truth_table(case: dict[str, Any]) -> None:
+    i, expected = case["input"], case["expected"]
+    run_it = lambda: trust_v1(_claim(i["claim"]), i["assertions"], i["verification"], i["policy"], i["at"], i["prior_values"], i["origin"])  # noqa: E731
+    if "error" in expected:
+        with pytest.raises(ValueError, match=expected["error"]):
+            run_it()
+        return
+    res = run_it()
+    for key, value in expected.items():
+        if key != "verification_reasons":
+            assert res[key] == value, key
+    assert res.get("verification_reasons", []) == expected.get("verification_reasons", [])
+
+
+def test_human_actor_namespaces_match_the_taxonomy() -> None:
+    assert HUMAN_ACTOR_NAMESPACES == {n["namespace"] for n in TAX.doc["actor_namespaces"] if n["actor_kind"] == "human"}
+
+
+def test_contract_evidence_for_containment_and_deployment() -> None:
+    """U-1: taxonomy 1.1.0 accepts contract evidence for CONTAINS and DEPLOYED_AS; such facts stay documented."""
+    for rel in ("CONTAINS", "DEPLOYED_AS"):
+        assert "contract" in TAX.rels[rel]["allowed_evidence_kinds"]
+    ds, _ = dataset()
+    kinds: dict[str, set[str]] = {}
+    for a in ds.tables["fact_assertions"]:
+        if a["field_path"] is None and a["revision_to"] is None:
+            kinds.setdefault(a["fact_id"], set()).add(a["evidence_kind"])
+    contains = {r["id"] for r in ds.tables["relationships"] if r["rel_type"] == "CONTAINS"}
+    declared = [v for v in ds.tables["relationship_versions"]
+                if v["relationship_id"] in contains and v["revision_to"] is None and kinds.get(v["relationship_id"]) == {"contract"}]
+    assert len(declared) >= 7 + 12, "GCP hierarchy from IaC and API operations from OpenAPI"
+    assert {v["trust_state"] for v in declared} == {"documented"}
+    assert all(v["verification_state"] == "unverified" for v in declared)
+
+
+def test_conflict_keeps_both_assertions_and_selects_nothing() -> None:
+    ds, _ = dataset()
+    vm = entity_named(ds, "vm-batch-prod")
+    assert vm["trust_state"] == "conflicted" and "location" not in vm["attributes"]
+    values = {a["asserted_value"] for a in ds.tables["fact_assertions"]
+              if a["fact_id"] == vm["entity_id"] and a["field_path"] == "attributes.location" and a["revision_to"] is None}
+    assert values == {"westeurope", "northeurope"}

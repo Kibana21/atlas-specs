@@ -1,0 +1,13 @@
+{
+  "freshness": [
+    {
+      "method": "import:document:v1",
+      "stale_after_days": 365
+    }
+  ],
+  "function": "trust-1",
+  "note": "SYNTHETIC, TEST ONLY. Not an approved freshness or precedence policy. Sources without an entry are unassessed: they never make a fact stale.",
+  "policy_format": "atlas.trust-policy.v1",
+  "precedence": [],
+  "status": "synthetic_test_only"
+}
