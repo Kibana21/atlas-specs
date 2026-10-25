@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026) |
+| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026). D2 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Content unchanged |
 | Register | DEC-037 (Proposed) |
 | Owner (proposed) | Backend lead; approval: Atlas owner |
 | Related | INV-01, MOD-01 ("existing IDs survive taxonomy upgrades"), MOD-04; tech §3.2; ADR-0001, ADR-0003, ADR-0016 |

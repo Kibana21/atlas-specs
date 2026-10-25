@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026). Not approved; no code depends on it yet |
+| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026). D1 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Content unchanged; no code depends on it yet |
 | Register | DEC-058 (Open → Proposed) |
 | Owner (proposed) | Architecture + Security; approval: Atlas owner |
 | Related | INV-01, INV-05, MOD-04, MOD-06, GOV-01; tech §3.2, §9.3; ADR-0001, ADR-0003, ADR-0015 |

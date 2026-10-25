@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed, 2026-10-24). **CP1 drafted:** decisions Proposed, awaiting owner approval. CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 2:** owner review of revision 1 recorded, amended decisions redrafted; every register row still Proposed, awaiting owner confirmation (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -61,3 +61,10 @@
 | Baselines | Unchanged. The INV-02 deviation is recorded only after approval |
 
 CP2 starts only after the owner approves the decisions.
+
+### 2.1 Owner review and revision 2 (2026-10-25)
+
+- **Owner review (written, in the conversation, 25 Oct 2026):** overall direction approved; CP0 accepted as complete. Approved: D1, D2, D3, D5, D9, D10, D13, D14, D16, D18 (subject to consistency with the authoritative specifications). Approved with clarification: D4, D11, D12. Amend: D6, D7, D8, D15, D17. Instruction: keep unapproved decisions Proposed; no CP2, graph tables, migrations or role changes until the revised decisions are approved.
+- **Revision 2:** ADR-0017 (catalog, matrix, coverage, gaps, `READS_FROM`/`WRITES_TO`, `CONTAINS` vs `MEMBER_OF`), ADR-0003 (ARM original and normalized keys), ADR-0008 (revision lifecycle and example), ADR-0001 (schema alignment, ingestion role and privilege matrix), ADR-0018 (alignment); ADR-0015/0016 status notes only. `decision-matrix.md` revision 2 with the baseline-consistency review (C-01…C-12) and the confirmation table.
+- **Register:** v0.7 annotations only; **no status changes** (totals unchanged). The approved rows are not moved to Confirmed individually: G1 confirms them together, after the consistency review in `decision-matrix.md` §3.
+- **Not done:** no role, credential, grant, table, migration or product code. Baselines unchanged.
