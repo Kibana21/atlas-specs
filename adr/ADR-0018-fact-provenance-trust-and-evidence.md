@@ -102,6 +102,10 @@ A **pure, versioned function** of the fact's current assertions and policy compu
 
 Nothing in this model depends on a provider. Evidence records **the source that knows**, not the provider of the fact. A cross-provider relationship usually has evidence from one side only (for example an Azure setting naming an AWS endpoint). It is recorded as exactly that, `provider_configuration` from the Azure source, and is never upgraded to verified without a human verification (ADR-0019 §6).
 
+## Who changed a fact vs who knows it
+
+The change set's actor (ADR-0008 §10) is who **committed** a change. Evidence's `source_ref` is who or what **knows** the fact. A human assertion's author is recorded on its evidence. These three are kept separate: for example, a fixture-loader service commits a fact whose evidence is a document written by an architect.
+
 ## Allowed evidence per relationship type
 
 ADR-0017 §4.1 lists which evidence kinds each relationship type accepts. An assertion with a kind that is not allowed is rejected, in the service layer and by a database check on `fact_assertion`. In particular:

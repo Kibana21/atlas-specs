@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 4:** owner reviews of revisions 1–3 recorded; provider-neutral model added; compatibility gate passed after two taxonomy-only amendments; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 5:** owner reviews of revisions 1–4 recorded; provider-neutral model added; compatibility and attribution checks passed after small amendments; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -81,3 +81,9 @@ CP2 starts only after the owner approves the decisions.
 - **Owner review (written, in the conversation, 25 Oct 2026):** D1–D19 direction acceptable, including the provider-neutral categories, the eight `infra.*` types, provider-qualified identity and the DEC-044 amendment; a focused compatibility check requested (environments, unknown provider resources, relationship semantics), no redesign.
 - **Result:** 17 checks PASS, 2 GAP (A1 environment kinds, A5 DR standby), each closed in ADR-0017 §2.5 without new types, relationships or tables (`decision-matrix.md` §9).
 - **Not done:** no role, credential, grant, table, migration, connector or product code. Baselines unchanged. Register unchanged.
+
+### 2.4 Change attribution check, revision 5 (2026-10-25)
+
+- **Owner request (written, in the conversation, 25 Oct 2026):** verify that every change set can be attributed (initiator kind, namespaced actor ID, channel, action and affected IDs, server time and revision, reason, initiator vs approver, immutability), with no spoofing, service identities for connectors, stable IDs across renames, later maker-checker, and organization scope.
+- **Result:** gap in `change_set` (untyped `actor`, writer-supplied `created_at`) fixed in ADR-0008 §10 and ADR-0001 (columns, `actor_namespace` reference data, one trigger); everything else maps to the existing model (`decision-matrix.md` §10).
+- **Not done:** no login, RBAC, maker-checker, user management, audit UI, connector, role, migration or product code. Register and baselines unchanged.
