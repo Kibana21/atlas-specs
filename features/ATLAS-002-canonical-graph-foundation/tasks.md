@@ -1,6 +1,6 @@
 # ATLAS-002 — Tasks (CP3–CP5)
 
-**Status:** **Proposed**; not authorized. IDs are stable.
+**Status:** **Proposed** task list; CP3–CP5 were each authorized by the owner and delivered (G3, G4 passed 25 Oct 2026; CP5 awaiting G5: `evidence.md` §6–§12). IDs are stable.
 
 ## CP3 — Canonical store schema and validation (atlas-backend; specs for the role script)
 

@@ -1,6 +1,6 @@
 # ATLAS-002 — Canonical Graph Foundation: Specification (CP3–CP5)
 
-**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed** (CP2 deliverable; updated at Gate G2, 25 Oct 2026, for owner decisions U-1…U-7). CP3–CP5 are **not authorized**: each needs the owner's explicit authorization. Built on the Accepted ADR-0001, 0003, 0008, 0015–0019 and the CP2 contracts.
+**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed** (CP2 deliverable; updated at Gate G2, 25 Oct 2026, for owner decisions U-1…U-7). CP3–CP5 were each authorized by the owner and delivered (G3, G4 passed 25 Oct 2026; CP5 awaiting G5: `evidence.md` §6–§12). Built on the Accepted ADR-0001, 0003, 0008, 0015–0019 and the CP2 contracts.
 
 ## 1. Scope
 

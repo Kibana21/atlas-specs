@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** Gates **G0–G4 passed** (G0 2026-10-24; G1, G2, G3 and G4 2026-10-25). CP4 is complete (§10). `atlas_db` was migrated to `0002_canonical_graph` with the owner's separate approval (§11). **CP5 is not authorized.** ATLAS-002 is not Accepted. *(This line replaces a stale status line that still read "CP2 delivered".)*
+**Status:** Gates **G0–G4 passed** (G0 2026-10-24; G1, G2, G3 and G4 2026-10-25). `atlas_db` is at `0002_canonical_graph` (owner approval, §11). **CP5 delivered (§12), awaiting the owner's G5 sign-off.** ATLAS-002 is **not** Accepted until the owner signs.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -540,3 +540,146 @@ Run from a clean clone of backend `main` at `b44c1e2`. The migration file there 
 2. **Fallback, from the backup:** first remove what `0002` created. `pg_restore --clean` alone cannot drop schema `atlas` while it holds the new tables. This is destructive, needs separate approval, and touches `atlas_db` only. Then run `pg_restore -h localhost -p 5432 -U atlas_db_user -d atlas_db --exit-on-error <dump>`. Finally verify `alembic_version` = `0001_baseline`, the owner `atlas_migrator` and the ACLs.
 
 No rollback was needed or run. PostgreSQL authentication, roles, other databases and Redis were not touched.
+
+## 12. CP5 — Evidence, traceability, release proposal (awaiting G5)
+
+### 12.1 Authorization and owner decisions (written, in the conversation, 25 Oct 2026)
+
+- **G4 confirmed:** the owner accepted the G4 evidence and confirmed G4 PASS.
+- **CP5 authorized** within the approved scope (A2-T21…T23). No release tags, migrations, frontend, database-configuration or Redis changes, and no CP6.
+- **Decision 1 (release):** Option A, no ATLAS-002 release tags. ATLAS-002 is accepted against the verified `main` commits. `info.version` is not bumped, and DEC-039 and `compatibility.md` are not amended. The conflict is documented (`release-proposal.md`).
+- **Decision 2 (G5 terms):** on the same basis as ATLAS-001, subject to documented deviations, limitations and follow-ups. PG-1 stays binding before interactive editing or a Scale A release (`follow-ups.md`).
+- **Decision 3 (traceability):** evidence first. The backlog, RTM and registry are not rewritten. Partly covered items are stated exactly (§12.5).
+- **Additional approvals:**
+  - a documentation-only backend `CLAUDE.md` update;
+  - PG-1 keeps the latest baseline, and needs repeated, controlled benchmark runs before the thresholds are chosen. No threshold is invented in CP5.
+
+### 12.2 Final verification of the `main` commits
+
+| Repository | `main` commit | `main` CI run | Fresh-clone local gates (25 Oct 2026) |
+|---|---|---|---|
+| atlas-specs | `9ea2b7ed88fafdf483fc495a9fa67be89c1792f1` | [40191059640](https://github.com/Kibana21/atlas-specs/actions/runs/40191059640): `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` success | `make check` all gates; `tools` 180 passed; canonical HARD 0, DOMAIN 0, ADVISORY 45; fixture regenerates byte-identically |
+| atlas-backend | `e9737587c4f7e5c25eda62257aba43ea2d9cb7ed` (`specs.lock` → `3d4002f`) | [40190186641](https://github.com/Kibana21/atlas-backend/actions/runs/40190186641): `static`, `unit`, `contract`, `security`, `integration`, `images` success (`benchmark` success) | `make check` 304 passed, coverage 86.33%; `make contract` 110 passed; `make security` no known vulnerabilities, 32 passed; `make integration` (`atlas_test`) 58 passed, 65 skipped |
+| atlas-frontend | `8ed5deb895dced78f98bff13cedd14c28a70f4ac` (unchanged since CP0) | [40095359958](https://github.com/Kibana21/atlas-frontend/actions/runs/40095359958): all seven success | Not rerun: no ATLAS-002 change after CP0 (§1.2) |
+
+- The integration suite's migration round trip (AC-CP3-01) recreates `atlas_test`'s default organization, so its generated ID changed. Schema, row counts and every other row are unchanged.
+- `atlas_db` was not touched in CP5.
+- The CP5 documentation merges (atlas-specs, and atlas-backend [PR #12](https://github.com/Kibana21/atlas-backend/pull/12): `CLAUDE.md` only, merged at `0d37b6e0709a4f3603dd4b7373ac330ae7974b69`; PR head run [40193893740](https://github.com/Kibana21/atlas-backend/actions/runs/40193893740) and `main` run [40194599204](https://github.com/Kibana21/atlas-backend/actions/runs/40194599204), 6/6 success; its fresh-clone gates match §12.2) change no code, contract, rule or fixture.
+
+**How to read §12.3** (runs at the commits above):
+
+- **S** = specs `main` run 40191059640, job `tools` (`tools/tests/test_canonical.py`, `make canonical`).
+- **B-u / B-c / B-i** = backend `main` run 40190186641, jobs `unit` / `contract` / `integration`.
+  - The `integration` job runs the separated-role leg (123 passed) and the single-user leg (58 passed, 65 skipped). Tests marked `role_separation` run only in the separated leg.
+- **B-b** = the non-required `benchmark` job.
+- **L** = the fresh-clone local run.
+
+### 12.3 Acceptance-criteria traceability (AC-CP5-01)
+
+| AC | Verifying tests (repository · test) | Runs | Evidence |
+|---|---|---|---|
+| AC-CP2-01 | specs · `test_taxonomy_is_self_consistent` (T-01…T-10 clean; 38 types; 8 `infra.*`), `test_taxonomy_example_is_the_artifact`; backend · `test_packaged_taxonomy_is_the_pinned_artifact` | S, B-c, L | §3.3, §4.1 |
+| AC-CP2-02 | specs · `make canonical` (16 schemas against the 2020-12 metaschema; 50 examples), `test_committed_contracts_and_fixture_pass` | S, L | §3.3 |
+| AC-CP2-03 | specs · `test_committed_contracts_and_fixture_pass`; backend · `test_golden_fixture_has_no_blocking_finding`, `test_golden_fixture_advisories_match_the_expected_report` | S, B-c, L | §4.3, §5.3 |
+| AC-CP2-04 | specs · `test_fixture_generation_is_deterministic`; `make canonical` byte-identical regeneration | S, L | §3.3 |
+| AC-CP2-05 | specs · `test_import_replay_is_a_noop_and_rejections_are_reported`, `test_changed_batch_is_not_a_noop`; backend · `test_import_plan_reproduces_revision_2_and_its_report` | S, B-c, L | §3.3, §9.2 |
+| AC-CP2-06 | specs · `test_negative_mutation_is_detected` (32 mutations), `test_actor_kind_mismatch_is_hard`, `test_snapshot_tamper_is_detected`, `test_manifest_tamper_is_detected`; backend · `test_atlas_specs_negative_mutation_is_detected` (ported, 32) | S, B-c, L | §4.3, §10.2 |
+| AC-CP2-07 | specs · `test_import_payload_cannot_carry_attribution` | S, L | §3.3 |
+| AC-CP2-08 | specs · `test_contract_evidence_for_containment_and_deployment` | S, L | §4.2 |
+| AC-CP2-09 | specs · `test_trust_function_v1_truth_table` (36 cases), `test_trust_cases_target_the_artifact`; backend · `test_trust_function_truth_table`, `test_the_truth_table_has_36_cases`, `test_golden_trust_states_are_reproduced_by_the_backend_function` | S, B-c, L | §5.3, §6.3 |
+| AC-CP3-01 | backend · `test_upgrade_downgrade_upgrade_round_trip`, `test_every_table_is_owned_by_the_migrator_and_no_extension_is_created`; `alembic check` on `atlas_db` (§11) | B-i, L | §6.3, §11 |
+| AC-CP3-02 | backend · `test_runtime_role_cannot_write_canonical_tables` (25 tables), `test_the_runtime_role_cannot_publish`, `test_the_api_never_uses_the_ingestion_role` | B-i (separated leg) | §6.3 |
+| AC-CP3-03 | backend · `test_ingestion_role_inserts_and_closes_once`, `test_ingestion_role_cannot_delete_truncate_rewrite_or_run_ddl`, `test_set_once_binds_the_owner_too`, `test_ingestion_roles_cannot_connect_to_the_other_environment`, `test_ingestion_grants_follow_the_matrix` | B-i (separated leg; set-once also single-user), L | §6.3 |
+| AC-CP3-04 | backend · `test_change_set_time_and_role_are_set_by_the_server`, `test_change_set_structure_is_enforced` | B-i, L | §6.3 |
+| AC-CP3-05 | backend · `test_golden_rows_load_and_pass_the_sql_integrity_checks`, `test_integrity_sql_detects_a_dangling_relationship` | B-i, L | §6.3 |
+| AC-CP3-06 | backend · `test_invalid_change_sets_are_rejected_with_their_rule`, `test_attribution_must_fit_the_channel`, `test_cross_check_the_dependent_relationship_evidence`; unit `test_each_rule_fires` | B-i, B-u, L | §6.3 |
+| AC-CP3-07 | backend · `test_reference_tables_equal_the_packaged_taxonomy`, unit `test_seed_rows_cover_every_reference_table`; `atlas_db` seed check (836 rows, §11) | B-i, B-u, L | §6.3, §11 |
+| AC-CP3-08 | backend · `test_trust_function_truth_table`, `test_golden_trust_states_are_reproduced_by_the_backend_function`; unit `test_trust_rules`, `test_verification_needs_a_human_and_supporting_evidence`, `test_conflict_keeps_the_prior_value_and_drafts_are_proposed`, `test_d19_checks_a_verification_when_recorded_not_when_carried_forward` | B-c, B-u, L | §6.3, §10.1 |
+| AC-CP3-09 | backend · the single-user integration leg: 58 passed, 65 skipped (53 `role_separation`, 12 CI-only password checks), identical to local; the separated leg in the same job | B-i, L | §7.3, §10.3 |
+| AC-CP4-01 | backend · `test_golden_history_replays_revision_by_revision` (every as-of hash), `test_import_batch_creates_exactly_revision_2_and_replays_as_a_no_op`, `test_golden_fixture_as_of_hashes`, `test_recorded_drafts_cover_every_revision` | B-i, B-c, L | §9.2 |
+| AC-CP4-02 | backend · `test_golden_history_replays_revision_by_revision` (re-publishing r8 and re-importing r2 write nothing), `test_publish_writes_one_change_set_and_a_replay_writes_nothing`; unit `test_an_unchanged_batch_plans_nothing` | B-i, B-u, L | §9.2 |
+| AC-CP4-03 | backend · `test_revert_draft_of_revision_4_equals_the_recorded_revert`, `test_reverts_are_new_attributed_revisions_and_unsafe_ones_are_refused`; unit `test_revert_restores_the_prior_state_as_a_new_change_set`, `test_revert_of_a_creation_removes_and_refuses_unknown_or_conflicting_revisions` | B-c, B-i, B-u, L | §9.2 |
+| AC-CP4-04 | backend · `test_golden_history_replays_revision_by_revision` (`revision_findings` at every revision, `history_findings` after), `test_golden_rows_load_and_pass_the_sql_integrity_checks` | B-i, L | §9.2 |
+| AC-CP4-05 | backend · `scripts/benchmark_canonical.py` in the CI `benchmark` job (disposable database; state load reported). Results recorded with no thresholds | B-b; runs 40186564491 (CP4), 40189533934 (G4) | §9.3, §10.4 |
+| AC-CP4-06 | backend · `test_trust_is_recomputed_when_evidence_ages_or_changes`, `test_an_expired_verification_turns_the_fact_stale` | B-i, L | §9.2 |
+| AC-CP4-07 | backend · `test_reverting_a_steward_reclassification_restores_type_parent_and_identities`, `test_reverting_a_taxonomy_migration_restores_the_historical_taxonomy_version`, `test_a_reverted_version_keeps_the_taxonomy_version_it_was_validated_against`, `test_conflicting_reclassification_reverts_are_refused_and_write_nothing`, `test_a_reclassification_revert_restores_the_earlier_type_and_taxonomy_version`; specs · the same reference case and mutations | B-i, B-c, S, L | §10.2 |
+| AC-CP5-01 | This section, `release-proposal.md`, `follow-ups.md`; the owner's sign-off (§12.8) | — | §12 |
+
+Supporting tests for the above (unit, run in B-u):
+
+- isolation: `test_other_organizations_are_not_found`, `test_composite_keys_keep_organizations_apart`;
+- atomicity and ordering: `test_a_failure_after_writing_rolls_everything_back`, `test_concurrent_publishers_are_serialized_and_revisions_stay_gap_free`;
+- normalizers: `test_arm_1_normalizes`, `test_golden_identities_normalize_as_stored`.
+
+### 12.4 Requirement coverage (`spec.md` §3, §4)
+
+| Requirement | Covered by | Note |
+|---|---|---|
+| A002-FR-01 Migration `0002` | AC-CP3-01, AC-CP3-05; `atlas_db` §11 | — |
+| A002-FR-02 Two triggers | AC-CP3-03 (set-once), AC-CP3-04 (server fields) | — |
+| A002-FR-03 Grants | AC-CP3-02/03 (separated model in CI) | Locally superseded by TD-DEV-010 (F-02) |
+| A002-FR-04 Taxonomy seed | AC-CP3-07 | — |
+| A002-FR-05 Normalizers | unit normalizer tests; `test_golden_identities_normalize_as_stored` | Non-Azure namespaces `validation_only` (F-05) |
+| A002-FR-06 `OrgScope` | strict mypy in `make check`; `test_other_organizations_are_not_found`, `test_composite_keys_keep_organizations_apart` | — |
+| A002-FR-07 Domain validator | AC-CP2-06, AC-CP3-06; G4 clarifications to D-04, D-10 and D-14 (§10.2) | — |
+| A002-FR-08 Publishing procedure | AC-CP3-06/08, AC-CP4-02; failure and concurrency tests | Full-organization state load: release limitation (F-01) |
+| A002-FR-09 Fixture loader CLI | AC-CP4-01 (through `history.replay`, `apply_import`) | **The CLI wrapper itself has no automated test (F-09)** |
+| A002-FR-10 Revert | AC-CP4-03, AC-CP4-07 | — |
+| A002-FR-11 As-of and graph hash | AC-CP4-01, AC-CP4-04 | — |
+| A002-FR-12 Pilot-size benchmark | AC-CP4-05 (CI only, never the shared server) | Thresholds deferred to PG-1 (F-01) |
+| A002-FR-13 Trust function v1 | AC-CP2-09, AC-CP3-08, AC-CP4-06 | — |
+| A002-NFR-01 PostgreSQL 15, no extension, no server setting change | `test_every_table_is_owned_by_the_migrator_and_no_extension_is_created`; `atlas_db` extensions `plpgsql` only (§11) | — |
+| A002-NFR-02 Synthetic data; Scale A never on the shared server | `acceptance/test-data/README.md`; the benchmark runs in CI only | — |
+| A002-NFR-03 Quality gates | backend coverage 86.33% (gate 85%), ruff, strict mypy; specs `make check` | Persistence modules run in the integration suites, which run with `--no-cov`, so their unit coverage figures understate the testing |
+| A002-NFR-04 No Redis for the canonical store | No Redis reference in `atlas.domain.canonical`, `atlas.persistence.canonical` or `atlas.tools.canonical` (code search, 25 Oct 2026) | By construction; no dedicated test |
+
+### 12.5 Partly covered backlog items (owner decision 3; `prioritized-backlog.md`, RTM, registry not changed)
+
+| Backlog item (authoritative text: `phase0/prioritized-backlog.md`) | What ATLAS-002 implemented | What remains outside ATLAS-002 |
+|---|---|---|
+| **BL-015** JSON Schemas v0.1: entity, relationship, provenance/evidence, projection request/response, view state and deep-link encoding, layout, draft command union, error envelope, capability set | Canonical schemas (16, `contracts/schemas/canonical/*.v1.json`) for organization, entity and entity version, relationship and relationship version, external identity, evidence, fact assertion, actor, change set, graph snapshot, import batch, taxonomy and overlay, fixture manifest; 50 valid and invalid examples | Projection request and response, view state and deep-link encoding, layout, draft command union, capability set. The error envelope was ATLAS-001 (OpenAPI) |
+| **BL-016** Golden fixture: MVP vertical slice (Digital Channels → APIM → New Business → Policy Administration → Claims), 250 entities / 700 relationships, with ACL personas, trust-state mix, conflicts, cycles; spec for a 10k/100k generator | Deterministic synthetic fixture: 252 entities, 617 relationships (owner U-7), two organizations, 8 revisions, all trust states including one conflicted fact, cross-provider and cross-environment facts | **ACL personas** (no authorization model yet). The **MVP-slice naming** is not reproduced, and pilot sources are undecided (DEC-068). 700 relationships not reached (617 accepted). **Cycles**: the fixture has none. There are no directed cycles among its current relationships (checked 25 Oct 2026), and containment cycles are exercised only by mutation tests. The **10k/100k generator spec**: only a synthetic 10k/40k benchmark generator exists (`scripts/benchmark_canonical.py`) |
+| **BL-101** Canonical graph schema, taxonomy validation, aliases, provenance, migrations (TE01); requirements INV-01–06, MOD-01, MOD-03/04, DEP-01, UX-NFR-014 (registry rows mapped to BL-101) | Migration `0002` (schema, revisions, identities, evidence and assertions, snapshots); taxonomy 1.1.0 validation (HARD and DOMAIN); trust function; publishing, revert, import planner | **Aliases:** an `entity_alias` table shell only, no alias workflow. Reconciliation (`reconciliation_case`, `match_candidate`): shells only. Every **read path and API** (`GET /entities/…`; RTM "entity write API MISSING"), authorization, and the UX-facing parts of these requirements |
+| **BL-102** Synthetic graph generator + golden fixture loader | Golden fixture loader (recorded-history replay, import application) through the publishing procedure; synthetic 10k/40k benchmark generator | A general synthetic generator for E2E and performance at 100k scale (BL-125, DEC-054). An automated test of the loader CLI (F-09) |
+
+The RTM (`phase0/requirement-traceability-matrix.md`) and `requirements-registry.csv` still list these requirements against BL-101 and the other items with their readiness. ATLAS-002 does not claim any of them is fully satisfied.
+
+### 12.6 Deviations and interpretations register (for G5)
+
+| ID | Kind | Summary | Status |
+|---|---|---|---|
+| TD-DEV-008, TD-DEV-009 | Baseline deviations | Relationship vocabulary differs from BRD INV-02 and Technical §3.1/§3.3 | Approved at G1 (`baseline-deviations.md`) |
+| TD-DEV-010 | Baseline deviation | Local single-user superuser model | Approved (owner, 25 Oct 2026); F-02 |
+| CP3-D1 | Interpretation | `specs.lock` release mode only for release builds | Recorded §6.4; G3 |
+| CP3-D2 | Interpretation | Golden rows loaded as the migration role, rolled back, with organization keys prefixed | Recorded §6.4; G3 |
+| CP3-D3 | Design detail | Additional reference tables `taxonomy_release`, `relationship_evidence_kind`; typed fact columns on assertions | Recorded §6.4; G3 |
+| CP3-D4 | Design detail | Some rules enforced in the domain validator, not as database constraints | Recorded §6.4; G3 |
+| CP3-D5 | Interpretation | A tombstone takes the trust label of its removal evidence | Recorded §6.4; G3 |
+| CP3-D6 | Interpretation | Only touched facts are re-evaluated; time-driven changes need a recompute change set | Recorded §6.4; G3 |
+| CP3-D7 | Limitation | Full-organization state load per publish | Release limitation; PG-1 (F-01) |
+| CP3-D8 | Implementation detail | Migration engine sets `search_path=pg_catalog` | Recorded §6.4; G3 |
+| CP4-D1…D4 | Interpretations | Replay evaluation time; recompute kind; D-19 timing; replay attribution | **Confirmed by the owner at G4** (§10.1) |
+| G4 rule clarifications | Contract clarification | D-04 re-check on re-type, D-10 revert exception, D-14 taxonomy version | Merged with G4 (atlas-specs #28); implements ADR-0008 §5.4, §6, §7 |
+| U-1…U-7, I-1, I-6 | Owner decisions at G2 | Taxonomy 1.1.0, trust function, limitations | Approved at G2 (§4, §5) |
+
+### 12.7 Release (A2-T22)
+
+`release-proposal.md`: **no ATLAS-002 release tags** (owner decision 1). The governance conflict between `compatibility.md` §3 and §8 is recorded and deferred to the first consumer release (F-07). ATLAS-001 tags unchanged: `contract-v0.1.0` → `bfe4a09`, backend `v0.1.0` → `585f3f5`, frontend `v0.1.0` → `b9f235e`.
+
+### 12.8 G5 owner-acceptance package (A2-T23) — **awaiting the owner's sign-off**
+
+| Item | Where |
+|---|---|
+| Acceptance criteria with tests, runs and SHAs | §12.3 |
+| Requirement coverage and partly covered backlog items | §12.4, §12.5 |
+| Deviations and interpretations | §12.6 |
+| Release decision | `release-proposal.md`, §12.7 |
+| Follow-ups, limitations, unresolved decisions (none completed) | `follow-ups.md` F-01…F-09; **PG-1 binding** |
+| Final commits and runs | §12.2 |
+| Development database state | §11 (`atlas_db` at `0002_canonical_graph`, verified; backup kept outside the repositories) |
+
+**Proposed acceptance wording (for the owner; not signed):** "ATLAS-002 Canonical Graph Foundation is Accepted against atlas-backend `main` `0d37b6e` (code as verified at `e973758`; `specs.lock` → atlas-specs `3d4002f`) and the atlas-specs `main` commit that merges this CP5 record, subject to the deviations in §12.6 and the follow-ups F-01…F-09. PG-1 is binding before interactive editing or a Scale A release. No release tags."
+
+| Gate | Decision | Date | By |
+|---|---|---|---|
+| G5 | **Pending.** Not signed; Claude does not sign on the owner's behalf | — | Owner |

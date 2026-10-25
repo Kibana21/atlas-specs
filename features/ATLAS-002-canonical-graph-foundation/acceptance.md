@@ -1,6 +1,6 @@
 # ATLAS-002 — Acceptance criteria
 
-**Status:** **Proposed**. CP2 criteria are met by this delivery (evidence §3, §4); CP3–CP5 criteria apply when those checkpoints are authorized.
+**Status:** **Proposed**. CP2 criteria are met by this delivery (evidence §3, §4); CP3 and CP4 criteria are met (G3, G4); every criterion is traced to tests, runs and SHAs in `evidence.md` §12.3; AC-CP5-01 awaits the owner's G5 sign-off.
 
 ## CP2 — Contracts and golden fixture (this delivery)
 

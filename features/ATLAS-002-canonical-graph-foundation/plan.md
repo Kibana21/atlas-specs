@@ -1,6 +1,6 @@
 # ATLAS-002 — Implementation plan (CP3–CP5)
 
-**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed**. Nothing here is authorized until the owner authorizes each checkpoint.
+**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed** plan, executed checkpoint by checkpoint under the owner's authorizations. CP3–CP5 were each authorized by the owner and delivered (G3, G4 passed 25 Oct 2026; CP5 awaiting G5: `evidence.md` §6–§12).
 
 ## Sequence
 
