@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed 2026-10-24; accepted by the owner 2026-10-25). **CP1 complete: Gate G1 passed** (2026-10-25). **CP2 delivered** (authorized 2026-10-25), awaiting owner review at Gate G2. CP3–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** Gates **G0–G4 passed** (G0 2026-10-24; G1, G2, G3 and G4 2026-10-25). CP4 is complete (§10). `atlas_db` was migrated to `0002_canonical_graph` with the owner's separate approval (§11). **CP5 is not authorized.** ATLAS-002 is not Accepted. *(This line replaces a stale status line that still read "CP2 delivered".)*
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -355,7 +355,7 @@ Recorded in: DEC-044 (register v0.10), ADR-0001 §Privileges (local single-user 
 | Accepted exception | TD-DEV-010: local single-user model with the superuser `atlas_db_user` |
 | Development database | `atlas_db` remains at `0001_baseline`; migration `0002` there needs separate owner approval |
 
-## 9. CP4 — Loader, reconstruction, reverts, trust recomputation, benchmark (awaiting G4)
+## 9. CP4 — Loader, reconstruction, reverts, trust recomputation, benchmark (G4 passed: §10)
 
 **Authorization (owner, 25 Oct 2026):** CP4 against `atlas_test` and isolated CI databases only. Separately, a read-only preflight for migrating `atlas_db` (§9.5); not executed.
 
@@ -397,7 +397,7 @@ Backend PR #10, merged at `b44c1e230992e34b8f6f696707bc5c225baa2caf`. PR head `c
 
 A small change costs time linear in the organization's size, because the procedure loads and validates its whole current state (CP3-D7). That is acceptable for fixture loads and batch imports at pilot size. It is **not** acceptable for interactive edits, and extrapolates to roughly a minute per change at Scale A. Optimization (load only the touched facts and their neighbours) is required before any release with interactive writes or Scale A data.
 
-### 9.4 Interpretations made in CP4 (for owner confirmation at G4)
+### 9.4 Interpretations made in CP4 (confirmed by the owner at G4, §10.1)
 
 | # | Point | Choice |
 |---|---|---|
@@ -418,3 +418,125 @@ A small change costs time linear in the organization's size, because the procedu
 | Other sessions | One idle pgAdmin session on `atlas_db`; the migration does not need to lock existing objects other than `alembic_version` |
 | Backup | Before migrating: `pg_dump -h localhost -U atlas_db_user -d atlas_db -Fc -f <outside the repositories>/atlas_db-pre-0002.dump` (pg_dump 15.12 available) |
 | Restoration | Preferred: `alembic downgrade 0001_baseline` with the same settings, which drops exactly what `0002` created (empty databases only). Fallback: `pg_restore -h localhost -U atlas_db_user -d atlas_db --clean --if-exists <dump>`, which touches `atlas_db` only |
+
+## 10. Gate G4 — CP4 accepted (owner, 25 Oct 2026)
+
+### 10.1 Owner decision (written, in the conversation, 25 Oct 2026)
+
+The owner reviewed the CP4 report (§9) and decided as follows.
+
+- **Approved:**
+  - CP4-D1: historical replay evaluates trust at the recorded change set's time; live publishing evaluates it at transaction time;
+  - CP4-D3: D-19 checks a verification when it is recorded or changed; a later trust recomputation may turn expired verification evidence `stale`.
+- **Accepted:**
+  - CP4-D2: trust recomputation reuses the existing `migration` change-set kind, with an explicit system actor and reason;
+  - CP4-D4: fixture replay is attributed to the loader, and the original authors are kept as evidence.
+- **Condition for G4 PASS:** close the reclassification-revert gap (A2-T28, AC-CP4-07):
+  - test reverting an entity reclassification, including its historical taxonomy version;
+  - fix any validation issue that blocks an otherwise valid revert;
+  - confirm that the original revision still reconstructs and that the revert is a new attributed revision;
+  - confirm that a conflicting revert writes nothing.
+- **Performance:** the benchmark is recorded as a release limitation, and a future performance gate is defined (PG-1). There is no publishing-engine redesign in G4.
+- **Separately:** controlled migration `0002` on the local `atlas_db` was authorized under ten preconditions (§11).
+
+### 10.2 Reclassification revert: defect, fix, regression tests
+
+**Reproduced before any change** (new integration tests on `atlas_test`, 4 failed):
+
+- reverting the steward reclassification r6 (`infra.data_store` → `azure.sql_database`) or the taxonomy migration r7 (`infra.resource` → `infra.data_store` under `1.2.0-test.1`) was refused by D-10, which allowed a non-automatic re-type only in a `steward_edit` or `migration` change set;
+- a restored version was re-stamped with the base taxonomy (`1.1.0`) instead of the version it recorded (`1.2.0-test.1`), and D-14 did not compare the taxonomy version;
+- while reviewing the conflict case, a related gap appeared: a relationship was validated only at its own version's revision. A re-type, or a revert that re-types, could therefore strand a relationship that the new type does not allow, which ADR-0008 §5.4 forbids. Both the reference validator and the backend had this gap.
+
+**Fix (contract first; narrowly scoped):**
+
+- **Rules** (`contracts/canonical-validation-rules.md`; these clarify Accepted ADR text and add no new architecture):
+  - D-10: a revert may re-type an entity only back to the version that was valid before the reverted revision (ADR-0008 §7);
+  - D-14: the restored version must keep its recorded taxonomy version (ADR-0008 §6, ADR-0017 §1);
+  - D-04: relationships are re-checked when an endpoint is re-typed (ADR-0008 §5.4).
+- **Reference validator:** fixture unchanged (HARD 0, DOMAIN 0, ADVISORY 45; byte-identical). New tests: the positive case (a valid revert of r7) plus 3 mutations. The positive case and 2 of the mutations fail against the old validator. The third (a revert to another type) was already rejected, and now guards the narrow exception.
+- **Backend `revert`:** a restored entity or relationship version keeps its recorded `taxonomy_version` and is validated against it. Rules match the reference; the same three ported cases fail against the old backend rules.
+- **Identity rules unchanged:** the entity ID never changes. Bindings that the reverted revision closed are re-opened as new rows; those it opened are closed; history is never rewritten.
+
+**Regression tests (integration, PostgreSQL 15; local `atlas_test` and CI):**
+
+| Test | Result |
+|---|---|
+| Revert of r6 (after replaying r1–r6) | Revision 7, kind `revert`, `reverts_revision` 6, human steward actor (`oidc`), server-set `db_role`, reason kept. Graph hash = r5's; r6 still reconstructs with its own hash. The entity's r5 version is restored exactly (type `infra.data_store`, taxonomy `1.1.0`, re-parenting undone) and its r5 identity namespaces are bound again. Integrity is clean at every revision |
+| Revert of r7 (after replaying r1–r7) | Revision 8; graph hash = r6's; `infra.resource` on `1.1.0` restored; the r7 version (`infra.data_store`, `1.2.0-test.1`) stays in history, closed at 8 |
+| Historical taxonomy version | At head, a steward rename of the overlay-typed entity (r9), then a revert of r9: revision 10 restores the `1.2.0-test.1` version exactly, and the hash equals r8's |
+| Conflicting reverts write nothing | Revert of r7 at head: refused with **D-04** (r8's `READS_FROM` would point at an `infra.resource`). Revert of r6 after a later rename: refused with **D-14** (fact changed again). Before and after each refusal, the revision and every stored row are identical |
+| Existing CP4 reverts | Unchanged: r8 reverts to r7's hash; r4 is refused with D-14 |
+
+### 10.3 Final commits and CI
+
+| Repository | PR | Merge commit | PR head run | `main` run |
+|---|---|---|---|---|
+| atlas-specs | [#28](https://github.com/Kibana21/atlas-specs/pull/28): rules D-04/D-10/D-14, reference validator and tests, AC-CP4-07, A2-T28, limitation, PG-1 | `3d4002f11f675a4f7520e22abb1b1c4b10e29be1` | [40189008741](https://github.com/Kibana21/atlas-specs/actions/runs/40189008741): 6/6 required **success** | [40189106561](https://github.com/Kibana21/atlas-specs/actions/runs/40189106561): 6/6 **success** |
+| atlas-backend | [#11](https://github.com/Kibana21/atlas-backend/pull/11): revert keeps the recorded taxonomy version; rules; tests; `specs.lock` → `3d4002f` | `e9737587c4f7e5c25eda62257aba43ea2d9cb7ed` | [40189533934](https://github.com/Kibana21/atlas-backend/actions/runs/40189533934): 6/6 required **success**, `benchmark` success | [40190186641](https://github.com/Kibana21/atlas-backend/actions/runs/40190186641): 6/6 **success** |
+
+| Check | Result |
+|---|---|
+| atlas-specs `make check` (fresh clone) | All gates passed; `tools` 180 passed; canonical HARD 0, DOMAIN 0, ADVISORY 45; fixture byte-identical |
+| Backend unit (CI and fresh clone) | 304 passed, coverage 86.33% |
+| Backend `make contract` | 110 passed (82 pinned-canonical) |
+| Backend `make security` | No known vulnerabilities; 32 passed |
+| Integration, separated roles (CI) | **123 passed** (CP4: 119) |
+| Integration, single-user (CI leg and local `atlas_test`, fresh clone) | **58 passed, 65 skipped** (CP4: 54); identical |
+
+### 10.4 Benchmark (G4 head; disposable CI PostgreSQL 15, single-user account)
+
+PR head run 40189533934, job `benchmark`. CP4 values (§9.3) are in brackets.
+
+| Entities / relationships / assertions | Initial load | One-entity change | No-op | State load | Graph hash |
+|---|---|---|---|---|---|
+| 1,006 / 4,000 / 5,006 | 2.2 s [1.9] | 0.90 s [0.83] | 0.33 s [0.30] | 0.17 s [0.15] | 0.25 s [0.21] |
+| 5,026 / 20,000 / 25,026 | 7.0 s [5.7] | 2.6 s [2.2] | 2.0 s [1.7] | 1.1 s [0.84] | 1.5 s [1.2] |
+| 10,051 / 40,000 / 50,051 | 13.5 s [11.3] | 5.6 s [4.8] | 4.2 s [3.6] | 2.2 s [1.9] | 3.4 s [2.8] |
+
+Single runs on shared CI runners, so the run-to-run variance is not known. Part of the increase is plausibly the new endpoint re-type check (D-04, ADR-0008 §5.4), which scans the entity versions on each publish, and part is runner variance. Costs stay linear in organization size.
+
+### 10.5 Release limitations (owner instruction at G4)
+
+- **Publication performance:** each publish loads and validates the organization's whole current state (CP3-D7). This is approved for fixture loads and batch imports, **not** as the implementation for interactive editing. At 10k/40k, a one-entity change takes about 5–6 s and a no-op about 4 s. It extrapolates to roughly a minute or more per change at Scale A. Recorded in `spec.md` §7.1.
+- **Future gate PG-1** (`acceptance.md`) must pass before any release with interactive writes or Scale A data. It covers single-entity updates, no-op publishing, concurrent writers, increasing graph sizes and historical reconstruction, with thresholds set by the owner beforehand.
+- No publishing-engine redesign was done in G4.
+
+### 10.6 Gate G4
+
+| Criterion | Result |
+|---|---|
+| Idempotent load with an equal graph hash (AC-CP4-01/02) | ✔ §9.2, unchanged at the G4 head |
+| Integrity green at every revision (AC-CP4-04) | ✔ |
+| Reverts, including reclassification and conflicts (AC-CP4-03, AC-CP4-07) | ✔ §10.2 |
+| Trust recomputation (AC-CP4-06) | ✔ §9.2 |
+| Benchmark recorded, with the state load (AC-CP4-05) | ✔ §9.3, §10.4; limitation §10.5 |
+| Required checks green on PR and `main` | ✔ specs 6/6, backend 6/6 |
+| ATLAS-001 tags unchanged | ✔ `contract-v0.1.0` → `bfe4a09`, backend `v0.1.0` → `585f3f5`, frontend `v0.1.0` → `b9f235e` |
+
+**Verdict: Gate G4 — PASS.** The owner set this condition: G4 passes once the reclassification-revert regression is resolved, which §10.2–§10.3 show. **CP5 is not started**; it needs the owner's authorization.
+
+## 11. Controlled migration `0002` on the local `atlas_db` (owner authorization, 25 Oct 2026)
+
+Run from a clean clone of backend `main` at `b44c1e2`. The migration file there is byte-identical to the G4 head. The account is the approved local single-user `atlas_db_user`. No credential appears in any command or log.
+
+| # | Precondition | Result |
+|---|---|---|
+| 1 | Target `localhost:5432/atlas_db` | ✔ settings (`ATLAS_ENV=local`, single-user model): runtime and migration URLs both `localhost:5432/atlas_db`. The connection reports `atlas_db`, port 5432, PostgreSQL 15.12 |
+| 2 | Current revision `0001_baseline` | ✔ `alembic_version` = `0001_baseline`; schema `atlas` held one table. Re-checked immediately before running |
+| 3 | Expected head and reviewed file | ✔ single head `0002_canonical_graph` (down revision `0001_baseline`). `alembic/versions/0002_canonical_graph.py` SHA-256 `13d071926c2bdfd47f42c5f143d76d7bdd5d582e81c6053fe581e2613c82370b`, identical at G3 acceptance `4689bf5`, at `b44c1e2` and at the G4 head. No migration, schema or taxonomy input changed since G3 |
+| 4 | Timestamped `pg_dump` outside all repositories | ✔ `<backup-dir>/atlas_db-pre-0002-20261025T113718Z.dump`, where `<backup-dir>` is a private local directory outside all repositories; the full path was reported to the owner (custom format, pg_dump 15.12, 3,250 bytes, mode 600 in a 700 directory; SHA-256 `31934538bbcc8a47ab2bfc295048a425ebc4609fa8562e1b4fc9b80d3ac22542`). Taken in a read-only session |
+| 5 | Backup readable; recovery documented | ✔ `pg_restore --list` reads 8 TOC entries: schema `atlas` (owner `atlas_migrator`) and its ACL, the `public` ACL, `alembic_version` with its ACL, data and key, and the migrator's default privileges. The data reads back as `0001_baseline`. Recovery: below |
+| 6 | Cannot target `atlas_test` or another database | ✔ The runner reads only the settings' migration URL (no `-x` or URL override). The settings guard rejects `atlas_test` outside the test environment, and the pre-check requires every URL to be `atlas_db` on `localhost:5432`. Explicit target `alembic upgrade 0002_canonical_graph` |
+| 7 | Only migration `0002`, approved local configuration | ✔ `Running upgrade 0001_baseline -> 0002_canonical_graph` (one transaction; transactional DDL), exit 0. The only other session was an idle pgAdmin session holding no locks |
+| 8 | Schema, seed, revision, integrity | ✔ `alembic current` = `0002_canonical_graph (head)`. `alembic check`: no new upgrade operations (no drift). 26 tables, 2 functions, 6 triggers, 52 indexes (constraint indexes included), extensions `plpgsql` only. Taxonomy seed: 836 rows in 11 tables, equal to the packaged 1.1.0. Organization `default` at revision 0; no canonical facts; integrity checks clean. Schema digest identical to `atlas_test`'s; row counts identical; content differs only in the default organization's generated ID |
+| 9 | `atlas_test` unchanged | ✔ Fingerprint before and after identical: `0002_canonical_graph`, 26 tables, row counts, schema and content digests |
+| 10 | Report | This section |
+
+**Ownership note (from the preflight, §9.5):** the 25 new tables are owned by `atlas_db_user`; `alembic_version` and schema `atlas` stay with `atlas_migrator`. Moving `atlas_db` to the separated-role model later needs an ownership and grant step.
+
+**Recovery procedure (documented, not executed; each step needs the owner's approval):**
+
+1. **Preferred, while `atlas_db` holds no canonical facts:** from the same backend commit and `.env`, run `alembic downgrade 0001_baseline`. It drops exactly what `0002` created.
+2. **Fallback, from the backup:** first remove what `0002` created. `pg_restore --clean` alone cannot drop schema `atlas` while it holds the new tables. This is destructive, needs separate approval, and touches `atlas_db` only. Then run `pg_restore -h localhost -p 5432 -U atlas_db_user -d atlas_db --exit-on-error <dump>`. Finally verify `alembic_version` = `0001_baseline`, the owner `atlas_migrator` and the ACLs.
+
+No rollback was needed or run. PostgreSQL authentication, roles, other databases and Redis were not touched.
