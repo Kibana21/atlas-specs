@@ -50,12 +50,14 @@ Out of scope: graph-reading APIs (invariant 4: authorization first, ATLAS-003), 
 
 | # | Dependency | Owner gate |
 |---|---|---|
-| DP-1 | Ingestion roles exist locally (`atlas_ingest`, `atlas_test_ingest`) before migration `0002` runs locally | **G3-R** (owner-controlled, below) |
+| DP-1 | ~~Ingestion roles exist locally before migration `0002` runs locally~~ **Superseded locally (owner decision, 25 Oct 2026):** the single-user model (`atlas_db_user`; ADR-0001 §Privileges, DEC-044, TD-DEV-010) | G3-R not required locally |
 | DP-2 | Backend `specs.lock` pins the CP2 merge commit | CP3 |
 | DP-3 | Backend CI bootstraps the ingestion roles from a verbatim copy of the approved script | CP3 |
 | DP-4 | Frontend CI's e2e job runs the same bootstrap once `e2e/backend.ref` moves past migration `0002` | When the frontend next moves its backend pin |
 
 ## 6. Gate G3-R: database-role bootstrap (separate, owner-controlled)
+
+**Not required locally (owner decision, 25 Oct 2026).** Local development uses the single-user model. The steps below and the scripts stay as the production-hardening procedure; CI runs the scripts on every change.
 
 1. Claude writes `features/ATLAS-002-canonical-graph-foundation/proposals/postgres-ingest-roles.sql` exactly as designed in `proposals/dec-044-amendment.md` §7 (guards, two roles, `CONNECT`, `USAGE`, settings), with `postgres-ingest-roles-verify.sql` (read-only), `postgres-ingest-roles-rollback.sql` and the owner runbook `g3r-runbook.md`. This is a specs PR, reviewed. **Done in CP3.**
 2. The owner reviews it, creates the two passwords, and runs it as the local superuser. Claude never creates credentials and never runs it.

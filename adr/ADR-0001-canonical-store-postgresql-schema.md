@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 3 (25 Oct 2026): provider-neutral columns and reference tables (ADR-0019); the exact DEC-044 amendment is in `features/ATLAS-002-canonical-graph-foundation/proposals/dec-044-amendment.md`. Revision 1 was 24 Oct 2026 |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). **Amended 25 Oct 2026 (owner, CP3):** local single-user model, §Privileges. Drafting history: Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 3 (25 Oct 2026): provider-neutral columns and reference tables (ADR-0019); the exact DEC-044 amendment is in `features/ATLAS-002-canonical-graph-foundation/proposals/dec-044-amendment.md`. Revision 1 was 24 Oct 2026 |
 | Register | DEC-021 (**Confirmed** 25 Oct 2026); bounded traversal per DEC-022 (still Proposed, benchmark pending); DEC-044 amended to six roles (**Confirmed** 25 Oct 2026, design only; nothing created) |
 | Owner (proposed) | Architecture + DBA; approval: Atlas owner |
 | Related | INV-01…07, MOD-01, MOD-03, MOD-04, HIST-01/02; tech §3.5, §4; ADR-0003, ADR-0008, ADR-0015…0018 |
@@ -156,6 +156,20 @@ Nothing in this section has been executed. No role exists, no grant was made, an
 | **atlas-frontend CI (e2e job)** | Once `e2e/backend.ref` moves to a backend commit with migration `0002`, the e2e job must also run the ingest bootstrap, or `alembic upgrade head` fails. Nothing changes in the frontend before then |
 | **Privilege tests** (extend the ATLAS-001 suite) | `atlas_app` can't insert, update or delete any canonical table. `atlas_ingest` can insert; can update only `revision_to`, and only once (trigger); can't delete or truncate; can't run DDL, create temporary tables, or connect to the other environment's database; can't write reference tables. Neither role is superuser or can create roles or databases, replicate or bypass RLS |
 | **Workspace rules** | The local workspace note "Atlas uses its four roles" becomes six once applied |
+
+### Local single-user model (owner decision, 25 Oct 2026)
+
+For **local development and integration tests only**, every database operation (migrations, runtime, ingestion, tests) uses one existing account, `atlas_db_user`, on `atlas_db` (development) and `atlas_test` (tests). The backend selects it with `ATLAS_DB_ROLE_MODEL=single` and refuses it in every other environment.
+
+| Property | Separated roles (above; CI, production hardening) | Local single-user model |
+|---|---|---|
+| Organization isolation, identity and version integrity, atomic publication, domain validation, trust rules | Application + constraints | **Unchanged** (application + constraints) |
+| Keys, FKs, `CHECK`s, set-once trigger, server-set `created_at`/`db_role` | Enforced | **Enforced** (constraints and triggers bind superusers) |
+| The API cannot write canonical facts; nobody can delete, truncate or run DDL on them | Enforced by privileges | **Not enforced**: `atlas_db_user` is a superuser |
+| `change_set.db_role` distinguishes the writing credential | Yes | No: always `atlas_db_user` |
+| Test runs cannot connect to `atlas_db` | Enforced by `CONNECT` | Settings guard only |
+
+`atlas_db_user` is **unsuitable for production**. Migration `0002` grants the ingestion matrix only when the ingestion role differs from the migrating account; in the single-user model the account owns every table it creates. The six-role model remains the documented hardening option, verified by CI on every change.
 
 ## PostgreSQL 15 remains sufficient (revision 3)
 

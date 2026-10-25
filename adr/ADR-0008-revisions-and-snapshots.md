@@ -147,7 +147,7 @@ Owner check (25 Oct 2026): every committed change set must say who or what made 
 - a value such as "author" inside a fixture or import file is evidence (`source_ref`, or a human assertion), not the actor;
 - later APIs take the actor from the validated token.
 
-The database can't know which human is behind a session. What it can do is record which credential wrote (`db_role`), stop any role but the ingestion role from writing (ADR-0001), and keep the timestamp server-side.
+The database can't know which human is behind a session. What it can do is record which credential wrote (`db_role`; in the local single-user model of ADR-0001 this is always `atlas_db_user`, so the actor columns carry the attribution), stop any role but the ingestion role from writing (ADR-0001), and keep the timestamp server-side.
 
 **Renamed or deactivated users:** the key is the identity provider's subject (or the service name), which doesn't change on rename. A future, organization-scoped directory can join on `(actor_namespace, actor_key)`. Deactivation never deletes or rewrites history.
 

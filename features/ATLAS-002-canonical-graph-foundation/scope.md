@@ -27,7 +27,7 @@ A canonical, evidence-backed graph store that every later feature reads from. It
 | CP0 | backend + frontend | Fix A001-DEF-01 (E-48) with a regression test; move frontend `e2e/backend.ref` | G0: defect closed, CI green, E2E green | **Done** (`evidence.md` §1) |
 | CP1 | specs | Decision proposals as ADRs (Proposed), register rows set to Proposed, decision matrix | G1: owner approves the decisions; register rows become Confirmed | **Done: G1 passed** (owner's final approval of D1–D19, 25 Oct 2026; `decision-matrix.md`, `evidence.md` §2.5) |
 | CP2 | specs | Taxonomy artifact, schemas, examples, golden fixture, validator; spec/plan/tasks/acceptance for CP3–CP5 | G2: CI validates schemas and fixture; owner approves the plan | **Done: G2 passed** (owner, 25 Oct 2026; `evidence.md` §3–§5) |
-| CP3 | backend | Migration `0002` per ADR-0001; taxonomy validation; privilege tests | G3: migrations round-trip; privileges; matrix rejects invalid input | **In progress**: G3-R scripts prepared, backend draft PR #9 green in CI except the pin; **blocked at G3-R** (`evidence.md` §6) |
+| CP3 | backend | Migration `0002` per ADR-0001; taxonomy validation; privilege tests | G3: migrations round-trip; privileges; matrix rejects invalid input | **In progress**: local single-user model adopted (owner decision, 25 Oct 2026; G3-R not required locally); backend PR #9 (`evidence.md` §6, §7) |
 | CP4 | backend | Deterministic fixture loader; integrity suite; pilot-size benchmark | G4: idempotent load with an equal graph hash; integrity green; benchmark recorded | Not authorized |
 | CP5 | all | Evidence, release tags, owner sign-off | G5: acceptance | Not authorized |
 

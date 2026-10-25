@@ -7,8 +7,8 @@
 | ID | Task | Depends on | Requirement |
 |---|---|---|---|
 | A2-T01 | Write `proposals/postgres-ingest-roles.sql` from the DEC-044 amendment §7 (guards, roles, settings, rollback). **Done (CP3):** setup, verification and rollback scripts plus `g3r-runbook.md` | — | A002-FR-03 |
-| A2-T02 | **Owner** runs A2-T01 with owner-created passwords (gate G3-R) | A2-T01 | DEC-044 |
-| A2-T03 | Read-only verification (`atlas doctor`), evidence recorded | A2-T02 | DEC-044 |
+| A2-T02 | **Owner** runs A2-T01 with owner-created passwords (gate G3-R). **Not required locally** (owner decision, 25 Oct 2026: single-user model) | A2-T01 | DEC-044 |
+| A2-T03 | Read-only verification (`atlas doctor`), evidence recorded. Locally: the doctor reports the single-user model and warns about the superuser account | A2-T02 | DEC-044 |
 | A2-T04 | Pin specs; add ingest settings; API never reads them (test) | — | A002-FR-09 |
 | A2-T05 | CI: verbatim bootstrap copy, checker, masked passwords; images check | A2-T01 | DP-3 |
 | A2-T06 | Migration `0002`: tables, keys, FKs, `CHECK`, partial unique indexes | A2-T04 | A002-FR-01 |

@@ -1,6 +1,6 @@
 # Gate G3-R: ingestion-role setup runbook (owner-controlled)
 
-**Status:** Prepared (CP3 task A2-T01), **not executed**. Each step marked *Owner* is run only by the server owner, after the owner's explicit G3-R authorization. Claude never runs the setup or rollback script, and never creates, sees or stores a password.
+**Status:** Prepared (CP3 task A2-T01), **not executed**. **Not required for local development** (owner decision, 25 Oct 2026: single-user model, ADR-0001 §Privileges, TD-DEV-010); kept as the production-hardening procedure and exercised by backend CI. Each step marked *Owner* is run only by the server owner, after the owner's explicit G3-R authorization. Claude never runs the setup or rollback script, and never creates, sees or stores a password.
 
 **Design:** DEC-044 as amended (six roles; `proposals/dec-044-amendment.md`), ADR-0001 §Privileges. **Files:**
 

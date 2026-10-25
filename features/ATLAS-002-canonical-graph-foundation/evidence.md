@@ -301,3 +301,42 @@ Read-only review of the scripts at `91755a4` and of the local server, using cata
 - Server logging: `log_statement=none`, no `pg_stat_statements`, `log_min_error_statement=error`. A `CREATE ROLE … PASSWORD` statement is therefore logged only if that statement fails, and the guards make that unlikely.
 - Runbook correction: `make doctor` does not check database ownership; the script guards do.
 - Follow-ups recorded as A2-T25…T27 and AC-CP4-05/06: benchmark the full-organization load during publication; implement and verify reverts; validate trust recomputation when evidence changes.
+
+## 7. CP3 — Local single-user database model (owner decision, 25 Oct 2026)
+
+**Owner decision (written, in the conversation):** local development and integration testing use one existing PostgreSQL account, `atlas_db_user`, for migrations, application access, ingestion and tests (`atlas_db` development, `atlas_test` tests). The ingestion roles are not created, and G3-R is not required locally. The six-role model is kept as a possible production hardening option. Organization isolation and domain validation must not weaken.
+
+Before this decision, the owner's G3-R confirmation could not be verified: read-only checks showed neither ingestion role on the only local server (Homebrew PostgreSQL 15 on 5432) and no ingestion keys in the env files. Nothing was run.
+
+### 7.1 Impact assessment
+
+| Area | Effect |
+|---|---|
+| CP2 contracts (taxonomy, schemas, golden fixture, trust function) | None |
+| Organization isolation, identity and version integrity, atomic publication, domain validation, trust | Unchanged: application (`OrgScope`, validator, publishing procedure) plus constraints |
+| Keys, FKs, `CHECK`s, set-once trigger, server-set change-set fields | Still enforced (they bind superusers) |
+| Lost locally | Privilege separation. `atlas_db_user` is a **superuser**, so the database no longer stops the API writing facts, or anyone deleting, truncating or disabling triggers. `db_role` is always `atlas_db_user`. Test runs are kept off `atlas_db` by the settings guard only. **Unsuitable for production** |
+| Migration `0002` | Compatible. Grants are made only when the ingestion role differs from the migrating account. Canonical tables are owned by `atlas_db_user`; `alembic_version` keeps its ATLAS-001 owner |
+
+Recorded in: DEC-044 (register v0.10), ADR-0001 §Privileges (local single-user model), ADR-0008 §10 note, TD-DEV-010, `spec.md` DP-1 and §6, AC-CP3-09, runbook and amendment status.
+
+### 7.2 Backend changes (draft PR #9)
+
+- **Setting `ATLAS_DB_ROLE_MODEL`:** `separated` (default) or `single`.
+  - `single` is refused outside the `local`/`test` environments.
+  - It requires one user in every URL and `db_app_role` equal to that user.
+  - It derives the ingestion URL and role from that user.
+- **Migration `0002`:** grants only to a distinct ingestion role.
+- **Doctor:** reports the single-user model and warns about a superuser account.
+- **Tests:** tests that need separated roles carry `role_separation` and are skipped with the stated reason in single-user mode.
+- **CI:** keeps the six-role run and the rollback drill, and adds a single-user leg with a CI-only superuser `atlas_db_user`.
+- **Local env files:** switched to `atlas_db_user`, with no password (local `trust`). The previous lines are commented in place.
+
+### 7.3 Results
+
+| Run | Result |
+|---|---|
+| Local, fresh clone of `79fa25c`, `atlas_test` only | `make check` 296 passed (coverage 91%); `make contract` 103 passed; `make security` no known vulnerabilities, 32 passed; `make integration` **46 passed, 65 skipped** (53 role-separation, 12 CI-only password checks), exit 0 |
+| `make doctor` | PASS, except two WARNs: the single-user model with a SUPERUSER account, and loopback `trust` (DEC-084) |
+| Local database state | `atlas_test` at `0002_canonical_graph` (26 tables, only the default organization; tests cleaned up). **`atlas_db` still at `0001_baseline`**. Roles: the four ATLAS-001 roles and `atlas_db_user`, all unchanged |
+| CI, head `79fa25c`, run [40183920480](https://github.com/Kibana21/atlas-backend/actions/runs/40183920480) | All six checks **success**. Separated roles: 111 passed, then the rollback drill. Single-user leg: 46 passed, 65 skipped, identical to local |
