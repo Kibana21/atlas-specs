@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review (D15 amended: define atomic publication, immutable fact versions, snapshot consistency, historical reconstruction, relationship endpoint validity and rollback, proportionate to the MVP); revision 1 was 24 Oct 2026 |
+| Status | **Proposed**. Revision 3 (25 Oct 2026): change attribution (§10). Revision 2 (25 Oct 2026) after the owner's CP1 review (D15 amended: define atomic publication, immutable fact versions, snapshot consistency, historical reconstruction, relationship endpoint validity and rollback, proportionate to the MVP); revision 1 was 24 Oct 2026 |
 | Register | DEC-031 (Proposed); compatible with, but does not decide, DEC-057 (Open) |
 | Owner (proposed) | Data architect; approval: Atlas owner |
 | Related | INV-06, HIST-01, HIST-02, MOD-05, GOV-04; tech §3.5 ("MVCC/revision manifests"), §10; ADR-0001, ADR-0016, ADR-0017, ADR-0018 |
@@ -61,7 +61,7 @@ One change set is published in one transaction:
 | 2 | **Lock the organization's counter:** `SELECT last FROM org_revision WHERE org_id = $1 FOR UPDATE`. Let `R = last + 1`. All other writers for this organization wait here |
 | 3 | Load the affected current versions (now stable, because writers are serialized). Compute the difference. **If there is none: `ROLLBACK`.** No revision is consumed and nothing is written (idempotent) |
 | 4 | Validate the result: taxonomy (ADR-0017), identity (ADR-0003), endpoint validity (§5), containment rules, allowed evidence kinds |
-| 5 | `INSERT change_set (org_id, R, kind, actor, source_ref, input_hash, description)` |
+| 5 | `INSERT change_set (org_id, R, kind, channel, actor_kind, actor_namespace, actor_key, actor_label, source_ref, input_hash, reason, change_reference)`; a trigger sets `created_at` and `db_role` (§10) |
 | 6 | For every changed fact: close the current version (`revision_to = R`), insert the new version (`revision_from = R`). New facts: identity row plus first version. Evidence and assertions: insert with `R` |
 | 7 | In-transaction integrity checks on the touched rows: one current version per fact, one current `CONTAINS` parent, `container_id` agrees with `CONTAINS`, no dangling relationship |
 | 8 | `UPDATE org_revision SET last = R`; `COMMIT` |
@@ -92,7 +92,7 @@ One change set is published in one transaction:
 |---|---|
 | The graph as of revision R | Versions with `revision_from <= R AND (revision_to IS NULL OR revision_to > R)` and `record_state = present`, for entities, relationships, identities, aliases and assertions |
 | What changed in `(R1, R2]` (HIST-02) | Versions with `revision_from` or `revision_to` in that interval, grouped by change set |
-| Who changed a fact and why | Its versions joined to `change_set` (actor, kind, source, input hash, description) and its assertions to `evidence` |
+| Who changed a fact and why | Its versions joined to `change_set` (actor, channel, kind, reason, reference, server time; §10) and its assertions to `evidence` |
 | Which taxonomy validated a version | `taxonomy_version` on the row |
 
 History is complete for the canonical store: nothing is deleted, and every change has a change set.
@@ -124,6 +124,36 @@ History is complete for the canonical store: nothing is deleted, and every chang
 | Graph hash | Partitioning, archiving or history compaction |
 | The set-once trigger | Revert tooling for stewards (the semantics are fixed now; a CP4 test covers one revert) |
 | — | Audit store (BL-118), event streams, temporal extensions |
+
+### 10. Change attribution (revision 3)
+
+Owner check (25 Oct 2026): every committed change set must say who or what made it, through which channel, what it did, when, and why, immutably and per organization. Revision 2's `change_set.actor` was a single untyped text and `created_at` could be supplied by the writer. That was the gap. The amendment below is columns and one trigger on `change_set`; no new table and no change to identity, version or evidence semantics.
+
+| Requirement | Column or rule |
+|---|---|
+| Who or what initiated it | `actor_kind` ∈ {human, service, system} |
+| Stable, namespace-qualified actor ID | `actor_namespace` + `actor_key`, never a display name. v1 namespaces (reference data, each fixed to one kind): `oidc` (human: `{issuer}\|{subject}` from a validated token, later), `atlas.service` (service: for example `fixture-loader`, `import-worker`, `connector.<name>`), `atlas.system` (system: for example `migration`, `revert`). A `CHECK` ties namespace to kind, so a service can't be recorded as a human |
+| Display at the time | `actor_label`: optional snapshot for readability; never used to identify |
+| Source or ingestion channel | `channel` ∈ {fixture_cli, import, api, connector, migration, system_job}; plus the existing `source_ref` and `input_hash` |
+| Action and affected IDs | `kind` is the action. The affected entities and relationships are exactly the version and assertion rows with `revision_from = R` or `revision_to = R` (§6); nothing is stored twice |
+| Server timestamp and revision | `revision` from the locked counter (§3). A `BEFORE INSERT` trigger **overwrites** `created_at` with the server's `now()` and `db_role` with `session_user`, whatever the writer sent |
+| Reason or reference | `reason` (text) and optional `change_reference` (for example a ticket key) |
+| Initiator vs approver | The change set records the **initiator**. Approvals (maker-checker, later) are a separate append-only table referencing `(org_id, revision)` or a draft, with their own actor columns and server time. An approval never edits the change set |
+| Immutable across reclassification, rollback, history | `change_set` is insert-only (no UPDATE grant; ADR-0001). Re-typing, merges and reverts are new change sets with their own attribution; `reverts_revision` links a revert to the original |
+
+**Spoofing.** The actor comes from the **execution context**, never from the payload:
+
+- the fixture loader and importers use their configured service identity;
+- a value such as "author" inside a fixture or import file is evidence (`source_ref`, or a human assertion), not the actor;
+- later APIs take the actor from the validated token.
+
+The database can't know which human is behind a session. What it can do is record which credential wrote (`db_role`), stop any role but the ingestion role from writing (ADR-0001), and keep the timestamp server-side.
+
+**Renamed or deactivated users:** the key is the identity provider's subject (or the service name), which doesn't change on rename. A future, organization-scoped directory can join on `(actor_namespace, actor_key)`. Deactivation never deletes or rewrites history.
+
+**Organization scope:** the change set's key is `(org_id, revision)`. There is no global actor table, and attribution is read only through organization-scoped queries (ADR-0016).
+
+**Out of scope here:** login, RBAC, maker-checker, user directories, audit UI and connectors. These attach later to the columns above without changing canonical identity semantics.
 
 ## Worked example (synthetic)
 

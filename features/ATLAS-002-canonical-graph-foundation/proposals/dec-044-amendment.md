@@ -46,7 +46,7 @@ The four roles: `atlas_migrator`, `atlas_app`, `atlas_test_migrator`, `atlas_tes
 | Tables | `*_app` | `*_ingest` |
 |---|---|---|
 | `alembic_version` | S | — |
-| `organization`, `provider`, `category`, `identity_namespace`, `native_type_mapping`, `entity_type`, `relationship_type`, `relationship_rule`, `attribute_rule` | S | S |
+| `organization`, `provider`, `category`, `identity_namespace`, `native_type_mapping`, `actor_namespace`, `entity_type`, `relationship_type`, `relationship_rule`, `attribute_rule` | S | S |
 | `org_revision` | S | S, U(`last`) |
 | `change_set`, `graph_snapshot`, `evidence`, `entity`, `relationship`, `match_candidate`, `reconciliation_case` | S | S, I |
 | `entity_version`, `relationship_version`, `external_identity`, `entity_alias`, `fact_assertion` | S | S, I, U(`revision_to`) |

@@ -1,6 +1,6 @@
 # ATLAS-002 CP1 — Decision matrix (for final owner confirmation)
 
-**Version:** revision 4 (compatibility gate) · **Date:** 25 October 2026 · **Status:** every row is still **Proposed** in the register. The owner reviewed revision 1 (verdicts in §1) and accepted revision 2's direction, then asked for a provider-agnostic review (§2). Register rows move to Confirmed, and the ADRs to Accepted, only when the owner gives final CP1 approval (Gate G1). No canonical-graph code, table, migration, role, privilege or connector exists.
+**Version:** revision 5 (attribution check) · **Date:** 25 October 2026 · **Status:** every row is still **Proposed** in the register. The owner reviewed revision 1 (verdicts in §1) and accepted revision 2's direction, then asked for a provider-agnostic review (§2). Register rows move to Confirmed, and the ADRs to Accepted, only when the owner gives final CP1 approval (Gate G1). No canonical-graph code, table, migration, role, privilege or connector exists.
 
 ## 1. Owner reviews
 
@@ -132,6 +132,26 @@ Owner's focused check; no redesign. Two gaps found; both closed by taxonomy-only
 | C3 Cross-environment ≠ cross-provider | PASS | Separate computed flags: ADR-0017 §4.4, ADR-0019 §6 | — |
 | C4 Derived traversal never stored | PASS | ADR-0017 §4.3, §7.5; ADR-0019 S5 | — |
 | C5 Unknown generic resources not discarded | PASS | ADR-0017 §7.4 (stored as `infra.resource`; only non-matrix relationships are rejected and reported) | — |
+
+## 10. Change attribution check (revision 5, 25 Oct 2026)
+
+Owner's compatibility check; no redesign. One structural gap: revision 4's `change_set` had a single untyped `actor` text and a writer-supplied `created_at`. Fixed in ADR-0008 §10 and the ADR-0001 `change_set` row: columns, one reference table and one trigger. No new canonical table; identity, version and evidence semantics unchanged. D15 and D16 are still Proposed, so no confirmed decision is reopened.
+
+| Requirement | Result | Supporting ADR | Amendment |
+|---|---|---|---|
+| 1 Initiator type (human, service, system) | **GAP → fixed** | ADR-0008 §10 | `actor_kind` |
+| 2 Stable, namespace-qualified actor ID | **GAP → fixed** | ADR-0008 §10 | `actor_namespace` + `actor_key`; namespace bound to kind by reference data and a `CHECK` |
+| 3 Originating source or channel | PASS after small addition | ADR-0008 §10; ADR-0018 | `channel` added; `source_ref`, `input_hash` existed |
+| 4 Action and affected IDs | PASS | ADR-0008 §6, §10 | — (`kind` + version rows at revision R) |
+| 5 Server timestamp and revision | **GAP → fixed** | ADR-0008 §3, §10 | Trigger forces `created_at = now()` and `db_role = session_user` |
+| 6 Reason or reference | PASS after rename | ADR-0008 §10 | `description` → `reason`; optional `change_reference` |
+| 7 Initiator vs approver | PASS (extensible) | ADR-0008 §10 | — (future append-only approval table; never edits the change set) |
+| 8 Immutable across reclassification, rollback, history | PASS | ADR-0008 §2, §7, §10; ADR-0001 privileges | — |
+| No spoofing through payloads | PASS after the rule | ADR-0008 §10 | Actor taken from the execution context; payload "authors" are evidence |
+| Connectors as service identities | PASS after the rule | ADR-0008 §10 | `atlas.service` namespace; `CHECK` prevents a service recorded as a human |
+| Renamed or deactivated users | PASS | ADR-0008 §10 | — (identity-provider subject keys; nothing deleted) |
+| Authorization and maker-checker later | PASS | ADR-0008 §10 | — |
+| Organization-scoped, no cross-tenant leak | PASS | ADR-0016; ADR-0008 §10 | — |
 
 ## Not decided here (stay as they are)
 
