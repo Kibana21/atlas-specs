@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 1 was 24 Oct 2026 |
+| Status | **Proposed**. Revision 2 (25 Oct 2026) after the owner's CP1 review: D16 and D18 approved; D17 amended (a dedicated least-privilege ingestion role instead of widening the runtime role); schema adjusted for the revised ADR-0003, ADR-0008 and ADR-0017. Revision 3 (25 Oct 2026): provider-neutral columns and reference tables (ADR-0019); the exact DEC-044 amendment is in `features/ATLAS-002-canonical-graph-foundation/proposals/dec-044-amendment.md`. Revision 1 was 24 Oct 2026 |
 | Register | DEC-021 (Proposed); bounded traversal per DEC-022 (Proposed, benchmark pending); D17 proposes an amendment to DEC-044 (Confirmed: four roles) |
 | Owner (proposed) | Architecture + DBA; approval: Atlas owner |
 | Related | INV-01…07, MOD-01, MOD-03, MOD-04, HIST-01/02; tech §3.5, §4; ADR-0003, ADR-0008, ADR-0015…0018 |
@@ -39,12 +39,13 @@ Conventions:
 | `organization` | `id`, `key` | `UNIQUE (key)` |
 | `org_revision` | `org_id`, `last bigint` | PK `org_id`; row-locked to allocate revisions |
 | `change_set` | `(org_id, revision)`, `kind`, `actor`, `source_ref`, `input_hash`, `reverts_revision`, `description`, `created_at` | PK `(org_id, revision)`; index `(org_id, input_hash)` for idempotent loads; FK `(org_id, reverts_revision)` |
-| `entity_type`, `relationship_type`, `relationship_rule`, `attribute_rule` | `type_key` / `rel_type`, `taxonomy_version` | Seeded from the pinned taxonomy (ADR-0017); FK targets |
+| `entity_type`, `relationship_type`, `relationship_rule`, `attribute_rule` | `type_key` / `rel_type`, `category`, `taxonomy_version` | Seeded from the pinned taxonomy (ADR-0017); FK targets. Rules reference categories (ADR-0019) |
+| `provider`, `category`, `identity_namespace`, `native_type_mapping` | provider key; category key; namespace (provider, normalizer and version, case rule, scope); `(provider, native_type) → category` | Reference data seeded from the pinned taxonomy; adding a provider adds rows here only |
 | `entity` (identity) | `id`, `org_id`, `created_revision` | PK `id`; `UNIQUE (org_id, id)`. Insert-only: type, merge and removal are on versions |
-| `entity_version` | `(org_id, entity_id, revision_from)`, `revision_to`, `type_key`, `record_state`, `merged_into`, `display_name`, `lifecycle`, `environment_scope`, `environment_id`, `container_id`, `attributes jsonb`, `trust_state`, `verification_state`, `verified_by/at`, `expires_at`, `taxonomy_version` | PK `(org_id, entity_id, revision_from)`; FKs `(org_id, entity_id)`, `(org_id, merged_into)`, `(org_id, environment_id)`, `(org_id, container_id) → entity`; FK `type_key → entity_type`; `CHECK (revision_to IS NULL OR revision_to > revision_from)`; `CHECK ((record_state = 'merged') = (merged_into IS NOT NULL))`; `CHECK` environment scope vs `environment_id`; **partial unique** `(org_id, entity_id) WHERE revision_to IS NULL` (one current version); partial indexes on current rows: `(org_id, type_key)`, `(org_id, container_id)`, `(org_id, environment_id)`, `(org_id, lower(display_name))` |
+| `entity_version` | `(org_id, entity_id, revision_from)`, `revision_to`, `type_key`, `category`, `provider`, `native_type`, `record_state`, `merged_into`, `display_name`, `lifecycle`, `environment_scope`, `environment_id`, `container_id`, `attributes jsonb`, `trust_state`, `verification_state`, `verified_by/at`, `expires_at`, `taxonomy_version` | PK `(org_id, entity_id, revision_from)`; FKs `(org_id, entity_id)`, `(org_id, merged_into)`, `(org_id, environment_id)`, `(org_id, container_id) → entity`; FK `type_key → entity_type`; `CHECK (revision_to IS NULL OR revision_to > revision_from)`; `CHECK ((record_state = 'merged') = (merged_into IS NOT NULL))`; `CHECK` environment scope vs `environment_id`; **partial unique** `(org_id, entity_id) WHERE revision_to IS NULL` (one current version); `CHECK` physical types have `provider` and `native_type`; partial indexes on current rows: `(org_id, type_key)`, `(org_id, provider, category)`, `(org_id, container_id)`, `(org_id, environment_id)`, `(org_id, lower(display_name))` |
 | `relationship` (identity) | `id`, `org_id`, `rel_type`, `from_id`, `to_id`, `discriminator`, `created_revision` | PK `id`; `UNIQUE (org_id, id)`; **`UNIQUE (org_id, rel_type, from_id, to_id, discriminator)`** (one record per fact, ADR-0017 §4; a retired relationship that returns gets a new version, not a new identity); FKs `(org_id, from_id)`, `(org_id, to_id) → entity`; `CHECK (from_id <> to_id)`; indexes `(org_id, from_id, rel_type)`, `(org_id, to_id, rel_type)` |
-| `relationship_version` | `(org_id, relationship_id, revision_from)`, `revision_to`, `record_state`, `lifecycle`, `environment_id`, `cross_environment`, `shared_endpoint`, `attributes jsonb`, `trust_state`, `verification…`, `taxonomy_version` | Partial unique current version; partial index `(org_id, relationship_id) WHERE revision_to IS NULL` |
-| `external_identity` | `id`, `org_id`, `entity_id`, `namespace`, `original_key`, `normalized_key`, `normalization_version`, `key_parts jsonb`, `match_method`, `revision_from`, `revision_to` | **Partial unique** `(org_id, namespace, normalized_key) WHERE revision_to IS NULL`; index `(org_id, entity_id)` |
+| `relationship_version` | `(org_id, relationship_id, revision_from)`, `revision_to`, `record_state`, `lifecycle`, `environment_id`, `cross_environment`, `shared_endpoint`, `cross_provider`, `attributes jsonb`, `trust_state`, `verification…`, `taxonomy_version` | Partial unique current version; partial index `(org_id, relationship_id) WHERE revision_to IS NULL` |
+| `external_identity` | `id`, `org_id`, `entity_id`, `namespace` (FK → `identity_namespace`), `original_key`, `normalized_key`, `normalization_version`, `key_parts jsonb`, `match_method`, `revision_from`, `revision_to` | **Partial unique** `(org_id, namespace, normalized_key) WHERE revision_to IS NULL`; index `(org_id, entity_id)` |
 | `entity_alias` | `id`, `org_id`, `entity_id`, `alias_original`, `alias_normalized`, `scope_type`, `scope_environment_id`, `status`, `approved_by`, `revision_from`, `revision_to` | **Partial unique** `(org_id, scope_type, scope_environment_id, alias_normalized) NULLS NOT DISTINCT WHERE status = 'approved' AND revision_to IS NULL` (PostgreSQL 15 feature: an environment-neutral alias is unique too). A status change is a new row |
 | `evidence` (append-only) | `id`, `org_id`, `kind`, `source_ref`, `artifact_ref`, `artifact_hash`, `method`, `confidence`, `observed_at`, `valid_from`, `valid_to`, `change_revision` | Index `(org_id, change_revision)` |
 | `fact_assertion` | `id`, `org_id`, `fact_kind`, `fact_id`, `field_path`, `asserted_value jsonb`, `evidence_id`, `evidence_kind`, `revision_from`, `revision_to` | Index `(org_id, fact_id, field_path) WHERE revision_to IS NULL`; check that `evidence_kind` is allowed for the relationship type (ADR-0017 §4) |
@@ -61,6 +62,10 @@ Conventions:
 - A consistency test asserts that `container_id` equals the current `CONTAINS` relationship.
 
 **Environments:** `environment_id` references a `core.environment` entity. Cross-environment relationships set `cross_environment` (ADR-0017).
+
+**Provider neutrality:** no table, column or constraint names a provider. Provider-specific detail is reference data (`provider`, `identity_namespace`, `native_type_mapping`), `native_type`, and `attributes`/`provider_attributes` JSON validated per type or profile. A new provider adds reference rows and a normalizer; it never changes these tables (ADR-0019).
+
+**Facts vs presentation:** these tables hold architecture facts only. No positions, colours, icons, provider logos, collapsed state or diagram grouping. Those belong to the separate, later view and layout tables (DEC-005, MOD-05, invariant 1); icons are derived from category in the frontend.
 
 ## Scale assessment (per owner §8)
 
@@ -151,6 +156,23 @@ Nothing in this section has been executed. No role exists, no grant was made, an
 | **atlas-frontend CI (e2e job)** | Once `e2e/backend.ref` moves to a backend commit with migration `0002`, the e2e job must also run the ingest bootstrap, or `alembic upgrade head` fails. Nothing changes in the frontend before then |
 | **Privilege tests** (extend the ATLAS-001 suite) | `atlas_app` can't insert, update or delete any canonical table. `atlas_ingest` can insert; can update only `revision_to`, and only once (trigger); can't delete or truncate; can't run DDL, create temporary tables, or connect to the other environment's database; can't write reference tables. Neither role is superuser or can create roles or databases, replicate or bypass RLS |
 | **Workspace rules** | The local workspace note "Atlas uses its four roles" becomes six once applied |
+
+## PostgreSQL 15 remains sufficient (revision 3)
+
+| Need | PostgreSQL 15 feature used | Extension needed? |
+|---|---|---|
+| Organization-scoped uniqueness, composite FKs | B-tree unique indexes, composite foreign keys | No |
+| Current-version lookups | Partial indexes (`WHERE revision_to IS NULL`) | No |
+| Environment-neutral alias uniqueness | `NULLS NOT DISTINCT` (new in 15) | No |
+| Provider- and type-specific attributes | `jsonb` with application-side validation | No |
+| Containment and bounded traversal | Recursive CTEs with depth limits | No |
+| Immutability | PL/pgSQL triggers, column privileges | No (`plpgsql` is built in) |
+| Bulk load | `COPY … FROM STDIN` | No |
+| Multi-provider support | Reference rows plus columns above | No |
+
+No feature from PostgreSQL 16 or later and no extension is required. Fuzzy search (`pg_trgm`) remains a later, separate decision (BL-111).
+
+**No additional infrastructure:** no graph database, search engine, message broker, object store, cache, new Redis usage or new service. The only server-level change ATLAS-002 proposes is the two ingestion roles, which the owner runs (DEC-044 amendment).
 
 ## Trade-offs and risks
 

@@ -20,5 +20,6 @@ ADRs live here as `ADR-NNNN-kebab-title.md`. Each one has a **Status** (Proposed
 | [ADR-0016](ADR-0016-tenancy-and-organization-scope.md) | Tenancy and organization scope | — | DEC-058 | Proposed |
 | [ADR-0017](ADR-0017-taxonomy-and-relationship-vocabulary.md) | Canonical taxonomy and relationship vocabulary v1 | — | DEC-050, DEC-070 | Proposed |
 | [ADR-0018](ADR-0018-fact-provenance-trust-and-evidence.md) | Fact-level provenance, trust and evidence | — | DEC-056 | Proposed |
+| [ADR-0019](ADR-0019-provider-neutral-model-and-onboarding.md) | Provider-neutral canonical model and provider onboarding | — | DEC-004 (Confirmed), DEC-050, DEC-070 | Proposed |
 
-Proposed ADRs were drafted for ATLAS-002 CP1 (revision 2 after the owner's review on 25 Oct 2026). See `features/ATLAS-002-canonical-graph-foundation/decision-matrix.md` for the exact choices awaiting approval.
+Proposed ADRs were drafted for ATLAS-002 CP1 (revisions 2 and 3 after the owner's reviews on 25 Oct 2026). See `features/ATLAS-002-canonical-graph-foundation/decision-matrix.md` for the exact choices awaiting approval.

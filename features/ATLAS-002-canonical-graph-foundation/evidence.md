@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 2:** owner review of revision 1 recorded, amended decisions redrafted; every register row still Proposed, awaiting owner confirmation (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 3:** owner reviews of revisions 1 and 2 recorded; provider-neutral model added; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -68,3 +68,10 @@ CP2 starts only after the owner approves the decisions.
 - **Revision 2:** ADR-0017 (catalog, matrix, coverage, gaps, `READS_FROM`/`WRITES_TO`, `CONTAINS` vs `MEMBER_OF`), ADR-0003 (ARM original and normalized keys), ADR-0008 (revision lifecycle and example), ADR-0001 (schema alignment, ingestion role and privilege matrix), ADR-0018 (alignment); ADR-0015/0016 status notes only. `decision-matrix.md` revision 2 with the baseline-consistency review (C-01…C-12) and the confirmation table.
 - **Register:** v0.7 annotations only; **no status changes** (totals unchanged). The approved rows are not moved to Confirmed individually: G1 confirms them together, after the consistency review in `decision-matrix.md` §3.
 - **Not done:** no role, credential, grant, table, migration or product code. Baselines unchanged.
+
+### 2.2 Owner review of revision 2 and revision 3 (2026-10-25)
+
+- **Owner review (written, in the conversation, 25 Oct 2026):** revision 2 (PR #15, `d23dfeb`) directionally accepted; `core.system` and `core.component` approved; `CONTAINS`/`MEMBER_OF` kept; D17's ingestion roles acceptable in principle with an explicit DEC-044 amendment to be prepared; final provider-agnostic review requested (Azure, AWS, Google Cloud, Alibaba Cloud, OCI, Huawei Cloud, Tencent Cloud, IBM Cloud, private clouds, on-premises, custom technologies); no connectors, CP2, tables, migrations or role changes.
+- **Revision 3:** new ADR-0019 (categories, eight `infra.*` types, providers as reference data, hierarchies, cross-provider rules, scenarios S1–S6, onboarding); ADR-0017 (38 types, rules by category, G-T9 and G-T10 closed); ADR-0003 (provider-qualified namespace registry); ADR-0016 and ADR-0018 (provider-neutral wording); ADR-0001 (reference tables, columns, PostgreSQL 15 assessment); `proposals/dec-044-amendment.md`; decision matrix revision 3 (D1–D19).
+- **Register:** v0.8 annotations only; no status changes.
+- **Not done:** no role, credential, grant, table, migration, connector or product code. Baselines unchanged.
