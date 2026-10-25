@@ -225,3 +225,65 @@ The trust function and truth table are approved for CP3: 36 cases, of which 6 (T
 |---|---|
 | `make tools` | 176 passed (169 + 6 truth-table cases + 1 mutation: an unresolved field without a conflict → D-01) |
 | Canonical | HARD 0, DOMAIN 0, ADVISORY 45; byte-identical regeneration |
+
+## 6. CP3 — Canonical store (in progress; stopped at gate G3-R)
+
+**Authorization (owner, written, in the conversation, 25 Oct 2026):** CP3 after G2 closure, as far as the owner-controlled role gate G3-R permits. Prepare the six-role (additive) setup script with verification and rollback; do not run it, and create no role, password or credential. No frontend, graph read API, authentication, RBAC, connectors or CP4/CP5.
+
+G2 closure: PR #22, merge `2d1d319f1dba37f08b1138fb88550decb84828a4`. PR head `cfc9c89` run [40174455030](https://github.com/Kibana21/atlas-specs/actions/runs/40174455030); `main` run [40174524706](https://github.com/Kibana21/atlas-specs/actions/runs/40174524706). All six checks **success**.
+
+### 6.1 G3-R deliverables (this specs PR; A2-T01)
+
+| File | Content |
+|---|---|
+| `proposals/postgres-ingest-roles.sql` | Additive setup with guards. Server major 15; exactly the four ATLAS-001 roles, unchanged; databases owned by their migrators; PUBLIC closed; schema `atlas` in both; two non-empty, different passwords from psql variables. Creates `atlas_ingest` and `atlas_test_ingest` with CONNECTION LIMIT 2, session limits, `CONNECT` on its own database, `USAGE` on `atlas` and `search_path`. No table privilege |
+| `proposals/postgres-ingest-roles-verify.sql` | Read-only checks: six roles, no special attributes, limits 3/10/2, no memberships, session limits, `CONNECT` own database only, no `TEMP`/`CREATE`, schema privileges, `search_path`, and no table privilege before `0002` (`-v after_0002=1` afterwards) |
+| `proposals/postgres-ingest-roles-rollback.sql` | Revokes table, schema and database privileges, resets `search_path`, drops only the two roles, and checks that exactly the four ATLAS-001 roles remain |
+| `proposals/g3r-runbook.md` | Exact owner steps, local settings, Claude's read-only follow-up, rollback |
+
+**Not executed.** No role, password or credential exists on the shared server. The local PostgreSQL 15.12 and Redis were not changed.
+
+### 6.2 Backend implementation (atlas-backend draft PR #9; not mergeable before G3-R)
+
+| Area | Files |
+|---|---|
+| Migration `0002_canonical_graph` | 25 tables in schema `atlas`: 11 taxonomy reference tables (incl. `taxonomy_release`, `relationship_evidence_kind`), organizations and the revision counter, change sets, entity/relationship identity and version tables, identities, aliases, evidence, assertions, snapshots, reconciliation shells. 62 composite or simple FKs, 67 `CHECK`s, 11 unique constraints, 15 indexes (9 partial, incl. one `NULLS NOT DISTINCT`). The two approved triggers. DEC-044 grants to the ingestion role. Taxonomy 1.1.0 seed (836 rows). Default organization. No extension. Fails without the ingestion role |
+| `atlas.domain.canonical` | Packaged taxonomy 1.1.0 (byte-identical to the pinned artifact) and seed; approved normalizers; trust function v1; HARD/DOMAIN/ADVISORY rules with revision scoping |
+| `atlas.persistence.canonical` | `OrgScope` repository; publishing procedure (ADR-0008 §3); in-database integrity SQL; row mapping |
+| Settings, doctor, CI | `ATLAS_INGEST_DATABASE_URL`/`ATLAS_DB_INGEST_ROLE` (optional, guarded; the API never reads them); doctor ingest-role check; drift-checked CI copies of the three G3-R scripts; CI bootstrap, verification and a rollback drill |
+
+### 6.3 Results (draft PR #9, head `7c9d96dbca701a4daf19930eb257ae19a2372fea`, run [40177297989](https://github.com/Kibana21/atlas-backend/actions/runs/40177297989))
+
+| Check | Result |
+|---|---|
+| `static`, `unit`, `security`, `images` | **success**. Unit: 287 passed, coverage 90% (gate 85%). The `images` job ran the ingestion bootstrap and migration `0002` inside the built image |
+| `integration` (isolated `postgres:15`, scram) | **success**. 111 passed. Bootstrap copies equal the pinned G3-R scripts; setup, then verification "OK"; `0002 (head)`; then downgrade of both databases and the rollback script; exactly the four ATLAS-001 roles remain |
+| `contract` | **failure, expected**: `LOCK_NOT_ON_MAIN`. `specs.lock` pins this PR's unmerged specs commit; re-pinned after merge |
+| Trust function | 36/36 truth-table cases (pinned-specs suite); every golden stored trust state reproduced |
+| Golden fixture in memory | HARD 0, DOMAIN 0, ADVISORY equal to `expected-findings.json`; every as-of hash; all 29 atlas-specs mutations detected |
+| Golden fixture in PostgreSQL (AC-CP3-05) | All rows accepted; integrity SQL clean at every revision; rows read back equal the fixture (server-set `created_at`/`db_role` aside); every as-of hash reproduced |
+| Privileges and triggers (AC-CP3-02/03/04) | Runtime role denied INSERT/UPDATE/DELETE/TRUNCATE on all 25 tables. Ingestion role: matrix exactly; second `revision_to` change rejected; other columns, DELETE, TRUNCATE, DDL and TEMP denied; no cross-environment `CONNECT`. Server-set change-set time and role |
+| Publishing (AC-CP3-06/08) | One change set per publish, replay no-op (no revision consumed). 11 rejection cases with their rule IDs; attribution and revert refusal; the runtime role cannot publish; other organizations not found |
+
+### 6.4 Deviations and interpretations (no approved architecture changed)
+
+| # | Item | Why |
+|---|---|---|
+| CP3-D1 | Backend `make specs` validates `specs.lock` in release mode only for release builds (`RELEASE=1`) | `contracts/compatibility.md` §2 allows any `main` commit for development and CI; plan DP-2 pins a non-release commit. Release mode still requires the `contract-v*` tag |
+| CP3-D2 | Golden rows are loaded as the migration role in a rolled-back transaction, with organization keys prefixed `golden-` | Organizations are created by migrations only (the ingestion role has `SELECT` there), and migration `0002` already created `default` |
+| CP3-D3 | Additional reference tables `taxonomy_release` and `relationship_evidence_kind`; `fact_assertion` carries typed fact columns | They make the taxonomy version, the assertion's fact and its allowed evidence kind (ADR-0001/0018 "database check on `fact_assertion`") foreign keys instead of triggers |
+| CP3-D4 | Not database constraints: "physical types have provider and native type" (only `native_type ⇒ provider`); `external_identity.namespace` FK; the `lower(display_name)` index | The first needs the type's kind and the tenant exemption (D-02 covers it); `source.*` namespaces are a pattern; name search is BL-111 |
+| CP3-D5 | A removal (tombstone) version takes the trust label of its `record_state` evidence | Not defined by trust-1, which covers present facts; it matches the fixture |
+| CP3-D6 | The publishing procedure re-evaluates only the facts it touches; time-driven trust changes wait for a recompute change set | `contracts/trust-function.md` (storage and recomputation) |
+| CP3-D7 | Each publish loads the organization's current state; reverts are refused | Correctness first; measured in CP4 (benchmark). Revert is FR-10 (CP4) |
+| CP3-D8 | The migration engine sets `search_path=pg_catalog` at connect | All objects are schema-qualified; it makes `alembic check` compare schema `atlas` as a named schema |
+
+### 6.5 Owner action required (G3-R)
+
+Follow `proposals/g3r-runbook.md` at the merged commit. Run the setup script, then the verification script, as the local superuser with two new passwords. Then add the two settings lines to `.env` and `.env.test`. Afterwards Claude:
+
+1. verifies read-only (`make doctor`);
+2. runs the backend local gates from a fresh clone (`make check contract security integration` on `atlas_test`);
+3. merges PR #9.
+
+Migration `0002` on `atlas_db` needs a separate approval.
