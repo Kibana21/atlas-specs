@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** Gates **G0–G4 passed** (G0 2026-10-24; G1, G2, G3 and G4 2026-10-25). `atlas_db` is at `0002_canonical_graph` (owner approval, §11). **CP5 delivered (§12), awaiting the owner's G5 sign-off.** ATLAS-002 is **not** Accepted until the owner signs.
+**Status:** Gates **G0–G4 passed** (G0 2026-10-24; G1, G2, G3 and G4 2026-10-25). `atlas_db` is at `0002_canonical_graph` (owner approval, §11). **CP5 delivered (§12); F-09 closed (§13); F-10 Open, assessed and awaiting the owner's decision (§13.4); awaiting the owner's G5 sign-off.** ATLAS-002 is **not** Accepted until the owner signs.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -623,7 +623,7 @@ Supporting tests for the above (unit, run in B-u):
 | A002-FR-06 `OrgScope` | strict mypy in `make check`; `test_other_organizations_are_not_found`, `test_composite_keys_keep_organizations_apart` | — |
 | A002-FR-07 Domain validator | AC-CP2-06, AC-CP3-06; G4 clarifications to D-04, D-10 and D-14 (§10.2) | — |
 | A002-FR-08 Publishing procedure | AC-CP3-06/08, AC-CP4-02; failure and concurrency tests | Full-organization state load: release limitation (F-01) |
-| A002-FR-09 Fixture loader CLI | AC-CP4-01 (through `history.replay`, `apply_import`) | **The CLI wrapper itself has no automated test (F-09)** |
+| A002-FR-09 Fixture loader CLI | AC-CP4-01 (through `history.replay`, `apply_import`); the CLI as a real process: `tests/integration/test_canonical_cli.py` (18 tests, §13) | F-09 closed (§13). F-10 Open (§13.4) |
 | A002-FR-10 Revert | AC-CP4-03, AC-CP4-07 | — |
 | A002-FR-11 As-of and graph hash | AC-CP4-01, AC-CP4-04 | — |
 | A002-FR-12 Pilot-size benchmark | AC-CP4-05 (CI only, never the shared server) | Thresholds deferred to PG-1 (F-01) |
@@ -640,7 +640,7 @@ Supporting tests for the above (unit, run in B-u):
 | **BL-015** JSON Schemas v0.1: entity, relationship, provenance/evidence, projection request/response, view state and deep-link encoding, layout, draft command union, error envelope, capability set | Canonical schemas (16, `contracts/schemas/canonical/*.v1.json`) for organization, entity and entity version, relationship and relationship version, external identity, evidence, fact assertion, actor, change set, graph snapshot, import batch, taxonomy and overlay, fixture manifest; 50 valid and invalid examples | Projection request and response, view state and deep-link encoding, layout, draft command union, capability set. The error envelope was ATLAS-001 (OpenAPI) |
 | **BL-016** Golden fixture: MVP vertical slice (Digital Channels → APIM → New Business → Policy Administration → Claims), 250 entities / 700 relationships, with ACL personas, trust-state mix, conflicts, cycles; spec for a 10k/100k generator | Deterministic synthetic fixture: 252 entities, 617 relationships (owner U-7), two organizations, 8 revisions, all trust states including one conflicted fact, cross-provider and cross-environment facts | **ACL personas** (no authorization model yet). The **MVP-slice naming** is not reproduced, and pilot sources are undecided (DEC-068). 700 relationships not reached (617 accepted). **Cycles**: the fixture has none. There are no directed cycles among its current relationships (checked 25 Oct 2026), and containment cycles are exercised only by mutation tests. The **10k/100k generator spec**: only a synthetic 10k/40k benchmark generator exists (`scripts/benchmark_canonical.py`) |
 | **BL-101** Canonical graph schema, taxonomy validation, aliases, provenance, migrations (TE01); requirements INV-01–06, MOD-01, MOD-03/04, DEP-01, UX-NFR-014 (registry rows mapped to BL-101) | Migration `0002` (schema, revisions, identities, evidence and assertions, snapshots); taxonomy 1.1.0 validation (HARD and DOMAIN); trust function; publishing, revert, import planner | **Aliases:** an `entity_alias` table shell only, no alias workflow. Reconciliation (`reconciliation_case`, `match_candidate`): shells only. Every **read path and API** (`GET /entities/…`; RTM "entity write API MISSING"), authorization, and the UX-facing parts of these requirements |
-| **BL-102** Synthetic graph generator + golden fixture loader | Golden fixture loader (recorded-history replay, import application) through the publishing procedure; synthetic 10k/40k benchmark generator | A general synthetic generator for E2E and performance at 100k scale (BL-125, DEC-054). An automated test of the loader CLI (F-09) |
+| **BL-102** Synthetic graph generator + golden fixture loader | Golden fixture loader (recorded-history replay, import application) through the publishing procedure; synthetic 10k/40k benchmark generator | A general synthetic generator for E2E and performance at 100k scale (BL-125, DEC-054). (The loader CLI is now tested: F-09 closed, §13) |
 
 The RTM (`phase0/requirement-traceability-matrix.md`) and `requirements-registry.csv` still list these requirements against BL-101 and the other items with their readiness. ATLAS-002 does not claim any of them is fully satisfied.
 
@@ -674,12 +674,106 @@ The RTM (`phase0/requirement-traceability-matrix.md`) and `requirements-registry
 | Requirement coverage and partly covered backlog items | §12.4, §12.5 |
 | Deviations and interpretations | §12.6 |
 | Release decision | `release-proposal.md`, §12.7 |
-| Follow-ups, limitations, unresolved decisions (none completed) | `follow-ups.md` F-01…F-09; **PG-1 binding** |
-| Final commits and runs | §12.2 |
+| Follow-ups, limitations, unresolved decisions | `follow-ups.md` F-01…F-10: F-09 **closed** (§13); F-10 **Open** (§13.4); the others open, none completed; **PG-1 binding** |
+| Final commits and runs | §12.2; F-09: §13.2 |
 | Development database state | §11 (`atlas_db` at `0002_canonical_graph`, verified; backup kept outside the repositories) |
 
-**Proposed acceptance wording (for the owner; not signed):** "ATLAS-002 Canonical Graph Foundation is Accepted against atlas-backend `main` `0d37b6e` (code as verified at `e973758`; `specs.lock` → atlas-specs `3d4002f`) and the atlas-specs `main` commit that merges this CP5 record, subject to the deviations in §12.6 and the follow-ups F-01…F-09. PG-1 is binding before interactive editing or a Scale A release. No release tags."
+**Proposed acceptance wording (for the owner; not signed; revised after F-09):** "ATLAS-002 Canonical Graph Foundation is Accepted against atlas-backend `main` `dbb6c04` (`specs.lock` → atlas-specs `3d4002f`) and the atlas-specs `main` commit that merges the F-09 record (§13), subject to the deviations in §12.6 and the follow-ups F-01…F-08 and F-10 (F-09 closed). PG-1 is binding before interactive editing or a Scale A release. No release tags." The treatment of F-10 (fix before acceptance, or acceptance with F-10 as a deferred limitation) is the owner's decision (§13.4).
 
 | Gate | Decision | Date | By |
 |---|---|---|---|
 | G5 | **Pending.** Not signed; Claude does not sign on the owner's behalf | — | Owner |
+
+## 13. F-09 closed: canonical loader CLI integration tests (owner condition for G5, 25 Oct 2026)
+
+### 13.1 Owner instruction
+
+Before the final G5 sign-off the owner required F-09 to be addressed: focused integration tests of `python -m atlas.tools.canonical` through the real entry point, covering replay, import, revert, trust recomputation and snapshot, invalid arguments, missing configuration, non-zero exit codes, and the use of the ingestion connection; `atlas_test` or disposable CI databases only; no change to canonical rules, schema or migration `0002`. The owner accepted Option A, the deviations and F-01…F-08, and PG-1 as binding.
+
+### 13.2 What was merged
+
+| Item | Evidence |
+|---|---|
+| Backend PR | [#13](https://github.com/Kibana21/atlas-backend/pull/13), head `4426f7cb0adb05b0e111939710712a6972a5f33f`, merged at `dbb6c04e8df10275cb332f599e1efe719bccbab9` (merge commit, head-SHA guard) |
+| PR head CI | [40202435103](https://github.com/Kibana21/atlas-backend/actions/runs/40202435103): `static`, `unit`, `contract`, `security`, `integration`, `images` success (`benchmark` success) |
+| `main` CI | [40203519070](https://github.com/Kibana21/atlas-backend/actions/runs/40203519070): all six required checks success. `unit` 304 passed, coverage 85.59%; `integration` separated-roles leg 141 passed (123 + 18), single-user leg 76 passed, 65 skipped |
+| Fresh-clone gates (branch head) | `make check` 304 passed, coverage 85.59% (gate 85%); `make contract` 110 passed; `make security` no known vulnerabilities, 32 passed; `make integration` (`atlas_test`) 76 passed, 65 skipped |
+| `specs.lock` | Unchanged (`3d4002f`); no contract, rule, schema, fixture or migration change |
+
+Unit coverage moved from 86.33% to 85.59% because the new CLI lines run in the integration subprocesses, which are not part of the unit coverage measurement (§12.4, NFR-03).
+
+### 13.3 Tests and coverage (`tests/integration/test_canonical_cli.py`, 18 tests)
+
+Every test starts `python -m atlas.tools.canonical` as a subprocess with settings built from the validated test settings (FR-21 guards: database `atlas_test` for every role). The runtime and migration URLs given to the CLI point at a closed port, so a command can succeed only through the ingestion connection; the server-set `change_set.db_role` must equal the ingestion role (`atlas_test_ingest` in the separated leg). Each test creates its own organization and deletes it with all its rows afterwards.
+
+| Area | Tests |
+|---|---|
+| Replay | the golden history: every revision and as-of graph hash, fixture-loader attribution on `fixture_cli`, integrity at every revision; a second replay is refused (exit 2, H-05) and writes nothing |
+| Revert | a conflicting revert is refused (exit 2, D-14) and writes nothing; an accepted revert of r6 is revision 7 by `system/atlas.system/revert` on `system_job`, restores the r5 graph hash, and r6 still reconstructs |
+| Trust recomputation, snapshot | recomputation is a `migration` change set by `trust-recompute` when anything changes, and a second run is a no-op; the snapshot records the current revision and graph hash; a duplicate label is refused (exit 1) and adds nothing |
+| Import | revision 2 with the expected rejection report, `import-worker` on `import`; the same batch again is a no-op |
+| Refusals (exit 1, one line on stderr, nothing written) | unloaded taxonomy versions (below), missing configuration (field names only, no values), no ingestion connection, test settings naming `atlas_db` (closed port: never connects), unreachable database, unknown organization, unreadable input |
+| Invalid arguments (exit 2, usage) | 7 cases, before any configuration is read |
+| No connection details | every refusal is checked for passwords, `host:port`, `postgresql` and `127.0.0.1` in the output, and for the absence of a traceback |
+
+- **Coverage of the CLI module:** 98% with the subprocesses measured (coverage `patch = subprocess`, local run on `atlas_test`): 106 of 106 statements; 2 partial branches (a fixture without a trust policy; the `__main__` guard's false branch).
+- **The tests detect the defects:** against the previous CLI, 7 of the 18 tests fail.
+- **`atlas_db`:** never connected by the tests. A read-only fingerprint before and after the local and fresh-clone runs is identical (`0002_canonical_graph`, 26 tables, 839 rows, no change set).
+
+**CLI changes made with the tests (owner-accepted at the F-10 instruction, subject to CI):**
+
+1. `revert`, `recompute-trust` and `import` refuse (exit 1, nothing written) when the organization's stored versions, or the import batch, use a taxonomy version the command has not loaded. Without this, `revert --revision 7` on the golden history was **accepted** by the CLI, although the rules refuse it (D-04) when every taxonomy is loaded. Cause: F-10 (§13.4).
+2. Configuration errors list field names and messages only; previously the traceback could print fragments of connection URLs.
+3. Unknown organization, unreadable input, unreachable database and duplicate snapshot label: one line on stderr without connection details. Exit codes are documented in the module.
+
+F-09 is **closed**.
+
+### 13.4 F-10: validation with a partial taxonomy set (Open; assessment for the owner)
+
+**Status: Open.** Assessed at the owner's request (25 Oct 2026). No rule, contract or schema has been changed. The proposed resolution awaits the owner's approval; alternatively the owner may accept F-10 as a deferred limitation (`follow-ups.md` F-10).
+
+**Callers of canonical validation.** Every canonical write goes through `publish` → `rules.validate(dataset, taxes, scope)`; `taxes` is supplied by the caller:
+
+| Path | Function | Taxonomies it passes |
+|---|---|---|
+| Direct publishing | `publish` | the caller's |
+| Fixture loader | `history.replay` (via `publish` and `revert`) | the caller's; the CLI passes the base taxonomy and the fixture's overlays |
+| Import planner | `history.apply_import` | the caller's; the CLI passes the approved taxonomy only |
+| Revert | `history.revert` | the caller's; the CLI passes the approved taxonomy only |
+| Trust recomputation | `history.recompute_trust` | the caller's; the CLI passes the approved taxonomy only |
+| CLI | `atlas.tools.canonical` | as above; since §13.3 it refuses when a version in use is not loaded |
+| Benchmark | `scripts/benchmark_canonical.py` (CI only) | the approved taxonomy; its data uses no other version |
+
+There is no API, worker or other production caller (code search, 25 Oct 2026). The specs reference validator (`tools/canonical_rules.py`) has the same structure.
+
+**Finding.** One mandatory check is skipped silently: the D-04 re-check of *existing* relationships when an endpoint is re-typed (`_retyped_endpoints`, ADR-0008 §5.4, G4). It looks up each relationship's own taxonomy version and skips the relationship when that taxonomy is not loaded. The other taxonomy lookups are explicit or redundant:
+
+- versions written by the change set: `_entities` and `_relationships` report **D-01** "unknown taxonomy version" (explicit refusal);
+- `_retype_rule` (D-10) and `_trust` also skip on a missing taxonomy, but only for versions that are written in the change set, which D-01 already refuses;
+- the SQL integrity suite (`integrity.py`) does not check the taxonomy matrix, so nothing later notices.
+
+**Risk.** A caller that loads fewer taxonomy versions than the organization's data uses can commit a re-type that strands an existing relationship against the relationship matrix. Reproduced on `atlas_test` (rolled back) with the golden history, where r7 and r8 are stamped with the synthetic 1.2.0-test.1:
+
+| Path | Every taxonomy loaded | Approved taxonomy only |
+|---|---|---|
+| Revert service: `revert(r7)` at head r8 | refused, D-04 | **accepted** as r9; `revision_findings` and `history_findings` empty; full validation of r9 reports D-04 |
+| Direct publish: steward re-type of the r8 READS_FROM target to `infra.resource` | refused, D-04 | **accepted** as r9; full validation reports D-04 |
+| Import planner | not reproduced; uses the same `_retyped_endpoints` check whenever a batch changes an existing entity's type | same exposure |
+| Trust recomputation | no re-typing, no D-04/D-10 path | no exposure found |
+
+Current exposure is limited: the only production caller is the CLI, which now refuses; `atlas_db` holds no canonical facts, and taxonomy 1.1.0 is the only approved release. The exposure becomes real when a second approved taxonomy exists, or when a new caller (API, worker, connector) passes a partial set.
+
+**Legitimate historical reconstruction (not a defect).** As-of reconstruction and graph hashes read stored rows only and need no taxonomy; the recorded taxonomy versions are data. Replaying recorded history needs every recorded taxonomy and fails explicitly without it. A revert that restores a version stamped with an unloaded taxonomy is refused with D-01. A new version written by `publish` (an edit, a trust change, a relationship flag update) is validated against, and stamped with, the publishing taxonomy (ADR-0017 §1): this re-stamp is validated, not skipped.
+
+**Regression tests (backend, local branch, not yet proposed as a PR):** `tests/integration/test_canonical_f10.py`, 9 tests on `atlas_test`: the reference case with every taxonomy loaded (D-04 on both paths); two `xfail(strict, raises=Failed)` tests stating the required refusal for the revert service and direct publishing; two impact tests (the accepted revision is invalid and the SQL integrity suite does not notice); D-01 on restoring an unloaded version; replay without the recorded taxonomy fails explicitly; reconstruction needs no taxonomy; recomputation with the approved taxonomy only. Local result: 7 passed, 2 xfailed.
+
+**Proposed resolution (not applied; owner approval needed: it changes a validation rule in both repositories):**
+
+- In `_retyped_endpoints` (backend `rules.py` and specs `tools/canonical_rules.py`), report **D-01** "unknown taxonomy version" for the relationship when its taxonomy is not loaded, instead of skipping it. Same finding as the existing D-01, at the boundary where the check is needed, so every caller fails closed.
+- Clarify D-04 in `contracts/canonical-validation-rules.md`: the re-check needs the relationship's recorded taxonomy, and its absence is D-01.
+- Add a specs mutation (`m_retype_with_unloaded_taxonomy`) and port it; convert the two `xfail` tests to normal tests and the impact tests to refusals; keep the CLI guard as defence in depth.
+- Contract-first: specs PR, then the backend pins the new SHA in `specs.lock`.
+
+**Compatibility (prototype, scratch clones only, nothing committed):** with the change applied, the golden fixture regenerates byte-identically (HARD 0, DOMAIN 0, ADVISORY 45), `tools` 180 passed; backend unit and contract 414 passed, `pinned_specs` 110 passed, CP4 and CLI integration suites pass, and the two `xfail` tests pass (XPASS). No schema, contract shape, fixture or migration change; the finding text is new, but D-01 is already part of the CP2 rule catalog.
+
+**Alternative considered:** a precondition in `publish` that every taxonomy version in the organization's data is loaded. Also closes the gap without a rule change, but refuses unrelated edits (for example a rename) whenever any historical taxonomy is not loaded, and does not cover the specs reference validator.
