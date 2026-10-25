@@ -1,6 +1,6 @@
 # DEC-044 amendment proposal: dedicated ingestion roles (D17)
 
-**Status:** **Approved as design** (owner, 25 Oct 2026, CP1 final approval; DEC-044 amended). **Not applied.** No role, credential, grant or database change has been made. CP3 turned the design below into the reviewed scripts `postgres-ingest-roles.sql` (setup), `postgres-ingest-roles-verify.sql` (read-only checks) and `postgres-ingest-roles-rollback.sql`, with the owner runbook `g3r-runbook.md`. They are run **only by the server owner**, after the owner's explicit G3-R authorization.
+**Status:** **Approved as design** (owner, 25 Oct 2026, CP1 final approval; DEC-044 amended). **Not required for local development** (owner decision, 25 Oct 2026, CP3): locally every role is the one account `atlas_db_user` (ADR-0001 §Privileges, TD-DEV-010); this six-role model is the production hardening option, verified by backend CI. **Not applied.** No role, credential, grant or database change has been made. CP3 turned the design below into the reviewed scripts `postgres-ingest-roles.sql` (setup), `postgres-ingest-roles-verify.sql` (read-only checks) and `postgres-ingest-roles-rollback.sql`, with the owner runbook `g3r-runbook.md`. They are run **only by the server owner**, after the owner's explicit G3-R authorization.
 
 **Date:** 25 October 2026 · **Decision:** DEC-044 (Confirmed, four roles) · **Related:** ADR-0001 §Privileges, ATLAS-001 FR-28 and FR-30, DEC-043, DEC-084 (Open), E-07 (open)
 

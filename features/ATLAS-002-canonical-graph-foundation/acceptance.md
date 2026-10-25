@@ -27,6 +27,7 @@
 | AC-CP3-05 | Given the golden rows, when loaded into `atlas_test`, then the database accepts them and the HARD checks pass as SQL |
 | AC-CP3-06 | Given each negative case of the fixture tests, when written through the publishing procedure, then it is rejected with its rule's reason |
 | AC-CP3-07 | Given the taxonomy seed, then CI shows it equals the pinned artifact |
+| AC-CP3-09 | Given the local single-user model (`ATLAS_DB_ROLE_MODEL=single`, superuser `atlas_db_user`), when the integration suite runs on `atlas_test`, then every test passes except those that need separated roles, which are skipped with the stated reason; CI runs the separated-roles suite (AC-CP3-02/03) and the single-user suite on every change |
 | AC-CP3-08 | Given the backend trust function, when it runs the pinned truth table and the golden rows, then every case and every stored trust state match, and the publishing procedure rejects versions failing D-12, D-19 or D-20 |
 
 ## CP4

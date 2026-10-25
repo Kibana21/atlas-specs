@@ -1,6 +1,6 @@
 # Atlas — Baseline Deviation Record
 
-**Version:** 0.2 · **Date:** 25 October 2026 · **Owner:** project owner (until DEC-081 names others)
+**Version:** 0.3 · **Date:** 25 October 2026 · **Owner:** project owner (until DEC-081 names others)
 
 ## Purpose
 
@@ -24,6 +24,7 @@ The approved baselines (`brd/…BRD_v2_2.md`, `ux/…UX_Interaction_Requirements
 | TD-DEV-007 | UX v1.1 UX-NFR-012; Technical Design v1.1 §5.6 | Golden screenshots at 1440×900 and 1280×720 for core screens | Deferred: no core screens exist in ATLAS-001 | Temporary | ATLAS-001 owner requirement 4 | First work item delivering a core screen (BL-105/BL-109) | Open |
 | TD-DEV-008 | BRD v2.2 §5.1 INV-02 | Relationship types `CALLS_API, PUBLISHES, CONSUMES, READS, WRITES, DEPLOYED_ON, HOSTED_IN, OWNS, DEPENDS_ON, PROTECTS` | Canonical vocabulary per ADR-0017 §8 with documented aliases: `CALLS_API` → `CONSUMES_API`; `PUBLISHES` → `PUBLISHES_TO`; `CONSUMES` → `SUBSCRIBES_TO` or `CONSUMES_API` by target; `READS` → `READS_FROM`; `WRITES` → `WRITES_TO`; `DEPLOYED_ON` → `DEPLOYED_AS`; `HOSTED_IN` → `CONTAINS` (**inverse direction**); `OWNS`, `DEPENDS_ON` (curated only) unchanged; `PROTECTS` defined but reserved until security-control types exist | Permanent | DEC-050 (owner-approved 25 Oct 2026, ATLAS-002 D6, D8–D10) | BRD v2.3, §5.1 INV-02 | Open |
 | TD-DEV-009 | Technical Design v1.1 §3.1, §3.3 | Relationship catalog `CONTAINS, SUPPORTS_CAPABILITY, EXPOSES_API, CONSUMES_API, PUBLISHES_TO, SUBSCRIBES_TO, STORES_IN, DEPLOYED_AS, CONNECTS_TO, OWNS, PRODUCES_DATA/CONSUMES_DATA, DECIDED_BY`; modeling layers without provider categories | Adds `READS_FROM`, `WRITES_TO`, `MEMBER_OF`, `DEPENDS_ON`, `PROTECTS` (reserved); narrows `CONTAINS` to hierarchical containment within one provider and `STORES_IN` to "direction not established"; `REFERENCES_SELF` dropped; adds `core.system`, `core.component`, provider-neutral categories and eight `infra.*` types (ADR-0017, ADR-0019) | Permanent | DEC-050, DEC-004 (owner-approved 25 Oct 2026, ATLAS-002 D6–D12, D19) | Technical Design v1.2, §3.1 and §3.3 | Open |
+| TD-DEV-010 | Technical Design v1.1 §3.5, §9.3 (least-privilege database access) | Separate least-privilege database identities | **Local development and integration tests** use one PostgreSQL account, `atlas_db_user`, for every role. It is a **superuser**, so locally the database enforces structure but no privilege separation; organization isolation, domain validation, immutability triggers and attribution are unchanged. CI and any shared or production environment keep separated roles (DEC-044 six-role model, the production hardening option) | Temporary | Owner decision, 25 Oct 2026 (ATLAS-002 CP3); DEC-044 amended | Before any shared or production deployment: the six-role model (ATLAS-002 `proposals/g3r-runbook.md`) | Approved |
 
 ## Procedure
 
