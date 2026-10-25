@@ -143,3 +143,50 @@ CP2 starts only after the owner approves the decisions.
 - **U-1:** `CONTAINS` and `DEPLOYED_AS` don't accept `contract` evidence (ADR-0017 §4.1). The generator's self-check caught this for OpenAPI operations and Google Cloud IaC; the fixture uses documentation evidence for those facts.
 - **U-2:** ADR-0019 §3 requires `native_type` on every physical entity, while ADR-0017 §2.2 exempts `azure.tenant`. CP2 follows the explicit exemption; the proposed minimum correction is one line in ADR-0019 §3.
 - **U-3…U-7:** see `spec.md` §7.
+
+## 4. Gate G2 — CP2 acceptance and decision closure
+
+**Owner decision (written, in the conversation, 25 Oct 2026):**
+
+- CP2 deliverables accepted, subject to focused clarifications and evidence completion;
+- decisions U-1, U-2 and U-3, and confirmations U-4…U-7 (`spec.md` §7);
+- minimum documentation, taxonomy, validation-test and evidence updates only;
+- no backend, frontend, roles, migrations, credentials or infrastructure; CP3 not started.
+
+### 4.1 CP2 CI evidence (PR #20)
+
+| Item | Value |
+|---|---|
+| PR | atlas-specs #20, merged 2026-10-25T06:04:56Z with a merge commit |
+| PR head | `5e77e2c835f3daeb9b6b4966b7402e0944e05db7`: run [40167767951](https://github.com/Kibana21/atlas-specs/actions/runs/40167767951). `docs-lint`, `contract`, `tools`, `tokens`, `registry`, `breaking` all **success** |
+| Merge commit | `440b52ea49cbe9a14f0792f642ddc6fbbc7e7088`: `main` run [40167837795](https://github.com/Kibana21/atlas-specs/actions/runs/40167837795). All six jobs **success** |
+| `tools` job, both runs | Steps `make tools` and `make canonical` success. Log: `129 passed`; `canonical: 50 schema examples checked; HARD 0, DOMAIN 0, ADVISORY 44`; `fixture regenerates byte-identically` |
+
+### 4.2 Changes for the decisions
+
+| Decision | Change |
+|---|---|
+| U-1 | Taxonomy **1.1.0** (MINOR): `contract` allowed for `CONTAINS` and `DEPLOYED_AS`. ADR-0017 §4.1 amended with the observed, declared and documented distinction. Fixture 1.1.0 evidences Google Cloud containment by IaC and API operations by OpenAPI, all `documented` |
+| U-2 | Exemption retained. ADR-0017 §2.1 and §2.2 and ADR-0019 §3 now state it. **Correction to the CP2 report:** it said ADR-0017 §2.2 explicitly exempted the tenant. In fact the exemption was explicit only in the taxonomy artifact and the validator, and both ADRs used the general wording. The correction therefore covers both ADRs |
+| U-3 | `contracts/trust-function.md` (trust function v1, Proposed for CP3), a truth table of 30 cases, and the reference `trust_v1`. Validator: D-12 now requires equality with the function at every revision; new D-19 (verification support) and D-20 (selected values) |
+| U-4…U-7 | I-1 accepted; rejected import items stay in the import report; limitations recorded (`spec.md` §7.1); 617 relationships accepted |
+
+Fixture corrections found by the trust function (both follow Accepted ADR-0018):
+
+- the conflicted VM no longer stores one source's location (I-6);
+- the MQ broker's containment from the 2024 document is `stale`.
+
+Identified for the owner, not applied:
+
+- **C-1:** ADR-0018 §1 lists IaC state as `provider_configuration`;
+- **C-2:** claim-aware `discovered`;
+- **I-6:** a conflicted required attribute is left absent.
+
+### 4.3 Results (local, then from a fresh clone of the branch)
+
+| Check | Result |
+|---|---|
+| Golden fixture 1.1.0 | HARD 0, DOMAIN 0, ADVISORY 45 (A-12 3, others unchanged), equal to `expected-findings.json`; 252 entities, 617 relationships; byte-identical regeneration |
+| Trust function | 30 / 30 truth-table cases; every stored trust state equals the function at every revision |
+| Negative tests | 28 fixture mutations (6 new: stale recorded as documented, declared recorded as observed, logical entity from provider configuration only → D-12; verification on declared evidence only, verification by a service → D-19; a conflicting value stored → D-20) |
+| `make tools` | 169 passed (129 + 40 new) |

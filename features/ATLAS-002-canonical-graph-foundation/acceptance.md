@@ -1,6 +1,6 @@
 # ATLAS-002 — Acceptance criteria
 
-**Status:** **Proposed**. CP2 criteria are met by this delivery (evidence §3); CP3–CP5 criteria apply when those checkpoints are authorized.
+**Status:** **Proposed**. CP2 criteria are met by this delivery (evidence §3, §4); CP3–CP5 criteria apply when those checkpoints are authorized.
 
 ## CP2 — Contracts and golden fixture (this delivery)
 
@@ -13,6 +13,8 @@
 | AC-CP2-05 | Given the import batch, when it is planned against revision 1, then it yields exactly revision 2's facts and the expected rejection; against revision 2 and head it yields no change |
 | AC-CP2-06 | Given each negative mutation of the fixture in `tools/tests/test_canonical.py`, then the validator reports the expected rule |
 | AC-CP2-07 | Given an import payload containing an actor, revision, server timestamp or database role, then the schema rejects it |
+| AC-CP2-08 | Given taxonomy 1.1.0, when contract evidence supports `CONTAINS` or `DEPLOYED_AS`, then it is accepted, the fact is `documented`, and a verification resting on it alone for a physical claim is rejected (U-1) |
+| AC-CP2-09 | Given `trust-function-v1/cases.json`, when the reference trust function runs, then every case gives its expected trust state, rule, verification state and selected values. Given the golden fixture, every stored trust state equals the function at every revision (U-3) |
 
 ## CP3
 
@@ -25,6 +27,7 @@
 | AC-CP3-05 | Given the golden rows, when loaded into `atlas_test`, then the database accepts them and the HARD checks pass as SQL |
 | AC-CP3-06 | Given each negative case of the fixture tests, when written through the publishing procedure, then it is rejected with its rule's reason |
 | AC-CP3-07 | Given the taxonomy seed, then CI shows it equals the pinned artifact |
+| AC-CP3-08 | Given the backend trust function, when it runs the pinned truth table and the golden rows, then every case and every stored trust state match, and the publishing procedure rejects versions failing D-12, D-19 or D-20 |
 
 ## CP4
 

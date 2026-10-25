@@ -1415,7 +1415,8 @@
       "allowed_evidence_kinds": [
         "provider_configuration",
         "documentation",
-        "human_assertion"
+        "human_assertion",
+        "contract"
       ],
       "attribute_enums": {},
       "cardinality": "one_parent",
@@ -1802,7 +1803,8 @@
       "allowed_evidence_kinds": [
         "provider_configuration",
         "human_assertion",
-        "documentation"
+        "documentation",
+        "contract"
       ],
       "attribute_enums": {
         "deployment_role": "@deployment_roles"
@@ -2035,9 +2037,9 @@
     ],
     "otherwise": "steward_edit or migration change set"
   },
-  "source": "ADR-0003, ADR-0008, ADR-0015, ADR-0016, ADR-0017, ADR-0018, ADR-0019 (Accepted 25 Oct 2026); DEC-050, DEC-070",
+  "source": "ADR-0003, ADR-0008, ADR-0015, ADR-0016, ADR-0017, ADR-0018, ADR-0019 (Accepted 25 Oct 2026); DEC-050, DEC-070; 1.1.0: owner decision U-1 at Gate G2 (25 Oct 2026)",
   "status": "accepted",
-  "taxonomy_version": "1.0.0",
+  "taxonomy_version": "1.1.0",
   "versioning": {
     "identity_rule": "entity and relationship IDs never change across taxonomy versions; every version row records the taxonomy version it was validated against",
     "major": "removes or renames anything, narrows a rule, or makes an attribute required; needs a data migration plan and owner approval",

@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 4 (25 Oct 2026, compatibility gate): extensible environment kinds incl. `sit`, `dr`, `preprod`; optional `deployment_role` on `DEPLOYED_AS` (§2.5). Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). **Amended at Gate G2** (owner, 25 Oct 2026): contract evidence for `CONTAINS` and `DEPLOYED_AS` (U-1, §4.1, taxonomy 1.1.0) and the `azure.tenant` native-type wording (U-2, §2.1, §2.2). Drafting history: Revision 4 (25 Oct 2026, compatibility gate): extensible environment kinds incl. `sit`, `dr`, `preprod`; optional `deployment_role` on `DEPLOYED_AS` (§2.5). Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
 | Register | DEC-050, DEC-070 (**Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Enterprise Architecture + Cloud Platform; approval: Atlas owner |
 | Related | INV-01, INV-02, INV-05, MOD-01, MOD-03, MOD-04, BCM-01, BCM-03, DEP-01, DEP-04, CAN-02, E04; tech §3.1, §3.2, §3.3; ADR-0001, ADR-0003, ADR-0008, ADR-0018, ADR-0019 |
@@ -70,7 +70,7 @@ MOD-01 and MOD-03 need a **versioned** type list with required attributes, allow
 | `environment_scope` | Required for types marked **E**, optional for **O**, absent for **N** (§2.3) |
 | `description` | Optional |
 | `provider` | Physical types only, required (ADR-0019 §1). `k8s.*` take their cluster's provider |
-| `native_type` | Physical types only, required: the provider's own type string; fixed per type for `azure.*` (formerly `azure_type`) |
+| `native_type` | Physical types only, required: the provider's own type string; fixed per type for `azure.*` (formerly `azure_type`). Exception: `azure.tenant`, which is not an ARM resource and has no ARM type (decision U-2, G2) |
 | `platform` | Required for providers `private_cloud`, `on_premises`, `other` (ADR-0019 §3) |
 | `provider_attributes` | Optional, validated by a provider profile where one exists, never used by rules (ADR-0019 §3) |
 
@@ -119,7 +119,7 @@ MOD-01 and MOD-03 need a **versioned** type list with required attributes, allow
 | 37 | Neutral | `infra.data_store` (database, bucket, file share, cache) | `data_store` | P | E | `store_kind` ∈ {relational_db, nosql_db, object_storage, file_storage, cache, other} | provider namespace or `source.*` | scope-category type, `infra.compute`, `infra.resource` (server) (same provider) |
 | 38 | Neutral | `infra.resource` (fallback for any provider, E04; replaces revision 2's `azure.generic_resource`) | `generic` | P | O | — (`native_type` from §2.1) | provider namespace or `source.*` | any physical type of the same provider, only where the provider's native hierarchy shows it |
 
-- For every `azure.*` type, `native_type` is the fixed ARM type (for example `microsoft.sql/servers/databases`). ADR-0003 uses it to reject a type-incompatible match.
+- For every `azure.*` type except `azure.tenant` (no ARM type; decision U-2), `native_type` is the fixed ARM type (for example `microsoft.sql/servers/databases`). ADR-0003 uses it to reject a type-incompatible match.
 - **`core.system` and `core.component`** were approved by the owner on 25 Oct 2026 (MOD-01 names them).
 - **Choosing a type for a physical resource:** a provider-specific type if one exists; otherwise the neutral type of the resource's category from the provider profile's `native_type → category` mapping; otherwise `infra.resource`. An Azure VM in v1 is therefore `infra.compute` with provider `azure`, not a generic object.
 - No other provider-neutral types are essential now (ADR-0019 §2: neutral types exist only for categories that are endpoints of semantic rules, plus scope and the fallback).
@@ -208,7 +208,7 @@ Rules are written against **categories** (ADR-0019 §2), so they apply to every 
 
 | `rel_type` | From | To | Cardinality and attributes | Allowed evidence | Cross-env allowed |
 |---|---|---|---|---|---|
-| `CONTAINS` | per §2.2 | per §2.2 | ≤ 1 parent per child; §3.1 | prov, doc, human | No |
+| `CONTAINS` | per §2.2 | per §2.2 | ≤ 1 parent per child; §3.1 | prov, contr, doc, human | No |
 | `MEMBER_OF` | per §3.2 | per §3.2 | many-to-many | doc, human; prov (environment only) | n/a |
 | `OWNS` | `core.team` | any type except `core.team`, `core.environment` | many-to-many (INV-05); optional `ownership_role` ∈ {accountable, technical, data_steward} | human, doc | n/a |
 | `SUPPORTS_CAPABILITY` | `core.system`, LA | `core.capability` | **required** `support_kind` ∈ {direct, enabling} (BCM-03); discriminator = `support_kind` | human, doc | n/a |
@@ -219,9 +219,18 @@ Rules are written against **categories** (ADR-0019 §2), so they apply to every 
 | `READS_FROM` | LA, RA | DS | — (§5) | prov, contr, doc, human | Yes |
 | `WRITES_TO` | LA, RA | DS | — (§5) | prov, contr, doc, human | Yes |
 | `STORES_IN` | LA, RA | DS | data-store dependency whose direction is **not established** (§5) | doc, human, prov | Yes |
-| `DEPLOYED_AS` (logical → physical) | see the pairs below | see the pairs below | many-to-many (MOD-03: one logical service, several deployments); L → P only; optional `deployment_role` (§2.5) | prov (deployment metadata), human, doc | No |
+| `DEPLOYED_AS` (logical → physical) | see the pairs below | see the pairs below | many-to-many (MOD-03: one logical service, several deployments); L → P only; optional `deployment_role` (§2.5) | prov (deployment metadata), contr, human, doc | No |
 | `CONNECTS_TO` (explicitly configured infrastructure connectivity) | CS | any P type | **required** `connectivity_kind` (discriminator), provider-neutral names restricted per category pair: `network_peering` (network → network); `dedicated_link` (network → network, for example VPN or private circuits); `subnet_placement`, `network_integration` (RA or cluster → subnet); `gateway_backend` (gateway or API endpoint → RA); `private_link`, `service_endpoint`, `configured_endpoint` (→ any P type). The provider's own term (for example "private endpoint") goes in optional `native_kind` | prov, human; **never** inf | Yes |
 | `DEPENDS_ON` (curated) | `core.system`, LA | `core.system`, LA, `core.api`, `core.dataset` | **required** `rationale`; §4.3 | **human, doc only** | n/a (logical) |
+
+**Contract evidence for `CONTAINS` and `DEPLOYED_AS`** (owner decision U-1 at Gate G2, 25 Oct 2026; taxonomy 1.1.0, MINOR). The two types keep their meaning; only the accepted evidence widens:
+
+- provider configuration evidences **observed** containment and deployment;
+- an IaC manifest evidences **declared** containment and deployment, never live deployment;
+- an OpenAPI or AsyncAPI document evidences documented API structure (for example an API's operations), never deployment on infrastructure;
+- documentation and human assertions remain accepted.
+
+Contract evidence alone gives the trust state `documented` and can never alone support verifying a physical claim (`contracts/trust-function.md`, TF-6 and TF-V). No relationship is added for any evidence format.
 
 `DEPLOYED_AS` pairs:
 

@@ -125,67 +125,73 @@
       "path": "change_sets.json",
       "records": 9,
       "schema": "urn:atlas:schema:canonical:change-set:v1",
-      "sha256": "sha256:74b26480abb884e61ebeb93765578cbff473646c92ef6da23ad7df9551fa5bb2"
+      "sha256": "sha256:706c0a88cd413f01087675f0fe4bc06a6fdcf543ad12375c1d49dce08cfff802"
     },
     {
       "path": "entities.json",
       "records": 252,
       "schema": "urn:atlas:schema:canonical:entity:v1",
-      "sha256": "sha256:120feac411f95b256c2a6543e29bcb7e3ef904b8f07b6021c0a4a9deb2dce1b0"
+      "sha256": "sha256:e70d44da2b8693b3f6f2a04306a46b4994ddb10d898250ad4824798912b41c8a"
     },
     {
       "path": "entity_versions.json",
       "records": 255,
       "schema": "urn:atlas:schema:canonical:entity-version:v1",
-      "sha256": "sha256:e8a223a9d04f483f9a66d151f8ee8846f9d5fecbbd2a2ed544fb67bcf1993bc1"
+      "sha256": "sha256:0759afa10eb7fc3432fc1af15b171b844acc684bf9def8d13fc789986facc831"
     },
     {
       "path": "relationships.json",
       "records": 617,
       "schema": "urn:atlas:schema:canonical:relationship:v1",
-      "sha256": "sha256:4f04160ec6adca3e3eaa9ccb3018eded6b2ed6d6dfe8443944c06f768b825a53"
+      "sha256": "sha256:02e567b8a4bf6989d519bf1f0e351728e4b643e44d096bd726925b2f6543176c"
     },
     {
       "path": "relationship_versions.json",
       "records": 622,
       "schema": "urn:atlas:schema:canonical:relationship-version:v1",
-      "sha256": "sha256:b0eff02508cc3d716dbe4730e20c32ed8808e5a5b30c31fda0cf956b0d05d5c5"
+      "sha256": "sha256:1468951101726cf2bc64f987ab6b098f583fc23d6bbdd754a66b449a28fd83e9"
     },
     {
       "path": "external_identities.json",
       "records": 186,
       "schema": "urn:atlas:schema:canonical:external-identity:v1",
-      "sha256": "sha256:569fee6734cb1a9fb47810ded54dd292c5a81d3ec3a9f0ec959cf95b5634ea45"
+      "sha256": "sha256:4a4b177436e2bc1ef4c52d5b026e8f1a4be6d3bd8f442a73bab167665519d7c5"
     },
     {
       "path": "evidence.json",
       "records": 28,
       "schema": "urn:atlas:schema:canonical:evidence:v1",
-      "sha256": "sha256:089d5ee7202eedf048ff8165dd00a75008aa08fe808239d5bfba1b4f1e71df72"
+      "sha256": "sha256:a1e3475fa08af1e0e18e8ca41e2c75dd42c93d87a9bacffdd6c462fbfe33e7b5"
     },
     {
       "path": "fact_assertions.json",
       "records": 880,
       "schema": "urn:atlas:schema:canonical:fact-assertion:v1",
-      "sha256": "sha256:62918d2273285ee57794eaa10da2a03d4a5d5aaa06e33b0a5ccdf3b2e352824e"
+      "sha256": "sha256:c804f3eb5c218ea7530ab5efca9b60f06dccbe999c131bb517c9befdd908a9af"
     },
     {
       "path": "graph_snapshots.json",
       "records": 4,
       "schema": "urn:atlas:schema:canonical:graph-snapshot:v1",
-      "sha256": "sha256:deeef8fe4a8142ecd3454ecacdbf6fbfad35279c213bef6d5b9bec623ac8cc5a"
+      "sha256": "sha256:1838bdf9861f9c129f0e840665d27489ba0a467e6190f2e1ae8b142f65927c52"
     },
     {
-      "path": "taxonomy-overlay.1.1.0-test.1.json",
+      "path": "taxonomy-overlay.1.2.0-test.1.json",
       "records": 1,
       "schema": "urn:atlas:schema:canonical:taxonomy-overlay:v1",
-      "sha256": "sha256:18a600ef20d377a9c6cd05723a9b7b614e3cec08a6ec93cddd45b567b2a305d0"
+      "sha256": "sha256:fa0220f4d48d4340de7974fa4bdb5db9ea9cd469403a6320a3682da74fbf8848"
+    },
+    {
+      "path": "trust-policy.json",
+      "records": 1,
+      "schema": null,
+      "sha256": "sha256:b10d825d03ad448112c9265c4ad4c4765222fd7cbfce9779eec52bb2d714e6c9"
     },
     {
       "path": "inputs/aws-inventory.r2.json",
       "records": 1,
       "schema": "urn:atlas:schema:canonical:import-batch:v1",
-      "sha256": "sha256:71f067d94ddedd58d3079739e2197deb15cba46cc3493a1ce281395f5dfff4b0"
+      "sha256": "sha256:4a1ae45c9286f001b006d84c889ea616a2de04aeb1f7a12c1b3df17c48cba628"
     },
     {
       "path": "inputs/aws-inventory.r2.expected-report.json",
@@ -197,20 +203,20 @@
       "path": "expected-as-of.json",
       "records": 9,
       "schema": null,
-      "sha256": "sha256:5561920cbbdbeddcb4f0e68a4dbc099294373247aee65a38aa33b5f5d5be7ce4"
+      "sha256": "sha256:ccb4965da7614a08352090d83a3710598ea3e93279cc4eab467df30367625cad"
     },
     {
       "path": "expected-findings.json",
       "records": 1,
       "schema": null,
-      "sha256": "sha256:c16de811b9e4ae5cd19fc628d0e89c425e8962a0dc03d21c94bde2bc09899b27"
+      "sha256": "sha256:3fd638cc2930a60f4dd04df82b764efef54c454995fa3640b696195138712246"
     }
   ],
   "fixture": "canonical-golden-v1",
-  "fixture_version": "1.0.0",
+  "fixture_version": "1.1.0",
   "generator": "tools/generate_golden.py",
   "taxonomy_versions": [
-    "1.0.0",
-    "1.1.0-test.1"
+    "1.1.0",
+    "1.2.0-test.1"
   ]
 }

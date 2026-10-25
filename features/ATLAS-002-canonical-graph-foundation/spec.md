@@ -1,6 +1,6 @@
 # ATLAS-002 — Canonical Graph Foundation: Specification (CP3–CP5)
 
-**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed** (CP2 deliverable). CP3–CP5 are **not authorized**: each needs the owner's explicit authorization. Built on the Accepted ADR-0001, 0003, 0008, 0015–0019 and the CP2 contracts.
+**Version:** 0.1 · **Date:** 25 October 2026 · **Status:** **Proposed** (CP2 deliverable; updated at Gate G2, 25 Oct 2026, for owner decisions U-1…U-7). CP3–CP5 are **not authorized**: each needs the owner's explicit authorization. Built on the Accepted ADR-0001, 0003, 0008, 0015–0019 and the CP2 contracts.
 
 ## 1. Scope
 
@@ -16,7 +16,7 @@ Out of scope: graph-reading APIs (invariant 4: authorization first, ATLAS-003), 
 
 ## 2. Inputs (pinned)
 
-- `atlas-specs` at the CP2 merge commit, through `specs.lock`: `contracts/taxonomy/atlas-taxonomy.v1.json`, `contracts/schemas/canonical/`, `contracts/canonical-validation-rules.md`, `acceptance/test-data/canonical-golden-v1/`.
+- `atlas-specs` at the CP2 merge commit, through `specs.lock`: `contracts/taxonomy/atlas-taxonomy.v1.json`, `contracts/schemas/canonical/`, `contracts/canonical-validation-rules.md`, `contracts/trust-function.md`, `acceptance/test-data/canonical-golden-v1/`, `acceptance/test-data/trust-function-v1/cases.json`. Taxonomy **1.1.0**.
 - The OpenAPI contract is unchanged; the released `contract-v0.1.0` stays the API baseline.
 
 ## 3. Functional requirements
@@ -34,6 +34,7 @@ Out of scope: graph-reading APIs (invariant 4: authorization first, ATLAS-003), 
 | A002-FR-09 | Fixture loader CLI (CP4) running as the ingestion role: loads the golden fixture's stored rows for tests, and applies import batches through the planner; actor from the execution context only | ADR-0008 §8, §10 |
 | A002-FR-10 | Revert as a new change set, refused on conflict | ADR-0008 §7 |
 | A002-FR-11 | As-of reconstruction and graph hash identical to the reference definitions (`expected-as-of.json`) | ADR-0008 §4, §6 |
+| A002-FR-13 | Trust function v1 (`trust-1`) as a pure, versioned function in the publishing transaction: stored trust states and verification follow `contracts/trust-function.md` (D-12, D-19, D-20); the backend passes every case of `trust-function-v1/cases.json` and reproduces every stored trust state of the golden fixture | ADR-0018, owner decision U-3 |
 | A002-FR-12 | Pilot-size benchmark (10k entities / 40k relationships) generated synthetically, run in CI or a disposable environment only, never on the shared server | ADR-0001 |
 
 ## 4. Non-functional requirements
@@ -61,17 +62,33 @@ Out of scope: graph-reading APIs (invariant 4: authorization first, ATLAS-003), 
 3. Claude verifies with read-only catalog queries (`atlas doctor`) and records the evidence.
 4. Only then is migration `0002` run against the local `atlas_test` (and `atlas_db` only with separate approval). CI uses its own ephemeral server throughout.
 
-## 7. Open items (not decided in CP2; owner decision or confirmation needed)
+## 7. Items raised in CP2 and the owner's G2 decisions (25 Oct 2026)
 
-| # | Item | Effect | Proposed handling |
+| # | Item | Owner decision | Applied |
 |---|---|---|---|
-| U-1 | `CONTAINS` and `DEPLOYED_AS` don't accept `contract` evidence (ADR-0017 §4.1), so OpenAPI files can't evidence API → operation containment, and IaC can't evidence containment or deployments | The fixture uses documentation evidence for those facts | Owner decision: keep, or a MINOR taxonomy change adding `contract` to those two types |
-| U-2 | ADR-0019 §3 says `native_type` is required on every physical entity; ADR-0017 §2.2 exempts `azure.tenant` | CP2 follows the explicit exemption | One-line correction to ADR-0019 §3: "every physical entity except `azure.tenant`" |
-| U-3 | ADR-0018 doesn't define the trust-function precedence for mixed evidence (for example provider configuration plus a human assertion) | CP2 checks only compatibility (D-12); the fixture avoids mixed cases | Owner decision before CP3 implements the trust function |
-| U-4 | Relationship `environment_id` for a cross-environment relationship | CP2 uses `null` (interpretation I-1) | Owner confirmation |
-| U-5 | Persisting rejected import items (report only, or a `reconciliation_case`) | CP2/CP4 report them; nothing is stored | Decide with the reconciliation work (Phase 2) |
-| U-6 | Provider `scope_kind` vocabularies for non-Azure providers are "intended shape" | Used by the fixture; marked `intended_shape` | Confirm per provider at onboarding |
-| U-7 | Fixture size 617 relationships against the ~700 target | No padding | Accept, or extend with further evidenced facts later |
+| U-1 | `CONTAINS` and `DEPLOYED_AS` didn't accept `contract` evidence | Narrow taxonomy clarification. Provider configuration evidences observed containment and deployment. IaC evidences declared ones, never live deployment. OpenAPI evidences documented API structure, never infrastructure deployment. The semantics stay; no relationship is invented | Taxonomy **1.1.0** (MINOR): `contract` allowed for both types; ADR-0017 §4.1 amended. Contract-only facts are `documented` and can't alone support verifying a physical claim (TF-6, TF-V). The fixture now uses IaC and OpenAPI evidence where 1.0.0 forced documents |
+| U-2 | `native_type` wording for `azure.tenant` | Retain the exemption; minimum documentation correction | ADR-0017 §2.1 and §2.2 and ADR-0019 §3 state the exemption. Correction to the CP2 report: the exemption had been explicit only in the taxonomy artifact and the validator; both ADRs used the general wording |
+| U-3 | Trust for mixed evidence | Conservative, claim-aware, deterministic. VERIFIED needs applicable, sufficiently authoritative evidence and no unresolved contradiction. No universal source ranking, no verification from evidence count, no silent promotion where authority or freshness is undefined | `contracts/trust-function.md` (Proposed: exact rules confirmed with CP3 authorization); truth table of 30 cases; validator D-12 (equality), D-19, D-20. Conflicts C-1 (IaC state in ADR-0018 §1) and C-2 (claim-aware `discovered`) await the owner |
+| U-4 | Relationship `environment_id` when cross-environment | Accepted: nullable, classification from endpoint memberships | Interpretation I-1 marked accepted |
+| U-5 | Rejected import items | Preserve them with reasons in the approved import-report mechanism | Unchanged: the import report (`expected-report.json`) records rule and reasons; nothing is stored as a graph fact |
+| U-6 | Non-Azure `scope_kind` vocabularies; unconfirmed provider ID formats | Record the limitations | §7.1 |
+| U-7 | 617 relationships against ~700 | Accepted | — |
+
+New from G2 work, for owner confirmation: **I-6**. A required attribute whose sources disagree, with no prior approved value, is left absent on a `conflicted` fact. It is never filled with one source's value (ADR-0018 conflict procedure; invariant 3).
+
+### 7.1 Recorded limitations
+
+- **Provider ID formats:**
+  - AWS, Google Cloud, Alibaba Cloud and OCI identities are `validation_only`: the approved format is checked and case is preserved, but no normalization rule exists;
+  - Huawei Cloud, Tencent Cloud and IBM Cloud namespaces are `planned` and rejected;
+  - `apim.operation` is `reserved`.
+
+  Each needs an approved rule before its identities can match across sources (ADR-0003, ADR-0019 onboarding).
+- **Non-Azure hierarchies:** `provider_scope_rules` for providers other than Azure are marked `intended_shape`. They are confirmed per provider at onboarding (ADR-0019 §4). Until then, D-16 checks fixtures against the intended shape only.
+- **Freshness and precedence:**
+  - no per-source freshness policy (DEC-072, Open) and no field precedence (DEC-034, Proposed) is approved;
+  - the trust function therefore never makes a fact stale by age outside the fixture's synthetic policy;
+  - it never resolves a disagreement automatically.
 
 ## 8. Acceptance
 

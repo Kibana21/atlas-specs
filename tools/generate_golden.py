@@ -16,21 +16,34 @@ from typing import Any
 
 from canonical_model import (
     ROOT, TABLES, Taxonomy, as_of, canonical_json, check_pair, default_trust, discriminator_of, dump_records, graph_hash,
-    normalize_identity, plan_batch, relationship_flags, sha256_of, uuid7, Dataset,
+    normalize_identity, plan_batch, relationship_flags, sha256_of, uuid7, Dataset, TRUST_FUNCTION_VERSION, TRUST_POLICY_FILE,
 )
 
 FIXTURE = "canonical-golden-v1"
-FIXTURE_VERSION = "1.0.0"
+FIXTURE_VERSION = "1.1.0"
+TAXONOMY_VERSION = "1.1.0"   # must equal the artifact (checked in build)
 DEFAULT_OUT = ROOT / "acceptance" / "test-data" / FIXTURE
-OVERLAY_NAME = "taxonomy-overlay.1.1.0-test.1.json"
+OVERLAY_NAME = "taxonomy-overlay.1.2.0-test.1.json"
 OVERLAY = {
     "overlay_format": "atlas.taxonomy-overlay.v1",
-    "taxonomy_version": "1.1.0-test.1",
-    "extends": "1.0.0",
+    "taxonomy_version": "1.2.0-test.1",
+    "extends": TAXONOMY_VERSION,
     "status": "synthetic_test_only",
     "note": "SYNTHETIC, TEST ONLY. Not an approved taxonomy version. Exists so the fixture can show taxonomy-version-aware "
-            "history: a native type unmapped in 1.0.0 becomes mapped, and the entity is re-typed with its ID kept (ADR-0017 §2.4).",
+            "history: a native type unmapped in 1.1.0 becomes mapped, and the entity is re-typed with its ID kept (ADR-0017 §2.4).",
     "add_native_type_mappings": {"gcp": [{"native_type": "bigquery.googleapis.com/Dataset", "category": "data_store"}]},
+}
+
+# Fixture trust policy (ADR-0018: freshness values "are fixed for fixtures"). Synthetic: real per-source values are DEC-072
+# (Open) and per-field precedence is DEC-034 (Proposed), so no precedence rule is defined.
+TRUST_POLICY = {
+    "policy_format": "atlas.trust-policy.v1",
+    "function": TRUST_FUNCTION_VERSION,
+    "status": "synthetic_test_only",
+    "note": "SYNTHETIC, TEST ONLY. Not an approved freshness or precedence policy. Sources without an entry are unassessed: "
+            "they never make a fact stale.",
+    "freshness": [{"method": "import:document:v1", "stale_after_days": 365}],
+    "precedence": [],
 }
 
 STEWARD = {"kind": "human", "namespace": "oidc", "key": "https://login.example.invalid/synthetic|steward-0001", "label": "EA Steward (synthetic)"}
@@ -70,7 +83,7 @@ class World:
         self.ev_ids: dict[str, str] = {}
         self.ev_spec: dict[str, dict[str, Any]] = {}
         self.rev = 0
-        self.tax_version = "1.0.0"
+        self.tax_version = TAXONOMY_VERSION
 
     # ---- ids and helpers
     def _id(self, kind: str, key: str) -> str:
@@ -81,7 +94,7 @@ class World:
         return self.tax[self.tax_version]
 
     def begin(self, kind: str, channel: str, actor: dict[str, Any], source_ref: str, reason: str, change_reference: str | None = None,
-              reverts: int | None = None, input_hash: str | None = None, tax_version: str = "1.0.0") -> int:
+              reverts: int | None = None, input_hash: str | None = None, tax_version: str = TAXONOMY_VERSION) -> int:
         self.rev += 1
         self.tax_version = tax_version
         self.t["change_sets"].append({
@@ -132,8 +145,7 @@ class World:
     def entity(self, key: str, type_key: str, name: str, ev: list[str], *, env: str | None = None, shared: list[str] | None = None,
                scope: str | None = None, parent: str | None = None, provider: str | None = None, native: str | None = None,
                attrs: dict[str, Any] | None = None, ids: list[tuple[str, str]] = (), lifecycle: str = "active",
-               trust: str | None = None, verified: dict[str, Any] | None = None, eid: str | None = None,
-               contain_ev: list[str] | None = None) -> str:
+               trust: str | None = None, verified: dict[str, Any] | None = None, eid: str | None = None) -> str:
         t = self.T().types[type_key]
         eid = eid or self._id("entity", key)
         if type_key == "k8s.namespace":
@@ -168,7 +180,7 @@ class World:
         for ns, orig in ids:
             self.identity(key, ns, orig, "provider_id" if ns not in ("org.key",) and not ns.startswith("source.") else "org_key")
         if parent:
-            self.rel(f"contains:{parent}>{key}", "CONTAINS", parent, key, ev=contain_ev or ev)
+            self.rel(f"contains:{parent}>{key}", "CONTAINS", parent, key, ev=ev, trust="stale" if trust == "stale" else None)
         for s in shared or []:
             self.rel(f"member:{key}>{s}", "MEMBER_OF", key, s, ev=ev)
         return eid
@@ -412,9 +424,8 @@ def build_org_a(world: World) -> dict[str, Any]:
                      "api.payments": [("POST", "/payments")], "api.customer": [("GET", "/customers/{id}"), ("PATCH", "/customers/{id}")],
                      "api.notify": [("POST", "/notifications")]}.items():
         for m, p in ops:
-            # CONTAINS does not accept contract evidence (ADR-0017 §4.1), so containment is evidenced by the architecture documents
-            ent(f"op.{api}.{m}.{p}", "core.api_operation", f"{m} {p}", ["openapi"], parent=api, attrs={"http_method": m, "path_template": p},
-                contain_ev=["doc-claims" if "claims" in api else "doc-policy"])
+            # the OpenAPI document evidences the API's structure (taxonomy 1.1.0, owner decision U-1): documented, never observed
+            ent(f"op.{api}.{m}.{p}", "core.api_operation", f"{m} {p}", ["openapi"], parent=api, attrs={"http_method": m, "path_template": p})
 
     channels = [("ch.claim-submitted", "ClaimSubmitted", "topic", "dom.claims"), ("ch.quote-issued", "QuoteIssued", "topic", "dom.policy"),
                 ("ch.policy-bound", "PolicyBound", "topic", "dom.policy"), ("ch.payment-received", "PaymentReceived", "queue", "dom.billing"),
@@ -638,7 +649,9 @@ def build_org_a(world: World) -> dict[str, Any]:
            shared=None if env else ["env.dev", "env.sit", "env.uat"])
     # Azure resources without a specific type: neutral type of their mapped category, or the generic fallback
     az("az.vm-batch", "infra.compute", "vm-batch-prod", "az.rg-claims-pr", ["Microsoft.Compute", "virtualMachines", "vm-batch-prod"], env="env.prod",
-       attrs={"compute_kind": "vm", "location": "westeurope"}, trust="conflicted")
+       attrs={"compute_kind": "vm"}, trust="conflicted")
+    # two sources disagree on its location and no precedence rule is approved: both assertions are kept and the stored
+    # value is the prior approved one, here none (ADR-0018 conflict procedure; trust function TF-2)
     w.t["entity_versions"][-1]["native_type"] = "microsoft.compute/virtualmachines"
     w.t["entity_versions"][-1]["provider"] = "azure"
     w._assert("entity", w.ids["az.vm-batch"], "arg-prod", "attributes.location", "westeurope")
@@ -726,19 +739,19 @@ def build_org_a(world: World) -> dict[str, Any]:
     # ---------------- Google Cloud (documented / IaC)
     ent("gcp.org", "infra.scope", "example-gcp-org", ["iac-gcp"], provider="gcp", native="cloudresourcemanager.googleapis.com/Organization",
         attrs={"scope_kind": "organization"}, ids=[("gcp.resource_name", "//cloudresourcemanager.googleapis.com/organizations/000000000001")])
-    ent("gcp.folder", "infra.scope", "claims", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.org", native="cloudresourcemanager.googleapis.com/Folder",
+    ent("gcp.folder", "infra.scope", "claims", ["iac-gcp"], parent="gcp.org", native="cloudresourcemanager.googleapis.com/Folder",
         attrs={"scope_kind": "folder"}, ids=[("gcp.resource_name", "//cloudresourcemanager.googleapis.com/folders/000000000002")])
-    ent("gcp.project", "infra.scope", "claims-events-prod", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.folder", native="cloudresourcemanager.googleapis.com/Project",
+    ent("gcp.project", "infra.scope", "claims-events-prod", ["iac-gcp"], parent="gcp.folder", native="cloudresourcemanager.googleapis.com/Project",
         env="env.prod", attrs={"scope_kind": "project"}, ids=[("gcp.resource_name", "//cloudresourcemanager.googleapis.com/projects/claims-events-prod")])
-    ent("gcp.topic", "infra.messaging_channel", "document-indexed", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.project", native="pubsub.googleapis.com/Topic",
+    ent("gcp.topic", "infra.messaging_channel", "document-indexed", ["iac-gcp"], parent="gcp.project", native="pubsub.googleapis.com/Topic",
         env="env.prod", attrs={"channel_kind": "topic"}, ids=[("gcp.resource_name", "//pubsub.googleapis.com/projects/claims-events-prod/topics/document-indexed")])
     gke = "//container.googleapis.com/projects/claims-events-prod/locations/europe-west1/clusters/gke-docs-prod"
-    ent("gcp.gke", "infra.cluster", "gke-docs-prod", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.project", native="container.googleapis.com/Cluster", env="env.prod",
+    ent("gcp.gke", "infra.cluster", "gke-docs-prod", ["iac-gcp"], parent="gcp.project", native="container.googleapis.com/Cluster", env="env.prod",
         attrs={"cluster_kind": "kubernetes", "location": "europe-west1"}, ids=[("gcp.resource_name", gke)])
-    ent("gcp.ns", "k8s.namespace", "docs", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.gke", env="env.prod", ids=[("k8s.uid", f"gcp.resource_name:{gke}#{k8s_uid('gcp.ns')}")])
-    ent("gcp.indexer", "k8s.workload", "doc-indexer", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.ns", env="env.prod", attrs={"workload_kind": "Deployment"},
+    ent("gcp.ns", "k8s.namespace", "docs", ["iac-gcp"], parent="gcp.gke", env="env.prod", ids=[("k8s.uid", f"gcp.resource_name:{gke}#{k8s_uid('gcp.ns')}")])
+    ent("gcp.indexer", "k8s.workload", "doc-indexer", ["iac-gcp"], parent="gcp.ns", env="env.prod", attrs={"workload_kind": "Deployment"},
         ids=[("k8s.uid", f"gcp.resource_name:{gke}#{k8s_uid('gcp.indexer')}")])
-    ent("gcp.bq", "infra.resource", "analytics-warehouse", ["iac-gcp"], contain_ev=["doc-multicloud"], parent="gcp.project", native="bigquery.googleapis.com/Dataset", env="env.prod",
+    ent("gcp.bq", "infra.resource", "analytics-warehouse", ["iac-gcp"], parent="gcp.project", native="bigquery.googleapis.com/Dataset", env="env.prod",
         ids=[("gcp.resource_name", "//bigquery.googleapis.com/projects/claims-events-prod/datasets/analytics_warehouse")])
     rel("deployed:ch.doc-indexed>gcp.topic", "DEPLOYED_AS", "ch.doc-indexed", "gcp.topic", ev=["doc-multicloud"], attrs={"deployment_role": "primary"})
     rel("deployed:svc.docs-index>gcp.indexer", "DEPLOYED_AS", "svc.docs-index", "gcp.indexer", ev=["doc-multicloud"], attrs={"deployment_role": "primary"})
@@ -856,14 +869,14 @@ def build_org_a(world: World) -> dict[str, Any]:
     rel("contains:az.sql-pr>az.db-billing", "CONTAINS", "az.sql-pr", "az.db-billing", ev=["arg-billing"])
     w._new_version("entity_versions", "entity_id", w.ids["az.db-billing"], container_id=w.ids["az.sql-pr"])
 
-    # ---------------- R7: taxonomy-aware migration (synthetic test-only 1.1.0-test.1): generic -> data store, same ID
-    w.begin("migration", "migration", MIGRATOR, "taxonomy 1.1.0-test.1 (synthetic)", "Apply native type mapping bigquery Dataset -> data_store",
-            tax_version="1.1.0-test.1")
+    # ---------------- R7: taxonomy-aware migration (synthetic test-only 1.2.0-test.1): generic -> data store, same ID
+    w.begin("migration", "migration", MIGRATOR, "taxonomy 1.2.0-test.1 (synthetic)", "Apply native type mapping bigquery Dataset -> data_store",
+            tax_version=OVERLAY["taxonomy_version"])
     w.retype("gcp.bq", "infra.data_store", [], attributes={"store_kind": "other"})
 
     # ---------------- R8: a read that was not representable before R7
     w.begin("import", "import", IMPORTER, "IaC manifests: analytics (synthetic)", "Analytics IaC import (synthetic)", change_reference="CHG-SYN-0008",
-            input_hash=sha256_of(b"iac-analytics"), tax_version="1.1.0-test.1")
+            input_hash=sha256_of(b"iac-analytics"), tax_version=OVERLAY["taxonomy_version"])
     rel("reads:gcp.indexer>gcp.bq", "READS_FROM", "gcp.indexer", "gcp.bq", ev=["iac-analytics"])
     w.snapshot("head", None)
     return batch
@@ -932,7 +945,7 @@ def aws_batch(w: World) -> dict[str, Any]:
       ident("k8s.uid", f"azure.arm:{arm(SUB_NP, 'rg-platform-nonprod', 'Microsoft.ContainerService', 'managedClusters', 'aks-nonprod')}#{w_uid(w, 'wl.claims-bff.uat')}"),
       ref("rating-api-prod"))
     return {"batch_format": "atlas.import-batch.v1", "org_key": w.org_key, "source_ref": "aws-config (synthetic export)", "channel": "import",
-            "taxonomy_version": "1.0.0", "reason": "AWS inventory import (synthetic)", "change_reference": "CHG-SYN-0002",
+            "taxonomy_version": TAXONOMY_VERSION, "reason": "AWS inventory import (synthetic)", "change_reference": "CHG-SYN-0002",
             "evidence": [{"ref": "aws-config", "kind": "provider_configuration", "source_ref": "aws-config (synthetic export)",
                           "artifact_ref": "synthetic://aws/config/inventory-2026-10-01.json", "artifact_hash": sha256_of(f"{w.org_key}|aws-config".encode()),
                           "method": "export:aws-config:v1", "confidence": 1.0, "observed_at": "2026-10-01T06:00:00Z"}],
@@ -1004,7 +1017,9 @@ def build_org_b(w: World) -> None:
 
 def build(out: Path) -> None:
     base = Taxonomy.load()
-    taxes = {"1.0.0": base, OVERLAY["taxonomy_version"]: base.with_overlay(OVERLAY)}
+    if base.version != TAXONOMY_VERSION:
+        raise SystemExit(f"generator targets taxonomy {TAXONOMY_VERSION}, artifact is {base.version}")
+    taxes = {base.version: base, OVERLAY["taxonomy_version"]: base.with_overlay(OVERLAY)}
     a = World(taxes, "default", "Example Insurance Group (synthetic)", 0)
     batch = build_org_a(a)
     b = World(taxes, "example-subsidiary", "Example Subsidiary (synthetic)", 50_000)
@@ -1014,7 +1029,7 @@ def build(out: Path) -> None:
     for t in TABLES:
         if t != "organizations":
             tables[t] = a.t[t] + b.t[t]
-    ds = Dataset(tables)
+    ds = Dataset(tables, TRUST_POLICY)
     for snap in tables["graph_snapshots"]:
         snap["graph_hash"] = graph_hash(as_of(ds, snap["org_id"], snap["revision"]))
     for cs in tables["change_sets"]:
@@ -1041,6 +1056,7 @@ def build(out: Path) -> None:
         files.append({"path": name, "schema": schema, "records": len(value) if isinstance(value, list) else 1, "sha256": sha256_of(text.encode())})
 
     write(OVERLAY_NAME, OVERLAY, "urn:atlas:schema:canonical:taxonomy-overlay:v1")
+    write(TRUST_POLICY_FILE, TRUST_POLICY, None)
     write("inputs/aws-inventory.r2.json", batch, "urn:atlas:schema:canonical:import-batch:v1")
     plan = a.last_plan
     write("inputs/aws-inventory.r2.expected-report.json", {

@@ -19,8 +19,8 @@ from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
 from canonical_model import (
-    ADVISORY, DOMAIN, HARD, SCHEMA_DIR, TABLES, Dataset, Finding, NormalizationError, Taxonomy, as_of, check_pair,
-    discriminator_of, graph_hash, normalize_identity, plan_batch, relationship_flags, sha256_of, trust_compatible, valid_at,
+    ADVISORY, DOMAIN, HARD, SCHEMA_DIR, TABLES, Claim, Dataset, Finding, NormalizationError, Taxonomy, as_of, check_pair,
+    discriminator_of, graph_hash, normalize_identity, plan_batch, relationship_flags, sha256_of, trust_v1, valid_at,
 )
 
 
@@ -174,6 +174,11 @@ class Index:
         return next((v for v in self.ev_versions.get(eid, []) if valid_at(v, rev)), None)
 
 
+def base_taxonomy(taxes: dict[str, Taxonomy]) -> Taxonomy:
+    """The approved artifact among the loaded versions (overlays are synthetic test-only deltas)."""
+    return next(t for t in taxes.values() if t.doc["status"] != "synthetic_test_only")
+
+
 def tax_for(taxes: dict[str, Taxonomy], version: str, label: str, f: list[Finding]) -> Taxonomy | None:
     tax = taxes.get(version)
     if tax is None:
@@ -196,6 +201,7 @@ def fixture_findings(ds: Dataset, taxes: dict[str, Taxonomy]) -> list[Finding]:
     _domain_relationships(ds, ix, taxes, f)
     _per_revision(ds, ix, taxes, f)
     _domain_change_sets(ds, ix, taxes, f)
+    _trust(ds, ix, taxes, f)
     return f
 
 
@@ -290,7 +296,7 @@ def _hard_revisions(ds: Dataset, ix: Index, f: list[Finding]) -> None:
 
 
 def _hard_identities(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list[Finding]) -> None:
-    tax = taxes["1.0.0"]
+    tax = base_taxonomy(taxes)
     spans = defaultdict(list)
     for i in ds.tables["external_identities"]:
         try:
@@ -329,7 +335,7 @@ def _domain_entities(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list
         if v["record_state"] != "present":
             continue
         for a in t["required_attributes"]:
-            if a not in v["attributes"]:
+            if a not in v["attributes"] and f"attributes.{a}" not in _conflicting_fields(ds, v["entity_id"], v["revision_from"]):
                 f.append(Finding("D-01", DOMAIN, f"{lbl}: missing required attribute {a}"))
         for a, spec in t["attribute_enums"].items():
             if a in v["attributes"] and v["attributes"][a] not in tax.enum_values(spec):
@@ -381,12 +387,6 @@ def _domain_entities(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list
                 parent = ix.entity_at(v["container_id"], v["revision_from"])
                 if parent and parent["type_key"] == "infra.scope" and parent["attributes"].get("scope_kind") not in kinds[kind]:
                     f.append(Finding("D-16", DOMAIN, f"{lbl}: {kind} cannot sit in {parent['attributes'].get('scope_kind')}"))
-        kinds = {a["evidence_kind"] for a in ds.tables["fact_assertions"]
-                 if a["fact_id"] == v["entity_id"] and a["field_path"] is None and valid_at(a, v["revision_from"])}
-        if not kinds:
-            f.append(Finding("D-12", DOMAIN, f"{lbl}: present fact without any existence evidence"))
-        elif not trust_compatible(v["trust_state"], kinds):
-            f.append(Finding("D-12", DOMAIN, f"{lbl}: trust_state {v['trust_state']} incompatible with evidence {sorted(kinds)}"))
     # re-typing transitions (ADR-0017 §2.4)
     for eid, vs in ix.ev_versions.items():
         for a, b in zip(vs, vs[1:]):
@@ -429,10 +429,6 @@ def _domain_relationships(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f:
             bad = kinds - set(rel["allowed_evidence_kinds"])
             if bad:
                 f.append(Finding("D-05", DOMAIN, f"{lbl}: evidence kinds {sorted(bad)} not allowed"))
-        if not kinds:
-            f.append(Finding("D-12", DOMAIN, f"{lbl}: present fact without any existence evidence"))
-        elif not trust_compatible(v["trust_state"], kinds):
-            f.append(Finding("D-12", DOMAIN, f"{lbl}: trust_state {v['trust_state']} incompatible with evidence {sorted(kinds)}"))
         if r["rel_type"] == "DEPENDS_ON" and v["trust_state"] == "discovered":
             f.append(Finding("D-11", DOMAIN, f"{lbl}: DEPENDS_ON can never be discovered"))
         expected = relationship_flags(fv, tv)
@@ -446,6 +442,69 @@ def _domain_relationships(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f:
             ck = _arm_key(ds, r["to_id"], v["revision_from"])
             if pk and ck and not ck.startswith(pk + "/"):
                 f.append(Finding("D-06", DOMAIN, f"{lbl}: the child's ARM ID is not inside the parent's"))
+
+
+def _conflicting_fields(ds: Dataset, fact_id: str, rev: int) -> set[str]:
+    """Fields with materially different current values (TF-2). Interpretation I-6: such a required field may be absent."""
+    values: dict[str, set[str]] = defaultdict(set)
+    for a in ds.tables["fact_assertions"]:
+        if a["fact_id"] == fact_id and a["field_path"] and valid_at(a, rev):
+            values[a["field_path"]].add(sha256_of(a["asserted_value"]))
+    return {p for p, vs in values.items() if len(vs) > 1}
+
+
+def _field_value(v: dict[str, Any], path: str) -> Any:
+    if path.startswith("attributes."):
+        return v["attributes"].get(path.split(".", 1)[1])
+    return v.get(path)
+
+
+def _trust(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list[Finding]) -> None:
+    """D-12, D-19, D-20: every present version equals trust function v1 at every revision it is current."""
+    asserts = defaultdict(list)
+    for a in ds.tables["fact_assertions"]:
+        e = ix.ev[a["evidence_id"]]
+        asserts[a["fact_id"]].append({**a, "method": e["method"], "observed_at": e["observed_at"], "valid_to": e["valid_to"]})
+    for table, key in (("entity_versions", "entity_id"), ("relationship_versions", "relationship_id")):
+        versions = ix.ev_versions if key == "entity_id" else ix.rv_versions
+        for v in ds.tables[table]:
+            tax = taxes.get(v["taxonomy_version"])
+            if tax is None or v["record_state"] != "present":
+                continue
+            fid = v[key]
+            if key == "entity_id":
+                lbl = f"entity {fid} {v['type_key']}@{v['revision_from']}"
+                claim = Claim("entity", tax.types.get(v["type_key"], {}).get("kind") == "physical")
+            else:
+                r = ix.rel[fid]
+                lbl = f"relationship {fid} {r['rel_type']}@{v['revision_from']}"
+                ends = [ix.entity_at(r[k], v["revision_from"]) for k in ("from_id", "to_id")]
+                rule = tax.rels.get(r["rel_type"])
+                if None in ends or rule is None:
+                    continue  # reported by H-10 / D-04
+                claim = Claim("relationship", any(tax.types[e["type_key"]]["kind"] == "physical" for e in ends),
+                              frozenset(rule["allowed_evidence_kinds"]))
+            prev = next((p for p in versions[fid] if p["revision_to"] == v["revision_from"]), None)
+            last = v["revision_to"] - 1 if v["revision_to"] else ix.heads[v["org_id"]]
+            for rev in range(v["revision_from"], last + 1):
+                cur = [a for a in asserts[fid] if valid_at(a, rev)]
+                prior = {a["field_path"]: _field_value(prev, a["field_path"]) for a in cur if prev and a["field_path"]}
+                res = trust_v1(claim, cur, v, ds.policy, ix.cs[(v["org_id"], rev)]["created_at"], prior)
+                problem = None
+                if res["trust_state"] is None:
+                    problem = ("D-12", f"{lbl}: no current evidence applicable to the claim at revision {rev}")
+                elif res["trust_state"] != v["trust_state"]:
+                    problem = ("D-12", f"{lbl}: trust_state {v['trust_state']}, trust function gives {res['trust_state']} "
+                                       f"({res['rule']}) at revision {rev}")
+                elif rev == v["revision_from"] and v["verification_state"] == "verified" and res["verification_state"] != "verified":
+                    problem = ("D-19", f"{lbl}: verification not supported: {'; '.join(res['verification_reasons'])}")
+                else:
+                    wrong = [p for p, val in res["selected"].items() if _field_value(v, p) != val]
+                    if wrong:
+                        problem = ("D-20", f"{lbl}: stored value of {wrong} differs from the selected value at revision {rev}")
+                if problem:
+                    f.append(Finding(problem[0], DOMAIN, problem[1]))
+                    break
 
 
 def _arm_key(ds: Dataset, eid: str, rev: int) -> str | None:
@@ -493,7 +552,7 @@ def _domain_change_sets(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: l
     for c in ds.tables["change_sets"]:
         lbl = f"change set {c['org_id']}#{c['revision']}"
         a = c["actor"]
-        tax = taxes["1.0.0"]
+        tax = base_taxonomy(taxes)
         an = tax.actor_namespaces.get(a["namespace"])
         if an is None or an["actor_kind"] != a["kind"]:
             f.append(Finding("H-11", HARD, f"{lbl}: actor namespace {a['namespace']} is not bound to kind {a['kind']}"))
@@ -533,7 +592,7 @@ def advisory_findings(ds: Dataset, taxes: dict[str, Taxonomy]) -> list[Finding]:
     ix = Index(ds)
     for org, head in ix.heads.items():
         st = as_of(ds, org, head)
-        tax = taxes["1.0.0"]
+        tax = base_taxonomy(taxes)
         owned = {r["to_id"] for r in st.relationships.values() if r["rel_type"] == "OWNS"}
         deployed_from = {r["from_id"] for r in st.relationships.values() if r["rel_type"] == "DEPLOYED_AS"}
         parent_of = {r["to_id"]: r["from_id"] for r in st.relationships.values() if r["rel_type"] == "CONTAINS"}

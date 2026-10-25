@@ -21,6 +21,7 @@
 | A2-T13 | Publishing procedure with integrity checks | A2-T11, A2-T12 | A002-FR-08 |
 | A2-T14 | Privilege tests (FR-30 extended): app read-only; ingest insert + set-once close; no delete, truncate, DDL, TEMP; no cross-environment connect | A2-T08 | DEC-044 |
 | A2-T15 | Load the golden rows into `atlas_test`; HARD rules as SQL checks | A2-T13 | A002-FR-11 |
+| A2-T24 | Trust function v1 (`contracts/trust-function.md`) in the publishing procedure; truth-table and fixture-state tests; D-19, D-20 | A2-T12 | A002-FR-13 |
 
 ## CP4 — Loader, integrity and benchmark (atlas-backend)
 

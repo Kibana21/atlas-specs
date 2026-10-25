@@ -66,6 +66,7 @@ A deprecated operation or field is marked `deprecated: true` in the contract. It
 
 ## 8. Canonical graph contracts (ATLAS-002)
 
-- `contracts/taxonomy/atlas-taxonomy.v1.json` carries its own semantic version (`taxonomy_version`, 1.0.0). MINOR adds; MAJOR removes, renames, narrows or makes an attribute required, and needs a data migration plan and owner approval (ADR-0017 §1).
+- `contracts/taxonomy/atlas-taxonomy.v1.json` carries its own semantic version (`taxonomy_version`, now 1.1.0; history in `contracts/taxonomy/README.md`). MINOR adds; MAJOR removes, renames, narrows or makes an attribute required, and needs a data migration plan and owner approval (ADR-0017 §1).
 - `contracts/schemas/canonical/*.v1.json` are versioned by the `vN` in their `$id`. A breaking change creates `v2` beside `v1`.
+- The trust function (`contracts/trust-function.md`) carries its own version (`trust-1`). A change to its rules is a new function version, applied to stored states in one change set (ADR-0018); its truth table changes with it.
 - None of these change the OpenAPI contract or `info.version`; `contract-v0.1.0` remains the API baseline. Consumers pin them through the same `specs.lock` commit SHA.
