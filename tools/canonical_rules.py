@@ -199,6 +199,7 @@ def fixture_findings(ds: Dataset, taxes: dict[str, Taxonomy]) -> list[Finding]:
     _hard_identities(ds, ix, taxes, f)
     _domain_entities(ds, ix, taxes, f)
     _domain_relationships(ds, ix, taxes, f)
+    _retyped_endpoints(ds, ix, taxes, f)
     _per_revision(ds, ix, taxes, f)
     _domain_change_sets(ds, ix, taxes, f)
     _trust(ds, ix, taxes, f)
@@ -400,10 +401,43 @@ def _domain_entities(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list
                          tax.types[b["type_key"]].get("native_type") == a["native_type"] and not b["type_key"].startswith("infra.")) or \
                         (a["type_key"] == "infra.resource" and tax.mappings.get(a["provider"], {}).get(a["native_type"]) == tax.types[b["type_key"]]["category"]
                          and b["type_key"].startswith("infra."))
+            if cs and cs["kind"] == "revert":
+                if not _restores(vs, b, cs["reverts_revision"]):
+                    f.append(Finding("D-10", DOMAIN, f"entity {eid}: a revert may only re-type back to the version before r{cs['reverts_revision']}"))
+                continue
             if not automatic and cs and cs["kind"] not in ("steward_edit", "migration"):
                 f.append(Finding("D-10", DOMAIN, f"entity {eid}: re-type {a['type_key']} -> {b['type_key']} needs a steward or migration change set"))
             if cs and cs["kind"] == "migration" and not automatic:
                 f.append(Finding("D-10", DOMAIN, f"entity {eid}: a migration may only apply automatic re-typing"))
+
+
+def _restores(vs: list[dict[str, Any]], v: dict[str, Any], target: int) -> bool:
+    """``v`` (written by a revert of ``target``) equals the version valid before ``target``, taxonomy version included."""
+    before = next((x for x in vs if valid_at(x, target - 1)), None)
+    return before is not None and _content(before) == _content(v) and before["taxonomy_version"] == v["taxonomy_version"]
+
+
+def _retyped_endpoints(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list[Finding]) -> None:
+    """ADR-0008 §5.4: a re-typed endpoint re-validates every relationship still present at that revision (D-04)."""
+    touching = defaultdict(list)
+    for r in ds.tables["relationships"]:
+        touching[r["from_id"]].append(r)
+        touching[r["to_id"]].append(r)
+    for eid, vs in ix.ev_versions.items():
+        for a, b in zip(vs, vs[1:]):
+            rev = b["revision_from"]
+            if a["type_key"] == b["type_key"] or b["record_state"] != "present":
+                continue
+            for r in touching[eid]:
+                v = next((x for x in ix.rv_versions.get(r["id"], []) if valid_at(x, rev)), None)
+                if v is None or v["revision_from"] == rev or v["record_state"] != "present":
+                    continue  # absent, or rewritten in the same change set (checked as its own version)
+                tax = taxes.get(v["taxonomy_version"])
+                fv, tv = ix.entity_at(r["from_id"], rev), ix.entity_at(r["to_id"], rev)
+                if tax is None or fv is None or tv is None:
+                    continue
+                for reason in check_pair(tax, r["rel_type"], fv, tv, v["attributes"]):
+                    f.append(Finding("D-04", DOMAIN, f"relationship {r['id']} {r['rel_type']}@{rev} (endpoint {eid} re-typed): {reason}"))
 
 
 def _domain_relationships(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list[Finding]) -> None:
@@ -580,7 +614,8 @@ def _check_revert(ds: Dataset, ix: Index, c: dict[str, Any], f: list[Finding]) -
                 continue
             before = next((v for v in vs if valid_at(v, target - 1)), None)
             after = next((v for v in vs if valid_at(v, rev)), None)
-            if after is None or (before is None and after["record_state"] != "removed") or (before and _content(before) != _content(after)):
+            if after is None or (before is None and after["record_state"] != "removed") or (
+                    before and (_content(before) != _content(after) or before["taxonomy_version"] != after["taxonomy_version"])):
                 f.append(Finding("D-14", DOMAIN, f"revert r{rev}: fact {fid} does not equal its state before r{target}"))
 
 

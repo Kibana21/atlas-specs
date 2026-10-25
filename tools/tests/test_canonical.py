@@ -11,7 +11,8 @@ from typing import Any, Callable
 import pytest
 
 from canonical_model import (
-    HUMAN_ACTOR_NAMESPACES, Claim, Dataset, NormalizationError, Taxonomy, as_of, normalize_identity, plan_batch, trust_v1, uuid7,
+    HUMAN_ACTOR_NAMESPACES, Claim, Dataset, NormalizationError, Taxonomy, as_of, graph_hash, normalize_identity, plan_batch, trust_v1,
+    uuid7,
 )
 from canonical_rules import (
     fixture_findings, import_findings, manifest_findings, schema_findings, snapshot_findings, taxonomy_findings,
@@ -345,6 +346,66 @@ def m_revert_mismatch(ds: Dataset) -> None:
     v["attributes"] = {"unexpected": True}
 
 
+def _truncate(ds: Dataset, org: str, last: int) -> None:
+    """The fixture as it stood at revision ``last`` of ``org`` (later rows dropped, later closings reopened)."""
+    t = ds.tables
+    later = {"change_sets": "revision", "graph_snapshots": "revision", "evidence": "change_revision",
+             "entities": "created_revision", "relationships": "created_revision", "entity_versions": "revision_from",
+             "relationship_versions": "revision_from", "external_identities": "revision_from", "fact_assertions": "revision_from"}
+    for table, col in later.items():
+        t[table] = [r for r in t[table] if r["org_id"] != org or r[col] <= last]
+        for r in t[table]:
+            if r["org_id"] == org and (r.get("revision_to") or 0) > last:
+                r["revision_to"] = None
+
+
+def revert_of_r7(ds: Dataset) -> dict[str, Any]:
+    """Revision 8 reverts the taxonomy migration r7 (infra.resource -> infra.data_store under 1.2.0-test.1)."""
+    org = ds.org_ids()[0]
+    _truncate(ds, org, 7)
+    r6, r7 = (by(ds, "change_sets", org_id=org, revision=r) for r in (6, 7))
+    current = next(v for v in ds.tables["entity_versions"] if v["org_id"] == org and v["revision_from"] == 7)
+    before = next(v for v in ds.tables["entity_versions"] if v["entity_id"] == current["entity_id"] and v["revision_to"] == 7)
+    current["revision_to"] = 8
+    restored = {**copy.deepcopy(before), "revision_from": 8, "revision_to": None}
+    ds.tables["entity_versions"].append(restored)
+    ds.tables["change_sets"].append({**copy.deepcopy(r6), "revision": 8, "kind": "revert", "reverts_revision": 7,
+                                     "reason": "undo the taxonomy migration", "source_ref": "revert of r7",
+                                     "input_hash": None, "change_reference": None, "created_at": r7["created_at"]})
+    return restored
+
+
+def test_a_reclassification_revert_restores_the_earlier_type_and_taxonomy_version() -> None:
+    ds, taxes = dataset()
+    restored = revert_of_r7(ds)
+    assert (restored["type_key"], restored["taxonomy_version"]) == ("infra.resource", "1.1.0")
+    assert {f.rule for f in fixture_findings(ds, taxes) if f.cls != "ADVISORY"} == set()
+    org = ds.org_ids()[0]
+    assert graph_hash(as_of(ds, org, 8)) == graph_hash(as_of(ds, org, 6))   # back to the state before r7
+    assert graph_hash(as_of(ds, org, 7)) != graph_hash(as_of(ds, org, 6))   # r7 itself still reconstructs
+
+
+def m_revert_restamps_taxonomy(ds: Dataset) -> None:
+    revert_of_r7(ds)["taxonomy_version"] = "1.2.0-test.1"   # restored, but recorded against another taxonomy version
+
+
+def m_revert_to_another_type(ds: Dataset) -> None:
+    revert_of_r7(ds).update(type_key="infra.compute", category="compute_host")   # a re-type the revert does not restore
+
+
+def m_retype_strands_relationship(ds: Dataset) -> None:
+    """A steward re-types the r7 data store back to infra.resource at r9, leaving r8's READS_FROM in place."""
+    org = ds.org_ids()[0]
+    current = next(v for v in ds.tables["entity_versions"] if v["org_id"] == org and v["revision_from"] == 7)
+    before = next(v for v in ds.tables["entity_versions"] if v["entity_id"] == current["entity_id"] and v["revision_to"] == 7)
+    current["revision_to"] = 9
+    ds.tables["entity_versions"].append({**copy.deepcopy(current), "type_key": before["type_key"], "category": before["category"],
+                                         "revision_from": 9, "revision_to": None})
+    r8 = by(ds, "change_sets", org_id=org, revision=8)
+    ds.tables["change_sets"].append({**copy.deepcopy(by(ds, "change_sets", org_id=org, revision=6)), "revision": 9,
+                                     "reason": "re-type", "source_ref": "steward", "created_at": r8["created_at"]})
+
+
 def m_secret_attribute(ds: Dataset) -> None:
     entity_named(ds, "kv-claims-prod")["attributes"]["client_secret"] = "x"
 
@@ -357,6 +418,7 @@ def m_secret_attribute(ds: Dataset) -> None:
     (m_trust_without_evidence, "D-12"), (m_environment_not_env, "D-03"), (m_scope_nesting, "D-16"), (m_revert_mismatch, "D-14"),
     (m_stale_recorded_as_documented, "D-12"), (m_declared_as_observed, "D-12"), (m_logical_from_provider_only, "D-12"),
     (m_verified_declared_only, "D-19"), (m_verified_by_service, "D-19"), (m_conflicted_value_stored, "D-20"), (m_unresolved_without_conflict, "D-01"),
+    (m_revert_restamps_taxonomy, "D-14"), (m_revert_to_another_type, "D-10"), (m_retype_strands_relationship, "D-04"),
 ])
 def test_negative_mutation_is_detected(mutate: Callable[[Dataset], None], rule: str) -> None:
     ds, taxes = dataset()
