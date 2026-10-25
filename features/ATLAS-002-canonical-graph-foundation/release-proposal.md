@@ -23,6 +23,8 @@ Why: the canonical foundation exposes no deployable API or UI capability (`scope
 
 The CP5 documentation-only backend merge (`CLAUDE.md`, PR #12) is `0d37b6e0709a4f3603dd4b7373ac330ae7974b69`. Its `main` run [40194599204](https://github.com/Kibana21/atlas-backend/actions/runs/40194599204) is 6/6 success, and its code is identical to `e973758`.
 
+The F-09 backend merge (CLI integration tests and CLI hardening, PR #13) is `dbb6c04e8df10275cb332f599e1efe719bccbab9`, `main` run [40203519070](https://github.com/Kibana21/atlas-backend/actions/runs/40203519070), 6/6 success (`evidence.md` §13). It does not change this decision.
+
 Existing release tags are unchanged and remain the latest releases: `contract-v0.1.0` → `bfe4a09`, backend `v0.1.0` → `585f3f5`, frontend `v0.1.0` → `b9f235e`.
 
 ## 3. The release-governance conflict (recorded, not resolved)

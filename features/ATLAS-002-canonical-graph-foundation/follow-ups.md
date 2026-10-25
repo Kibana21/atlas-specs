@@ -1,6 +1,6 @@
 # ATLAS-002 — Follow-ups, limitations and deferred decisions
 
-**Date:** 25 October 2026 · **Context:** prepared for the owner's G5 decision (owner instruction, CP5 decision 2). If accepted, ATLAS-002 is accepted *subject to* these items, as ATLAS-001 was. **None of them is completed by ATLAS-002.** Scheduling any of them needs the owner's approval.
+**Date:** 25 October 2026 · **Context:** prepared for the owner's G5 decision (owner instruction, CP5 decision 2). If accepted, ATLAS-002 is accepted *subject to* these items, as ATLAS-001 was. **None of them is completed by ATLAS-002**, except F-09 (closed before G5, owner condition). Scheduling any of them needs the owner's approval.
 
 | ID | Kind | Summary | Binding on | State |
 |---|---|---|---|---|
@@ -12,7 +12,8 @@
 | F-06 | Recorded limitation | No source freshness policy or field precedence: no age-based staleness outside fixtures, no automatic conflict resolution | Connectors, reconciliation | **Open** |
 | F-07 | Deferred decision | Release tagging for the canonical store (`release-proposal.md`) | The first consumer release | **Open** |
 | F-08 | Unresolved decisions | Decisions still Proposed or Open, with their downstream dependencies (table below) | As listed | **Open** |
-| F-09 | Test gap (found in CP5) | The loader CLI `atlas.tools.canonical` has no automated test | Any operational use of the CLI (for example loading `atlas_db`) | **Open** |
+| F-09 | Test gap (found in CP5) | The loader CLI `atlas.tools.canonical` had no automated test | Any operational use of the CLI (for example loading `atlas_db`) | **Closed** (25 Oct 2026, `evidence.md` §13) |
+| F-10 | Validation defect (found by F-09) | The D-04 re-check of existing relationships after a re-type is skipped when the relationship's taxonomy version is not loaded | Any caller that passes a partial taxonomy set; any second approved taxonomy | **Open** (`evidence.md` §13.4) |
 
 ## F-01 — PG-1 performance gate (binding)
 
@@ -95,9 +96,16 @@ The status is that of `decisions/decision-register.md` on 25 Oct 2026. ATLAS-002
 | DEC-074 Retention, archival, backup/restore, legal hold | Open | Retention of history, evidence and snapshots; backup policy | History compaction or archiving (ADR-0008 §9); backup practice beyond the ad hoc pre-migration dump |
 | DEC-084 Local PostgreSQL authentication (`trust`) | Open | Local `pg_hba` hardening | F-02; local security posture |
 
-## F-09 — Loader CLI without an automated test (found in CP5)
+## F-09 — Loader CLI without an automated test (found in CP5) — **Closed**
 
-- **Finding:** the command-line entry point `atlas.tools.canonical` (`atlas-canonical replay | import | revert | recompute-trust | snapshot`, A2-T16, A002-FR-09) has 0% unit coverage, and no integration test runs it. The CP4 evidence (§9.1) listed it as built without saying so.
-- **What is tested:** every operation it calls, in the integration suites on `atlas_test` and in CI: `history.replay`, `apply_import`, `revert`, `recompute_trust`, `create_snapshot`, including the configured service actors and the server-set role.
-- **What is not tested:** the wrapper itself. That covers argument parsing, its use of the ingestion connection, the actor taken from configuration, and its JSON output.
-- **Proposed remedy (not authorized):** one integration test on `atlas_test` that runs each sub-command and checks the attribution and the result. It is a small backend test change, recommended before the CLI is used against `atlas_db`.
+- **Finding (CP5):** the command-line entry point `atlas.tools.canonical` (`atlas-canonical replay | import | revert | recompute-trust | snapshot`, A2-T16, A002-FR-09) had 0% coverage, and no test ran it.
+- **Resolution (owner condition for G5, 25 Oct 2026):** backend [PR #13](https://github.com/Kibana21/atlas-backend/pull/13), merged at `dbb6c04`, `main` run [40203519070](https://github.com/Kibana21/atlas-backend/actions/runs/40203519070). 18 integration tests run the real entry point as a subprocess on `atlas_test` (and the disposable CI database), covering every sub-command, invalid arguments, missing configuration, exit codes and the ingestion connection. CLI module coverage 98% (106/106 statements). The tests found a defect, fixed in the CLI (fail closed on unloaded taxonomy versions), whose root cause is F-10.
+- Details: `evidence.md` §13.
+
+## F-10 — Validation with a partial taxonomy set (found by F-09) — **Open**
+
+- **Defect:** `_retyped_endpoints` (the D-04 re-check of existing relationships when an endpoint is re-typed, ADR-0008 §5.4) skips a relationship whose recorded taxonomy version is not loaded by the caller. Every other taxonomy lookup either reports D-01 or only skips rows that D-01 already refuses. The SQL integrity suite does not check the taxonomy matrix.
+- **Risk:** a caller that loads fewer taxonomy versions than the data uses can commit a re-type that strands a relationship (reproduced on `atlas_test` for the revert service and direct publishing; the import planner uses the same check). Current exposure: the CLI is the only production caller and now refuses; `atlas_db` holds no canonical facts; 1.1.0 is the only approved taxonomy.
+- **Proposed resolution (awaiting owner approval):** report D-01 instead of skipping, in the backend and specs validators; clarify D-04 in the rule catalog; add a mutation; convert the `xfail` regression tests. Compatible with the golden fixture and the CP2 contracts (prototype: fixture byte-identical, all suites pass).
+- **Binding on:** any new caller of `publish` (API, worker, connector) and the approval of a second taxonomy release, until resolved or accepted by the owner as a deferred limitation.
+- Details: `evidence.md` §13.4.
