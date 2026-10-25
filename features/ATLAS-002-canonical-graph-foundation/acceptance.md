@@ -37,7 +37,8 @@
 | AC-CP4-02 | Given the same batch again, then no change set is written |
 | AC-CP4-03 | Given a revert of revision 4, then the result equals the fixture's revision 5; a revert of a later-modified fact is refused |
 | AC-CP4-04 | Given the integrity suite, then H-10, H-14 and D-09 hold at every revision |
-| AC-CP4-05 | Given the pilot-size benchmark, then its results are recorded (no thresholds before the owner sets them) |
+| AC-CP4-05 | Given the pilot-size benchmark, then its results are recorded (no thresholds before the owner sets them), including the publishing procedure's state load (A2-T25) |
+| AC-CP4-06 | Given evidence that is added, closed or expires, when the affected facts are republished or recomputed, then their stored trust states equal trust function v1 and untouched facts are unchanged (A2-T27) |
 
 ## CP5
 

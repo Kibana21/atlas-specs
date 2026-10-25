@@ -32,6 +32,9 @@
 | A2-T18 | Revert command; conflict refusal | A2-T13 | A002-FR-10 |
 | A2-T19 | As-of and graph hash equal to `expected-as-of.json` at every revision | A2-T16 | A002-FR-11 |
 | A2-T20 | Pilot-size benchmark in CI (synthetic 10k/40k) | A2-T16 | A002-FR-12 |
+| A2-T25 | Owner follow-up (25 Oct 2026): benchmark the publishing procedure's full-organization state load (CP3-D7) at pilot size; narrow it to touched facts and neighbours if the benchmark requires | A2-T20 | A002-FR-08, A002-FR-12 |
+| A2-T26 | Owner follow-up (25 Oct 2026): implement and verify revision reverts in the publishing procedure (CP3 refuses them, CP3-D7): new change set equal to the state before the reverted revision, refusal on conflict, D-14 | A2-T18 | A002-FR-10 |
+| A2-T27 | Owner follow-up (25 Oct 2026): validate trust recomputation when evidence changes: new, closed and expiring assertions; verification expiry; a recompute change set for time-driven changes (CP3-D6) | A2-T24 | A002-FR-13 |
 
 ## CP5 — Evidence and acceptance (all)
 

@@ -21,7 +21,7 @@
 | Who | Step |
 |---|---|
 | Owner | Review the three SQL files at the merged atlas-specs commit |
-| Claude (on request) | `make doctor` in atlas-backend: read-only report that the four ATLAS-001 roles exist with no special attributes, that `atlas_ingest`/`atlas_test_ingest` don't exist yet, and that both databases are owned by their migrators |
+| Claude (on request) | `make doctor` in atlas-backend (read-only): the server is PostgreSQL 15, the four ATLAS-001 roles and both databases exist, and `atlas_ingest`/`atlas_test_ingest` don't exist yet. Ownership, PUBLIC privileges and schema `atlas` in `atlas_test` are not doctor checks: the setup script's guards check them, and a read-only catalog query can confirm them beforehand |
 
 The setup script re-checks all of this itself and aborts before any change if anything differs.
 
