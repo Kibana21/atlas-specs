@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 4 (25 Oct 2026, compatibility gate): extensible environment kinds incl. `sit`, `dr`, `preprod`; optional `deployment_role` on `DEPLOYED_AS` (§2.5). Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
-| Register | DEC-050 (Proposed), DEC-070 (Proposed) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 4 (25 Oct 2026, compatibility gate): extensible environment kinds incl. `sit`, `dr`, `preprod`; optional `deployment_role` on `DEPLOYED_AS` (§2.5). Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
+| Register | DEC-050, DEC-070 (**Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Enterprise Architecture + Cloud Platform; approval: Atlas owner |
 | Related | INV-01, INV-02, INV-05, MOD-01, MOD-03, MOD-04, BCM-01, BCM-03, DEP-01, DEP-04, CAN-02, E04; tech §3.1, §3.2, §3.3; ADR-0001, ADR-0003, ADR-0008, ADR-0018, ADR-0019 |
 
@@ -456,7 +456,7 @@ All names are synthetic. Arrows show relationship direction.
 - MAJOR versions need a migration that re-types or retires data in one change set, plus owner approval.
 - IDs survive every upgrade (MOD-01).
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. Option A (tech catalog + BRD aliases), recording the deviations in §8 on confirmation.
 2. The 38-type catalog in §2.2 (`core.system` and `core.component` already approved; the eight `infra.*` types new in revision 3), environment scopes (§2.3) and re-typing (§2.4).

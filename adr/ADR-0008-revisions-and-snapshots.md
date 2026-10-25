@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 3 (25 Oct 2026): change attribution (§10). Revision 2 (25 Oct 2026) after the owner's CP1 review (D15 amended: define atomic publication, immutable fact versions, snapshot consistency, historical reconstruction, relationship endpoint validity and rollback, proportionate to the MVP); revision 1 was 24 Oct 2026 |
-| Register | DEC-031 (Proposed); compatible with, but does not decide, DEC-057 (Open) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 3 (25 Oct 2026): change attribution (§10). Revision 2 (25 Oct 2026) after the owner's CP1 review (D15 amended: define atomic publication, immutable fact versions, snapshot consistency, historical reconstruction, relationship endpoint validity and rollback, proportionate to the MVP); revision 1 was 24 Oct 2026 |
+| Register | DEC-031 (**Confirmed** 25 Oct 2026); compatible with, but does not decide, DEC-057 (Open) |
 | Owner (proposed) | Data architect; approval: Atlas owner |
 | Related | INV-06, HIST-01, HIST-02, MOD-05, GOV-04; tech §3.5 ("MVCC/revision manifests"), §10; ADR-0001, ADR-0016, ADR-0017, ADR-0018 |
 
@@ -223,7 +223,7 @@ Tables `org_revision`, `change_set` (with `reverts_revision`), `entity`/`entity_
 - Additive tables.
 - Branches, discovery syncs and the audit store attach to `change_set` later without reshaping version tables.
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. Option A, not temporal tables, snapshot copies or event sourcing.
 2. Immutable versions with set-once `revision_to` (trigger plus column privilege); no physical deletion.

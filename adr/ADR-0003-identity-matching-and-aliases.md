@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 3 (25 Oct 2026): provider-qualified namespace registry (ADR-0019). Revision 2 (25 Oct 2026) after the owner's CP1 review: D3 and D5 approved, D4 approved with clarification (original and normalized keys, normalization, case, identity changes, collisions); revision 1 was 24 Oct 2026 |
-| Register | DEC-025 (Proposed); field-authority principles of DEC-034 (Proposed) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: Revision 3 (25 Oct 2026): provider-qualified namespace registry (ADR-0019). Revision 2 (25 Oct 2026) after the owner's CP1 review: D3 and D5 approved, D4 approved with clarification (original and normalized keys, normalization, case, identity changes, collisions); revision 1 was 24 Oct 2026 |
+| Register | DEC-025 (**Confirmed** 25 Oct 2026); field-authority principles of DEC-034 (DEC-034 itself still Proposed) |
 | Owner (proposed) | Data/Platform lead + Enterprise Architecture; approval: Atlas owner |
 | Related | INV-01, INV-04, INV-06, MOD-04; tech §3.2, §7.3 (ADR-003, ADR-012 in tech §22); ADR-0015, ADR-0016, ADR-0018 |
 
@@ -206,7 +206,7 @@ See ADR-0001.
 - New namespaces are additive (a taxonomy minor version).
 - Changing a normalization rule needs a migration that re-normalizes keys inside a change set, plus a collision report. It is reviewed like a breaking change.
 
-## Requires owner confirmation
+## Approved by the owner (25 Oct 2026)
 
 1. Matching precedence: provider ID → approved alias → organization key; similarity never merges.
 2. Azure Resource ID as the preferred Azure identity: both original and normalized forms stored; normalization `arm-1` (validate, reject, lowercase, no decoding); the identity-change and collision tables above.

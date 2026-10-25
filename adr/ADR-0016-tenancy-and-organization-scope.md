@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed** (CP1 of ATLAS-002, 24 Oct 2026). D1 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Revision 3 (25 Oct 2026) generalizes the Azure-tenant wording to every provider's accounts (ADR-0019); the decision itself is unchanged. No code depends on it yet |
-| Register | DEC-058 (Open → Proposed) |
+| Status | **Accepted** (owner, 25 Oct 2026: ATLAS-002 CP1 final approval of D1–D19). Drafting history: (CP1 of ATLAS-002, 24 Oct 2026). D1 approved by the owner on 25 Oct 2026, subject to consistency with the authoritative specifications; it becomes Accepted with the other rows at Gate G1. Revision 3 (25 Oct 2026) generalizes the Azure-tenant wording to every provider's accounts (ADR-0019); the decision itself is unchanged. No code depends on it yet |
+| Register | DEC-058 (**Confirmed** 25 Oct 2026) |
 | Owner (proposed) | Architecture + Security; approval: Atlas owner |
 | Related | INV-01, INV-05, MOD-04, MOD-06, GOV-01; tech §3.2, §9.3; ADR-0001, ADR-0003, ADR-0015 |
 
@@ -100,7 +100,7 @@ The tech design says "segregate tenants and restricted domains if required" (§9
 - A future second organization: insert a row, assign grants. No data migration.
 - If physical isolation is ever required: deploy a separate Atlas instance (same schema).
 
-## Requires owner approval
+## Approved by the owner (25 Oct 2026)
 
 1. Option B: organization-scoped rows, one database, one default organization now.
 2. Azure tenants, and every other provider's accounts, = entities plus provider keys inside an organization; never an organization ID.
