@@ -354,3 +354,67 @@ Recorded in: DEC-044 (register v0.10), ADR-0001 §Privileges (local single-user 
 | Local integration (`atlas_test`, single-user model) | 46 passed, 65 skipped (53 role-separation, 12 CI-only password checks); the CI single-user leg is identical |
 | Accepted exception | TD-DEV-010: local single-user model with the superuser `atlas_db_user` |
 | Development database | `atlas_db` remains at `0001_baseline`; migration `0002` there needs separate owner approval |
+
+## 9. CP4 — Loader, reconstruction, reverts, trust recomputation, benchmark (awaiting G4)
+
+**Authorization (owner, 25 Oct 2026):** CP4 against `atlas_test` and isolated CI databases only. Separately, a read-only preflight for migrating `atlas_db` (§9.5); not executed.
+
+Backend PR #10, merged at `b44c1e230992e34b8f6f696707bc5c225baa2caf`. PR head `cb9b52d` run [40186564491](https://github.com/Kibana21/atlas-backend/actions/runs/40186564491): all six required checks and the `benchmark` job **success**. `main` run [40186882964](https://github.com/Kibana21/atlas-backend/actions/runs/40186882964): required checks **success**.
+
+### 9.1 What was built (A2-T16…T20, A2-T25…T27)
+
+- **Recorded-history replay (fixture loader):** as the configured `fixture-loader` service. Recorded reverts replay as reverts.
+- **Import application:** through the import planner (port of the reference), with the import report and evidence reuse.
+- **`revert`:** a new attributed change set; refused with D-14 when a later revision changed the same facts.
+- **`recompute_trust`:** a `migration`-kind change set by the system actor `trust-recompute`.
+- **Snapshots:** create and verify.
+- **CLI:** `atlas.tools.canonical`, using the ingestion connection only.
+- **CI `benchmark` job:** disposable database only; not a required check.
+- **Defects fixed in the publishing procedure:** a per-fact assertion index (it was quadratic), and relationship claims resolved from the plan's current versions (a latent bug: a relationship touched together with its endpoint skipped trust re-evaluation).
+
+### 9.2 Results
+
+| Check | Result |
+|---|---|
+| Unit (CI) | 304 passed, coverage 86% |
+| `make contract` (CI) | 106 passed, 78 of them canonical pinned-specs tests: the CP3 suite plus the planner reproducing r2 with its rejection report, recorded drafts for all 8 revisions, and the revert draft of r4 equalling the recorded r5 |
+| Integration, separated roles (CI) | 119 passed |
+| Integration, single-user (CI leg and local `atlas_test`) | 54 passed, 65 skipped; identical |
+| Replay of the golden history (AC-CP4-01/04) | Every revision's graph hash equals `expected-as-of.json` and the integrity checks are clean, at every revision and afterwards. Every stored row (entities, versions, relationships, identities, evidence, assertions) equals the fixture's. All change sets carry the configured `fixture-loader` and the server-set role; r5 is a revert of r4. All four snapshot hashes match; a label cannot move |
+| Idempotency (AC-CP4-02) | Re-publishing r8's input and re-importing the r2 batch at head write nothing |
+| Import (AC-CP4-01) | Against r1, revision 2 creates exactly the fixture's entities and reports the expected rejection. A replay is a no-op. Attributed to `import-worker` on the `import` channel |
+| Reverts (AC-CP4-03) | Reverting r8 gives revision 9, whose hash equals r7's while r8's history still reconstructs. Reverting r4 is refused with D-14 and writes nothing |
+| Trust recomputation (AC-CP4-06) | With a test-only 30-day policy, only the 3 document-only entities and 1 relationship turn `stale`. An expired verification turns its fact `stale`. A steward assertion makes a fact `curated`. A repeat recompute writes nothing |
+| Failure and concurrency | A failure after writing rolls everything back and the revision number is reused (gap-free). A second publisher waits on the organization's counter and gets the next revision. Composite keys reject a cross-organization reference |
+
+### 9.3 Benchmark (A2-T20, A2-T25; disposable CI PostgreSQL 15, single-user account)
+
+| Entities / relationships / assertions | Initial load | One-entity change | No-op | State load | Graph hash |
+|---|---|---|---|---|---|
+| 1,006 / 4,000 / 5,006 | 1.9 s | 0.83 s | 0.30 s | 0.15 s | 0.21 s |
+| 5,026 / 20,000 / 25,026 | 5.7 s | 2.2 s | 1.7 s | 0.84 s | 1.2 s |
+| 10,051 / 40,000 / 50,051 | 11.3 s | 4.8 s | 3.6 s | 1.9 s | 2.8 s |
+
+A small change costs time linear in the organization's size, because the procedure loads and validates its whole current state (CP3-D7). That is acceptable for fixture loads and batch imports at pilot size. It is **not** acceptable for interactive edits, and extrapolates to roughly a minute per change at Scale A. Optimization (load only the touched facts and their neighbours) is required before any release with interactive writes or Scale A data.
+
+### 9.4 Interpretations made in CP4 (for owner confirmation at G4)
+
+| # | Point | Choice |
+|---|---|---|
+| CP4-D1 | Evaluation time when replaying recorded history | The recorded change set's time (`evaluated_at`, never later than the server time). Otherwise the fixture's freshness policy and verification expiry would make its stored trust states depend on the date the test runs. Live publications keep the transaction time |
+| CP4-D2 | Change-set kind for trust recomputation | `migration` on the `migration` channel by a system actor; no new kind was added |
+| CP4-D3 | D-19 for a verification carried into a new version | Checked when recorded or changed only (contract text clarified) |
+| CP4-D4 | Replayed history attribution | Every replayed revision is attributed to the loader's configured identity; recorded human authorship stays as evidence (ADR-0008 §10) |
+
+### 9.5 Development database migration preflight (read-only; not executed)
+
+| Item | Finding |
+|---|---|
+| Identity | `atlas_db` on the local PostgreSQL 15.12, port 5432; owner `atlas_migrator`; 7.7 MB; collation C |
+| Revision and contents | `0001_baseline`. Only `atlas.alembic_version` (and its key) exists; no functions in `atlas`; extension `plpgsql` only. Schema `atlas` owned by `atlas_migrator` |
+| Connection that would run it | Backend `.env` (local, single-user model): `atlas_db_user` on `atlas_db`, through `make migrate` |
+| What `0002` does there | 25 tables and 15 indexes in schema `atlas` only, 2 functions and 6 triggers, 836 taxonomy seed rows, the default organization and its counter. No grants (the ingestion role is the migrating account), no extension, no role or database change, no other schema. Redis is not used |
+| Ownership note | The new tables will be owned by `atlas_db_user`, not `atlas_migrator`, and the migrator's default privileges will not apply. Moving `atlas_db` to the separated model later needs an ownership and grant step |
+| Other sessions | One idle pgAdmin session on `atlas_db`; the migration does not need to lock existing objects other than `alembic_version` |
+| Backup | Before migrating: `pg_dump -h localhost -U atlas_db_user -d atlas_db -Fc -f <outside the repositories>/atlas_db-pre-0002.dump` (pg_dump 15.12 available) |
+| Restoration | Preferred: `alembic downgrade 0001_baseline` with the same settings, which drops exactly what `0002` created (empty databases only). Fallback: `pg_restore -h localhost -U atlas_db_user -d atlas_db --clean --if-exists <dump>`, which touches `atlas_db` only |
