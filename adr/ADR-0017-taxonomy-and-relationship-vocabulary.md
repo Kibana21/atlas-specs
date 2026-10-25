@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **Proposed**. Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
+| Status | **Proposed**. Revision 4 (25 Oct 2026, compatibility gate): extensible environment kinds incl. `sit`, `dr`, `preprod`; optional `deployment_role` on `DEPLOYED_AS` (§2.5). Revision 3 (25 Oct 2026): provider-neutral categories and types (ADR-0019). Revision 2 (25 Oct 2026) followed the owner's CP1 review; revision 1 was 24 Oct 2026. **Not frozen**: the taxonomy is fixed only when the owner confirms this ADR, and the artifact is produced in CP2 after that |
 | Register | DEC-050 (Proposed), DEC-070 (Proposed) |
 | Owner (proposed) | Enterprise Architecture + Cloud Platform; approval: Atlas owner |
 | Related | INV-01, INV-02, INV-05, MOD-01, MOD-03, MOD-04, BCM-01, BCM-03, DEP-01, DEP-04, CAN-02, E04; tech §3.1, §3.2, §3.3; ADR-0001, ADR-0003, ADR-0008, ADR-0018, ADR-0019 |
@@ -91,7 +91,7 @@ MOD-01 and MOD-03 need a **versioned** type list with required attributes, allow
 | 9 | Integration | `core.api_operation` | own | L | N | `http_method`, `path_template` | — | `core.api` |
 | 10 | Integration | `core.event_channel` (logical topic or queue) | own | L | N | `channel_kind` ∈ {queue, topic} | `org.key` (optional) | — |
 | 11 | Data | `core.dataset` (logical data asset) | own | L | N | — | `org.key` (optional) | — |
-| 12 | Deployment | `core.environment` | own | L | N | `environment_kind` ∈ {prod, uat, test, dev, sandbox, other} | `org.key` | — |
+| 12 | Deployment | `core.environment` | own | L | N | `environment_kind` from the taxonomy vocabulary (v1: dev, sit, test, uat, preprod, prod, dr, sandbox, other; extended by MINOR versions); the environment's name and key are organization-defined | `org.key` | — |
 | 13 | Azure | `azure.tenant` | `scope` | P | N | — | `azure.tenant_id` | — |
 | 14 | Azure | `azure.subscription` | `scope` | P | O | — | `azure.subscription_id`, `azure.arm` | `azure.tenant` |
 | 15 | Azure | `azure.resource_group` | `scope` | P | O | `location` | `azure.arm` | `azure.subscription` |
@@ -141,6 +141,17 @@ Revision 1 made every E type require exactly one environment. That could not rep
 - `type_key` is stored on the **version** row, not the identity row (ADR-0001, ADR-0008), so the ID never changes (MOD-01 "existing IDs survive taxonomy upgrades").
 - Allowed automatically: an `infra.*` type → a later provider-specific type (same provider) whose `native_type` equals the resource's, in a later MINOR taxonomy version; and `infra.resource` → the neutral type of a newly mapped category. It is one change set that re-validates every relationship of that entity.
 - Anything else (for example `core.service` → `core.application`) is a steward decision (one change set, audited), or part of a MAJOR migration.
+
+### 2.5 Environments, regions and disaster recovery (revision 4)
+
+- **Environments are organization-defined entities** (`core.environment`): any number, any name and key (for example "DEV", "SIT", "UAT-2", "PROD", "DR"). `environment_kind` only classifies them, so rules and filters can treat "any production-like environment" consistently. Its vocabulary is taxonomy data; a MINOR version adds values.
+- **Region is `location`**, an attribute of the physical resource, never containment and never an environment.
+- **DR is a deployment role, not only an environment label.** `DEPLOYED_AS` carries an optional `deployment_role` ∈ {primary, active_secondary, standby, unknown}, with its own evidence and history like any attribute:
+  - a production standby in a DR region: physical resource with `environment_id` = PROD, `location` = the DR region, and `DEPLOYED_AS` with `deployment_role = standby`;
+  - a DR resource that also serves production workloads: `deployment_role = active_secondary`, plus its own evidenced relationships (for example workloads that `READS_FROM` it);
+  - an organization that runs DR as a separate environment can still create an environment with `environment_kind = dr`; both patterns use the same facts.
+- An absent `deployment_role` means **not established**. It is never assumed to be primary.
+- Comparing environments (future) is a read-time query over the same facts (`environment_id`, environment `MEMBER_OF`, `DEPLOYED_AS`, `deployment_role`), as of any revision. Nothing is copied per environment.
 
 ## 3. Containment and membership (D11)
 
@@ -208,7 +219,7 @@ Rules are written against **categories** (ADR-0019 §2), so they apply to every 
 | `READS_FROM` | LA, RA | DS | — (§5) | prov, contr, doc, human | Yes |
 | `WRITES_TO` | LA, RA | DS | — (§5) | prov, contr, doc, human | Yes |
 | `STORES_IN` | LA, RA | DS | data-store dependency whose direction is **not established** (§5) | doc, human, prov | Yes |
-| `DEPLOYED_AS` (logical → physical) | see the pairs below | see the pairs below | many-to-many (MOD-03: one logical service, several deployments); L → P only | prov (deployment metadata), human, doc | No |
+| `DEPLOYED_AS` (logical → physical) | see the pairs below | see the pairs below | many-to-many (MOD-03: one logical service, several deployments); L → P only; optional `deployment_role` (§2.5) | prov (deployment metadata), human, doc | No |
 | `CONNECTS_TO` (explicitly configured infrastructure connectivity) | CS | any P type | **required** `connectivity_kind` (discriminator), provider-neutral names restricted per category pair: `network_peering` (network → network); `dedicated_link` (network → network, for example VPN or private circuits); `subnet_placement`, `network_integration` (RA or cluster → subnet); `gateway_backend` (gateway or API endpoint → RA); `private_link`, `service_endpoint`, `configured_endpoint` (→ any P type). The provider's own term (for example "private endpoint") goes in optional `native_kind` | prov, human; **never** inf | Yes |
 | `DEPENDS_ON` (curated) | `core.system`, LA | `core.system`, LA, `core.api`, `core.dataset` | **required** `rationale`; §4.3 | **human, doc only** | n/a (logical) |
 

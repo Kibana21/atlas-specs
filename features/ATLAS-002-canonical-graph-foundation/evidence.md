@@ -1,6 +1,6 @@
 # ATLAS-002 — Evidence Record
 
-**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 3:** owner reviews of revisions 1 and 2 recorded; provider-neutral model added; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
+**Status:** **CP0 complete** (G0 passed, 2026-10-24; accepted by the owner 2026-10-25). **CP1 revision 4:** owner reviews of revisions 1–3 recorded; provider-neutral model added; compatibility gate passed after two taxonomy-only amendments; every register row still Proposed, awaiting final owner approval (G1). CP2–CP5 not authorized. ATLAS-002 not Accepted.
 
 ## 1. CP0 — A001-DEF-01 / E-48: Redis readiness after an outage
 
@@ -75,3 +75,9 @@ CP2 starts only after the owner approves the decisions.
 - **Revision 3:** new ADR-0019 (categories, eight `infra.*` types, providers as reference data, hierarchies, cross-provider rules, scenarios S1–S6, onboarding); ADR-0017 (38 types, rules by category, G-T9 and G-T10 closed); ADR-0003 (provider-qualified namespace registry); ADR-0016 and ADR-0018 (provider-neutral wording); ADR-0001 (reference tables, columns, PostgreSQL 15 assessment); `proposals/dec-044-amendment.md`; decision matrix revision 3 (D1–D19).
 - **Register:** v0.8 annotations only; no status changes.
 - **Not done:** no role, credential, grant, table, migration, connector or product code. Baselines unchanged.
+
+### 2.3 Final compatibility gate, revision 4 (2026-10-25)
+
+- **Owner review (written, in the conversation, 25 Oct 2026):** D1–D19 direction acceptable, including the provider-neutral categories, the eight `infra.*` types, provider-qualified identity and the DEC-044 amendment; a focused compatibility check requested (environments, unknown provider resources, relationship semantics), no redesign.
+- **Result:** 17 checks PASS, 2 GAP (A1 environment kinds, A5 DR standby), each closed in ADR-0017 §2.5 without new types, relationships or tables (`decision-matrix.md` §9).
+- **Not done:** no role, credential, grant, table, migration, connector or product code. Baselines unchanged. Register unchanged.
