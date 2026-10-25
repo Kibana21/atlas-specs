@@ -57,7 +57,7 @@ Out of scope: graph-reading APIs (invariant 4: authorization first, ATLAS-003), 
 
 ## 6. Gate G3-R: database-role bootstrap (separate, owner-controlled)
 
-1. Claude writes `features/ATLAS-002-canonical-graph-foundation/proposals/postgres-ingest-roles.sql` exactly as designed in `proposals/dec-044-amendment.md` §7 (guards, two roles, `CONNECT`, `USAGE`, settings, rollback). This is a specs PR, reviewed.
+1. Claude writes `features/ATLAS-002-canonical-graph-foundation/proposals/postgres-ingest-roles.sql` exactly as designed in `proposals/dec-044-amendment.md` §7 (guards, two roles, `CONNECT`, `USAGE`, settings), with `postgres-ingest-roles-verify.sql` (read-only), `postgres-ingest-roles-rollback.sql` and the owner runbook `g3r-runbook.md`. This is a specs PR, reviewed. **Done in CP3.**
 2. The owner reviews it, creates the two passwords, and runs it as the local superuser. Claude never creates credentials and never runs it.
 3. Claude verifies with read-only catalog queries (`atlas doctor`) and records the evidence.
 4. Only then is migration `0002` run against the local `atlas_test` (and `atlas_db` only with separate approval). CI uses its own ephemeral server throughout.

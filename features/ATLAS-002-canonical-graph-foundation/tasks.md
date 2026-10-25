@@ -6,7 +6,7 @@
 
 | ID | Task | Depends on | Requirement |
 |---|---|---|---|
-| A2-T01 | Write `proposals/postgres-ingest-roles.sql` from the DEC-044 amendment §7 (guards, roles, settings, rollback) | — | A002-FR-03 |
+| A2-T01 | Write `proposals/postgres-ingest-roles.sql` from the DEC-044 amendment §7 (guards, roles, settings, rollback). **Done (CP3):** setup, verification and rollback scripts plus `g3r-runbook.md` | — | A002-FR-03 |
 | A2-T02 | **Owner** runs A2-T01 with owner-created passwords (gate G3-R) | A2-T01 | DEC-044 |
 | A2-T03 | Read-only verification (`atlas doctor`), evidence recorded | A2-T02 | DEC-044 |
 | A2-T04 | Pin specs; add ingest settings; API never reads them (test) | — | A002-FR-09 |
