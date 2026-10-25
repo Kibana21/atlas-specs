@@ -1,0 +1,18 @@
+{
+  "actor": {
+    "key": "fixture-loader",
+    "kind": "service",
+    "label": "Fixture loader",
+    "namespace": "atlas.service"
+  },
+  "change_reference": null,
+  "channel": "fixture_cli",
+  "db_role": "atlas_test_ingest",
+  "input_hash": "sha256:bb613b74b27f65e1062c3595ee3eaee7bea1e41b9ebdf2c4e4d9e637bcd9b056",
+  "kind": "fixture_load",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "reason": "Golden fixture baseline (synthetic)",
+  "reverts_revision": null,
+  "revision": 1,
+  "source_ref": "fixture:canonical-golden-v1"
+}

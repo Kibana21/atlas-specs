@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:entity-version:v1",
+  "title": "Entity version",
+  "description": "One immutable state of an entity valid for [revision_from, revision_to) (ADR-0008, ADR-0017, ADR-0019).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "entity_id",
+    "revision_from",
+    "revision_to",
+    "type_key",
+    "category",
+    "provider",
+    "native_type",
+    "record_state",
+    "merged_into",
+    "display_name",
+    "lifecycle",
+    "environment_scope",
+    "environment_id",
+    "container_id",
+    "attributes",
+    "trust_state",
+    "verification_state",
+    "verified_by",
+    "verified_at",
+    "expires_at",
+    "taxonomy_version"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "entity_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "revision_from": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    },
+    "revision_to": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "type_key": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/type_key"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "native_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "record_state": {
+      "type": "string",
+      "enum": [
+        "present",
+        "removed",
+        "merged"
+      ]
+    },
+    "merged_into": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "lifecycle": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/lifecycle"
+    },
+    "environment_scope": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "single",
+            "shared",
+            "unknown"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "environment_id": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "container_id": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attributes": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/attributes"
+    },
+    "trust_state": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/trust_state"
+    },
+    "verification_state": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/verification_state"
+    },
+    "verified_by": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/actor_ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verified_at": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "taxonomy_version": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/verification"
+    },
+    {
+      "if": {
+        "properties": {
+          "record_state": {
+            "const": "merged"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "merged_into": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "merged_into": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "environment_scope": {
+            "const": "single"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "environment_id": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "environment_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "revision_to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision_to"
+        ]
+      },
+      "then": {
+        "description": "revision_to > revision_from is checked by the validator (H-05); JSON Schema cannot compare fields"
+      }
+    }
+  ]
+}

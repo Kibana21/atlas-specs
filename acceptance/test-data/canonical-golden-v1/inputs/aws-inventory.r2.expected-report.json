@@ -1,0 +1,27 @@
+{
+  "batch": "inputs/aws-inventory.r2.json",
+  "first_apply": {
+    "against_revision": 1,
+    "changed_entities": 0,
+    "changed_relationships": 0,
+    "creates_revision": 2,
+    "new_entities": 14,
+    "new_relationships": 8
+  },
+  "org_key": "default",
+  "rejected": [
+    {
+      "reasons": [
+        "READS_FROM is not allowed from infra.workload to infra.resource"
+      ],
+      "ref": "svc-reads-tables",
+      "rule": "D-04"
+    }
+  ],
+  "replay": {
+    "against_revision": 2,
+    "change_set": null,
+    "new_entities": 0,
+    "new_relationships": 0
+  }
+}

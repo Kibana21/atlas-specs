@@ -1,0 +1,14 @@
+{
+  "artifact_hash": "sha256:523aee5e7fa0430ba1ff5f33a1791aaf3f7a759afa53b771139efa6a62730ed9",
+  "artifact_ref": "synthetic://azure/arg/prod-2026-09-30.json",
+  "change_revision": 1,
+  "confidence": 1.0,
+  "id": "01a0c450-6f3a-79fe-b6e4-2ab27321dd69",
+  "kind": "provider_configuration",
+  "method": "export:arg:v1",
+  "observed_at": "2026-09-30T06:00:00Z",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "source_ref": "azure-resource-graph (synthetic export)",
+  "valid_from": null,
+  "valid_to": null
+}

@@ -1,0 +1,6 @@
+{
+  "key": "fixture-loader",
+  "kind": "human",
+  "label": "Fixture loader",
+  "namespace": "atlas.service"
+}

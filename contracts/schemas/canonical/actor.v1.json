@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:actor:v1",
+  "title": "Actor attribution",
+  "description": "Who or what initiated a change set (ADR-0008 §10). Comes from the execution context, never from a payload.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "namespace",
+    "key",
+    "label"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "human",
+        "service",
+        "system"
+      ]
+    },
+    "namespace": {
+      "type": "string",
+      "enum": [
+        "oidc",
+        "atlas.service",
+        "atlas.system"
+      ]
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "label": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "namespace": {
+            "const": "oidc"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "human"
+          },
+          "key": {
+            "pattern": "^https://\\S+\\|\\S+$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "namespace": {
+            "const": "atlas.service"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "service"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)*$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "namespace": {
+            "const": "atlas.system"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "system"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9-]+)*$"
+          }
+        }
+      }
+    }
+  ]
+}

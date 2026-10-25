@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:fact-assertion:v1",
+  "title": "Fact assertion",
+  "description": "Links a fact (existence or one attribute) to one evidence row, valid for [revision_from, revision_to) (ADR-0018).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "id",
+    "fact_kind",
+    "fact_id",
+    "field_path",
+    "asserted_value",
+    "evidence_id",
+    "evidence_kind",
+    "revision_from",
+    "revision_to"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "fact_kind": {
+      "type": "string",
+      "enum": [
+        "entity",
+        "relationship"
+      ]
+    },
+    "fact_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "field_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+    },
+    "asserted_value": {},
+    "evidence_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "evidence_kind": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/evidence_kind"
+    },
+    "revision_from": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    },
+    "revision_to": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "if": {
+    "properties": {
+      "field_path": {
+        "type": "null"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "asserted_value": {
+        "type": "null"
+      }
+    }
+  }
+}

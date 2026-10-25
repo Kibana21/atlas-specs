@@ -1,0 +1,12 @@
+{
+  "asserted_value": "westeurope",
+  "evidence_id": "01a0c450-6f3a-79fe-b6e4-2ab27321dd69",
+  "evidence_kind": "provider_configuration",
+  "fact_id": "01a0c450-716e-7831-b61e-dc634a438144",
+  "fact_kind": "entity",
+  "field_path": "attributes.location",
+  "id": "01a0c450-7173-77c7-8d8b-ed3f8f7a97a6",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "revision_from": 1,
+  "revision_to": null
+}

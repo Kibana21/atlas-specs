@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:change-set:v1",
+  "title": "Change set (stored record)",
+  "description": "One transaction, one revision, one attribution (ADR-0008 §3, §10). created_at and db_role are set by the server.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "revision",
+    "kind",
+    "channel",
+    "actor",
+    "source_ref",
+    "input_hash",
+    "reverts_revision",
+    "reason",
+    "change_reference",
+    "created_at",
+    "db_role"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "revision": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "fixture_load",
+        "import",
+        "steward_edit",
+        "merge",
+        "split",
+        "discovery_sync",
+        "migration",
+        "revert"
+      ]
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "fixture_cli",
+        "import",
+        "api",
+        "connector",
+        "migration",
+        "system_job"
+      ]
+    },
+    "actor": {
+      "$ref": "urn:atlas:schema:canonical:actor:v1"
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "input_hash": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reverts_revision": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "change_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "created_at": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/timestamp"
+    },
+    "db_role": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    }
+  },
+  "if": {
+    "properties": {
+      "kind": {
+        "const": "revert"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "reverts_revision": {
+        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "reverts_revision": {
+        "type": "null"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:taxonomy-overlay:v1",
+  "title": "Taxonomy overlay (test only)",
+  "description": "A synthetic, test-only delta over an accepted taxonomy version. Never an approved taxonomy; used by fixtures to exercise taxonomy-version-aware history.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "overlay_format",
+    "taxonomy_version",
+    "extends",
+    "status",
+    "note",
+    "add_native_type_mappings"
+  ],
+  "properties": {
+    "overlay_format": {
+      "const": "atlas.taxonomy-overlay.v1"
+    },
+    "taxonomy_version": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    },
+    "extends": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    },
+    "status": {
+      "const": "synthetic_test_only"
+    },
+    "note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "add_native_type_mappings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "native_type",
+            "category"
+          ],
+          "properties": {
+            "native_type": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:fixture-manifest:v1",
+  "title": "Golden fixture manifest",
+  "description": "Inventory and content hashes of a canonical golden fixture (ATLAS-002 CP2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fixture",
+    "fixture_version",
+    "generator",
+    "taxonomy_versions",
+    "files",
+    "counts"
+  ],
+  "properties": {
+    "fixture": {
+      "type": "string"
+    },
+    "fixture_version": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+    },
+    "generator": {
+      "type": "string"
+    },
+    "taxonomy_versions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/taxonomy_version"
+      },
+      "minItems": 1
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "schema",
+          "records",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object"
+    }
+  }
+}

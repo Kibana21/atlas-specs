@@ -1,0 +1,13 @@
+{
+  "entity_id": "01a0c450-ba24-7377-aa19-fe4be6b9502c",
+  "id": "01a0c450-7323-7f62-b176-b612e3a2f221",
+  "key_parts": {},
+  "match_method": "provider_id",
+  "namespace": "aws.arn",
+  "normalization_version": "preserve-1",
+  "normalized_key": "arn:aws:ecs:eu-west-1:111111111111:cluster/rating-ecs-prod",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "original_key": "arn:aws:ecs:eu-west-1:111111111111:cluster/rating-ecs-prod",
+  "revision_from": 2,
+  "revision_to": null
+}

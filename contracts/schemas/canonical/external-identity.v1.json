@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:canonical:external-identity:v1",
+  "title": "External identity binding",
+  "description": "Provider-qualified identity with original and normalized keys (ADR-0003). Closed, never edited.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "org_id",
+    "id",
+    "entity_id",
+    "namespace",
+    "original_key",
+    "normalized_key",
+    "normalization_version",
+    "key_parts",
+    "match_method",
+    "revision_from",
+    "revision_to"
+  ],
+  "properties": {
+    "org_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "entity_id": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/uuid7"
+    },
+    "namespace": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/namespace"
+    },
+    "original_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "normalized_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "normalization_version": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*-[0-9]+$"
+    },
+    "key_parts": {
+      "type": "object"
+    },
+    "match_method": {
+      "type": "string",
+      "enum": [
+        "provider_id",
+        "approved_alias",
+        "org_key",
+        "steward"
+      ]
+    },
+    "revision_from": {
+      "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+    },
+    "revision_to": {
+      "anyOf": [
+        {
+          "$ref": "urn:atlas:schema:canonical:common:v1#/$defs/revision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

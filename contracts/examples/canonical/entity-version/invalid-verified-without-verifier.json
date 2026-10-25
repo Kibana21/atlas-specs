@@ -1,0 +1,26 @@
+{
+  "attributes": {
+    "org_key": "APP-0101"
+  },
+  "category": "core.application",
+  "container_id": null,
+  "display_name": "Claims Portal",
+  "entity_id": "01a0c450-6c7a-751c-a37c-898f87be41a6",
+  "environment_id": null,
+  "environment_scope": null,
+  "expires_at": null,
+  "lifecycle": "active",
+  "merged_into": null,
+  "native_type": null,
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "provider": null,
+  "record_state": "present",
+  "revision_from": 1,
+  "revision_to": null,
+  "taxonomy_version": "1.0.0",
+  "trust_state": "documented",
+  "type_key": "core.application",
+  "verification_state": "verified",
+  "verified_at": null,
+  "verified_by": null
+}

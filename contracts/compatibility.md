@@ -63,3 +63,9 @@ A deprecated operation or field is marked `deprecated: true` in the contract. It
 ## 7. Design tokens
 
 `design/tokens.json` follows the same pinning rules (it is read at the `specs.lock` commit). Token value changes are reviewed as additive; removing or renaming a token is breaking for the frontend.
+
+## 8. Canonical graph contracts (ATLAS-002)
+
+- `contracts/taxonomy/atlas-taxonomy.v1.json` carries its own semantic version (`taxonomy_version`, 1.0.0). MINOR adds; MAJOR removes, renames, narrows or makes an attribute required, and needs a data migration plan and owner approval (ADR-0017 §1).
+- `contracts/schemas/canonical/*.v1.json` are versioned by the `vN` in their `$id`. A breaking change creates `v2` beside `v1`.
+- None of these change the OpenAPI contract or `info.version`; `contract-v0.1.0` remains the API baseline. Consumers pin them through the same `specs.lock` commit SHA.

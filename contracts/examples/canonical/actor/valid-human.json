@@ -1,0 +1,6 @@
+{
+  "key": "https://login.example.invalid/synthetic|steward-0001",
+  "kind": "human",
+  "label": "EA Steward (synthetic)",
+  "namespace": "oidc"
+}

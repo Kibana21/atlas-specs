@@ -1,0 +1,19 @@
+{
+  "attributes": {},
+  "cross_environment": false,
+  "cross_provider": false,
+  "environment_id": null,
+  "expires_at": null,
+  "lifecycle": "active",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "record_state": "merged",
+  "relationship_id": "01a0c450-6c1d-73f8-8555-7aa9bcf443dd",
+  "revision_from": 1,
+  "revision_to": null,
+  "shared_endpoint": false,
+  "taxonomy_version": "1.0.0",
+  "trust_state": "curated",
+  "verification_state": "unverified",
+  "verified_at": null,
+  "verified_by": null
+}

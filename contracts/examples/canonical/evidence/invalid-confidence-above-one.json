@@ -1,0 +1,14 @@
+{
+  "artifact_hash": "sha256:48a612f2d6059f86774af0edcec8858ac3ac19353988a7f3519ffb9b71b1b75a",
+  "artifact_ref": "synthetic://registers/ownership-2026-09.csv",
+  "change_revision": 1,
+  "confidence": 1.5,
+  "id": "01a0c450-6c04-7315-ba60-a50147e6ed63",
+  "kind": "documentation",
+  "method": "import:register:v1",
+  "observed_at": "2026-09-15T12:00:00Z",
+  "org_id": "01a0c450-6c01-76c4-8c39-8171fd4953d6",
+  "source_ref": "team ownership register (synthetic)",
+  "valid_from": null,
+  "valid_to": null
+}
