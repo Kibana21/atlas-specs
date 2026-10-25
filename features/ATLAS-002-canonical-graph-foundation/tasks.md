@@ -35,6 +35,7 @@
 | A2-T25 | Owner follow-up (25 Oct 2026): benchmark the publishing procedure's full-organization state load (CP3-D7) at pilot size; narrow it to touched facts and neighbours if the benchmark requires | A2-T20 | A002-FR-08, A002-FR-12 |
 | A2-T26 | Owner follow-up (25 Oct 2026): implement and verify revision reverts in the publishing procedure (CP3 refuses them, CP3-D7): new change set equal to the state before the reverted revision, refusal on conflict, D-14 | A2-T18 | A002-FR-10 |
 | A2-T27 | Owner follow-up (25 Oct 2026): validate trust recomputation when evidence changes: new, closed and expiring assertions; verification expiry; a recompute change set for time-driven changes (CP3-D6) | A2-T24 | A002-FR-13 |
+| A2-T28 | Owner instruction at G4 (25 Oct 2026): revert of an entity reclassification (r6 steward re-type, r7 taxonomy migration) restoring the earlier version and its recorded taxonomy version; fix validation that blocks a valid revert (D-10), re-validate relationships when an endpoint is re-typed (D-04, ADR-0008 §5.4); conflicting reverts write nothing (AC-CP4-07) | A2-T26 | A002-FR-10 |
 
 ## CP5 — Evidence and acceptance (all)
 

@@ -91,6 +91,7 @@ New from G2 work, **approved at G2 closure**: **I-6**. A required attribute whos
   - no per-source freshness policy (DEC-072, Open) and no field precedence (DEC-034, Proposed) is approved;
   - the trust function therefore never makes a fact stale by age outside the fixture's synthetic policy;
   - it never resolves a disagreement automatically.
+- **Publication performance (release limitation, owner instruction at G4, 25 Oct 2026):** the publishing procedure loads and validates the organization's whole current state on every publish (CP3-D7). Measured cost grows linearly with organization size (`evidence.md` §9.3: at 10k entities / 40k relationships, a one-entity change takes 4.8 s and a no-op 3.6 s). This is acceptable for the initial fixture load and batch imports; it is **not** approved as the interactive-editing implementation. Narrowing the load to the touched facts and their neighbours, and passing the future performance gate PG-1 (`acceptance.md`), are required before any release with interactive writes or Scale A data. No publishing-engine redesign is part of G4 closure.
 
 ## 8. Acceptance
 

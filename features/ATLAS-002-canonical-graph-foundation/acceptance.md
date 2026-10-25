@@ -40,6 +40,19 @@
 | AC-CP4-04 | Given the integrity suite, then H-10, H-14 and D-09 hold at every revision |
 | AC-CP4-05 | Given the pilot-size benchmark, then its results are recorded (no thresholds before the owner sets them), including the publishing procedure's state load (A2-T25) |
 | AC-CP4-06 | Given evidence that is added, closed or expires, when the affected facts are republished or recomputed, then their stored trust states equal trust function v1 and untouched facts are unchanged (A2-T27) |
+| AC-CP4-07 | Given a revision that re-typed an entity (the steward reclassification r6, the taxonomy migration r7), when it is reverted, then a new attributed `revert` change set restores the earlier version exactly, **including the taxonomy version it recorded**; the reverted revision still reconstructs. Given a revert that conflicts (a fact changed again later, or a relationship the restored type does not allow), then it is refused with its rule and nothing is written (owner instruction at G4, 25 Oct 2026; A2-T28) |
+
+## Future performance acceptance gate (PG-1; owner instruction at G4, 25 Oct 2026)
+
+Not part of G4 or ATLAS-002 acceptance. The publishing procedure currently loads and validates the organization's whole current state on every publish (CP3-D7; benchmark in `evidence.md` §9.3). That is approved for fixture loads and batch imports only, **not** as the implementation for interactive editing (`spec.md` §7.1). Before any release with interactive writes or Scale A data, a performance gate PG-1 must pass. Its thresholds are set by the owner before the work starts; the measurements run in CI or a disposable environment only, never on the shared server (A002-FR-12).
+
+| ID | Given / When / Then |
+|---|---|
+| PG-1.1 | **Single-entity update:** given organizations of increasing size, when one entity changes, then publication time is within the owner's threshold and does not grow linearly with the organization's size |
+| PG-1.2 | **No-op publishing:** given an unchanged input, when it is published, then nothing is written and the time is within the threshold |
+| PG-1.3 | **Concurrent writers:** given several writers on one organization (and on different organizations), then revisions stay gap-free and in commit order, no write is lost, and wait times are recorded against the threshold |
+| PG-1.4 | **Increasing graph sizes:** given the pilot size (10k/40k) and at least one larger step towards Scale A, then initial load, update, no-op and state-load times are recorded per size, and the growth curve is reported |
+| PG-1.5 | **Historical reconstruction:** given a long history, when the graph is reconstructed as of an early, middle and recent revision, then the result equals the recorded graph hash and the time is within the threshold |
 
 ## CP5
 
