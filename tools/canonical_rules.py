@@ -432,12 +432,13 @@ def _retyped_endpoints(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: li
                 v = next((x for x in ix.rv_versions.get(r["id"], []) if valid_at(x, rev)), None)
                 if v is None or v["revision_from"] == rev or v["record_state"] != "present":
                     continue  # absent, or rewritten in the same change set (checked as its own version)
-                tax = taxes.get(v["taxonomy_version"])
+                lbl = f"relationship {r['id']} {r['rel_type']}@{rev} (endpoint {eid} re-typed)"
+                tax = tax_for(taxes, v["taxonomy_version"], lbl, f)   # never skipped: an unloaded taxonomy is D-01
                 fv, tv = ix.entity_at(r["from_id"], rev), ix.entity_at(r["to_id"], rev)
                 if tax is None or fv is None or tv is None:
                     continue
                 for reason in check_pair(tax, r["rel_type"], fv, tv, v["attributes"]):
-                    f.append(Finding("D-04", DOMAIN, f"relationship {r['id']} {r['rel_type']}@{rev} (endpoint {eid} re-typed): {reason}"))
+                    f.append(Finding("D-04", DOMAIN, f"{lbl}: {reason}"))
 
 
 def _domain_relationships(ds: Dataset, ix: Index, taxes: dict[str, Taxonomy], f: list[Finding]) -> None:

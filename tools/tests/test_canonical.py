@@ -406,6 +406,19 @@ def m_retype_strands_relationship(ds: Dataset) -> None:
                                      "reason": "re-type", "source_ref": "steward", "created_at": r8["created_at"]})
 
 
+def test_retype_with_unloaded_relationship_taxonomy_is_d01_not_skipped() -> None:
+    """F-10: the D-04 re-check needs the relationship's recorded taxonomy; without it the re-type is D-01, never skipped."""
+    ds, taxes = dataset()
+    m_retype_strands_relationship(ds)
+    org = ds.org_ids()[0]
+    by(ds, "entity_versions", org_id=org, revision_from=9)["taxonomy_version"] = "1.1.0"   # re-stamped on publish
+    approved = {v: t for v, t in taxes.items() if v == "1.1.0"}
+    retyped = [f for f in fixture_findings(ds, approved) if "re-typed" in f.message]
+    assert retyped and {(f.rule, f.cls) for f in retyped} == {("D-01", "DOMAIN")}
+    assert all("unknown taxonomy version 1.2.0-test.1" in f.message for f in retyped)
+    assert "D-04" in {f.rule for f in fixture_findings(ds, taxes) if "re-typed" in f.message}   # every taxonomy loaded
+
+
 def m_secret_attribute(ds: Dataset) -> None:
     entity_named(ds, "kv-claims-prod")["attributes"]["client_secret"] = "x"
 
